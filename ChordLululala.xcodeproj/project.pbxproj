@@ -1,0 +1,582 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		DB32EED42D4CC83B008C113B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB32EEB42D4CC838008C113B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB32EEBB2D4CC838008C113B;
+			remoteInfo = ChordLululala;
+		};
+		DB32EEDE2D4CC83C008C113B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB32EEB42D4CC838008C113B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB32EEBB2D4CC838008C113B;
+			remoteInfo = ChordLululala;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DB32EEBC2D4CC838008C113B /* ChordLululala.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChordLululala.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DB32EEE52D4CC83C008C113B /* Exceptions for "ChordLululala" folder in "ChordLululala" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DB32EEBE2D4CC838008C113B /* ChordLululala */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DB32EEE52D4CC83C008C113B /* Exceptions for "ChordLululala" folder in "ChordLululala" target */,
+			);
+			path = ChordLululala;
+			sourceTree = "<group>";
+		};
+		DB32EED62D4CC83C008C113B /* ChordLululalaTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ChordLululalaTests;
+			sourceTree = "<group>";
+		};
+		DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ChordLululalaUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DB32EEB92D4CC838008C113B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EED02D4CC83B008C113B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EEDA2D4CC83C008C113B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DB32EEB32D4CC838008C113B = {
+			isa = PBXGroup;
+			children = (
+				DB32EEBE2D4CC838008C113B /* ChordLululala */,
+				DB32EED62D4CC83C008C113B /* ChordLululalaTests */,
+				DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */,
+				DB32EEBD2D4CC838008C113B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DB32EEBD2D4CC838008C113B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB32EEBC2D4CC838008C113B /* ChordLululala.app */,
+				DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */,
+				DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DB32EEBB2D4CC838008C113B /* ChordLululala */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB32EEE62D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululala" */;
+			buildPhases = (
+				DB32EEB82D4CC838008C113B /* Sources */,
+				DB32EEB92D4CC838008C113B /* Frameworks */,
+				DB32EEBA2D4CC838008C113B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DB32EEBE2D4CC838008C113B /* ChordLululala */,
+			);
+			name = ChordLululala;
+			packageProductDependencies = (
+			);
+			productName = ChordLululala;
+			productReference = DB32EEBC2D4CC838008C113B /* ChordLululala.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DB32EED22D4CC83B008C113B /* ChordLululalaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB32EEEB2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaTests" */;
+			buildPhases = (
+				DB32EECF2D4CC83B008C113B /* Sources */,
+				DB32EED02D4CC83B008C113B /* Frameworks */,
+				DB32EED12D4CC83B008C113B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DB32EED52D4CC83B008C113B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DB32EED62D4CC83C008C113B /* ChordLululalaTests */,
+			);
+			name = ChordLululalaTests;
+			packageProductDependencies = (
+			);
+			productName = ChordLululalaTests;
+			productReference = DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DB32EEDC2D4CC83C008C113B /* ChordLululalaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB32EEEE2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaUITests" */;
+			buildPhases = (
+				DB32EED92D4CC83C008C113B /* Sources */,
+				DB32EEDA2D4CC83C008C113B /* Frameworks */,
+				DB32EEDB2D4CC83C008C113B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DB32EEDF2D4CC83C008C113B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */,
+			);
+			name = ChordLululalaUITests;
+			packageProductDependencies = (
+			);
+			productName = ChordLululalaUITests;
+			productReference = DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DB32EEB42D4CC838008C113B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					DB32EEBB2D4CC838008C113B = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					DB32EED22D4CC83B008C113B = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = DB32EEBB2D4CC838008C113B;
+					};
+					DB32EEDC2D4CC83C008C113B = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = DB32EEBB2D4CC838008C113B;
+					};
+				};
+			};
+			buildConfigurationList = DB32EEB72D4CC838008C113B /* Build configuration list for PBXProject "ChordLululala" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DB32EEB32D4CC838008C113B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DB32EEBD2D4CC838008C113B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DB32EEBB2D4CC838008C113B /* ChordLululala */,
+				DB32EED22D4CC83B008C113B /* ChordLululalaTests */,
+				DB32EEDC2D4CC83C008C113B /* ChordLululalaUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DB32EEBA2D4CC838008C113B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EED12D4CC83B008C113B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EEDB2D4CC83C008C113B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DB32EEB82D4CC838008C113B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EECF2D4CC83B008C113B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB32EED92D4CC83C008C113B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DB32EED52D4CC83B008C113B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
+			targetProxy = DB32EED42D4CC83B008C113B /* PBXContainerItemProxy */;
+		};
+		DB32EEDF2D4CC83C008C113B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
+			targetProxy = DB32EEDE2D4CC83C008C113B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DB32EEE72D4CC83C008C113B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ChordLululala/ChordLululala.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ChordLululala/Preview Content\"";
+				DEVELOPMENT_TEAM = GXC72G385T;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChordLululala/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululala;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DB32EEE82D4CC83C008C113B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ChordLululala/ChordLululala.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ChordLululala/Preview Content\"";
+				DEVELOPMENT_TEAM = GXC72G385T;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChordLululala/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululala;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		DB32EEE92D4CC83C008C113B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DB32EEEA2D4CC83C008C113B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DB32EEEC2D4CC83C008C113B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GXC72G385T;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululalaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChordLululala.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChordLululala";
+			};
+			name = Debug;
+		};
+		DB32EEED2D4CC83C008C113B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GXC72G385T;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululalaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ChordLululala.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ChordLululala";
+			};
+			name = Release;
+		};
+		DB32EEEF2D4CC83C008C113B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GXC72G385T;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululalaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChordLululala;
+			};
+			name = Debug;
+		};
+		DB32EEF02D4CC83C008C113B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GXC72G385T;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kmh.study.ChordLululalaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ChordLululala;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DB32EEB72D4CC838008C113B /* Build configuration list for PBXProject "ChordLululala" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB32EEE92D4CC83C008C113B /* Debug */,
+				DB32EEEA2D4CC83C008C113B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB32EEE62D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululala" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB32EEE72D4CC83C008C113B /* Debug */,
+				DB32EEE82D4CC83C008C113B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB32EEEB2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB32EEEC2D4CC83C008C113B /* Debug */,
+				DB32EEED2D4CC83C008C113B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB32EEEE2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB32EEEF2D4CC83C008C113B /* Debug */,
+				DB32EEF02D4CC83C008C113B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DB32EEB42D4CC838008C113B /* Project object */;
+}
