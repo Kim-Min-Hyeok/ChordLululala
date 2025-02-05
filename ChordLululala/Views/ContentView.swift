@@ -17,10 +17,11 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            // initial Root(HomeView): "/"
             HomeView()
                 .navigationDestination(for: Route.self) { route in
                     switch route.name {
+                    case "/": // initial Root(HomeView): "/"
+                        HomeView()
                     case "/scorelist":
                         ScoreListView(context: viewContext)
                     case "/detail":
