@@ -25,7 +25,7 @@ struct ScoreListView: View {
                     if let date = score.timestamp {
                         let timestampString = scoreFormatter.string(from: date)
                         // "detail" 라우트로 push 하며 timestamp 전달
-                        router.toNamed("detail", arguments: ["timestamp": timestampString])
+                        router.toNamed("/detail", arguments: ["timestamp": timestampString])
                     }
                 } label: {
                     if let date = score.timestamp {

@@ -17,16 +17,16 @@ struct HomeView: View {
                 .padding()
             
             Button("Go to Score List") {
-                router.toNamed("scorelist")
+                router.toNamed("/scorelist")
             }
             .buttonStyle(.borderedProminent)
             
             Button("Go to My Page") {
-                router.toNamed("mypage")
+                router.toNamed("/mypage")
             }
             .buttonStyle(.bordered)
             Button("Go to Setting") {
-                router.toNamed("setting")
+                router.toNamed("/setting")
             }
             .buttonStyle(.bordered)
         }
