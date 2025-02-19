@@ -11,6 +11,9 @@ struct DocumentViewContainer<Content: View>: View {
     @StateObject private var viewModel = DocumentViewModel()
     @State private var sidebarDragOffset: CGFloat = 0
     private let sidebarWidth: CGFloat = 257
+    
+    @State private var currentFilter: ToggleFilter = .all
+        
     let content: Content
     
     init(@ViewBuilder content: () -> Content) {
@@ -25,6 +28,9 @@ struct DocumentViewContainer<Content: View>: View {
                     .environmentObject(viewModel)
                     .padding(.top, 30)
                     .padding(.horizontal, 30)
+                FileFolderFilterToggleView(selectedFilter: $currentFilter)
+                                    .padding(.horizontal, 416)
+                                    .padding(.top, 33)
                 content
                 Spacer()
             }
@@ -74,5 +80,11 @@ struct DocumentViewContainer<Content: View>: View {
             }
             .ignoresSafeArea(edges: .leading)
         }
+        .contentShape(Rectangle())
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        self.hideKeyboard()
+                    }
+                )
     }
 }
