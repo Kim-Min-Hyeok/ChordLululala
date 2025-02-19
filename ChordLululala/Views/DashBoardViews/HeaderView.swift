@@ -9,36 +9,31 @@ import SwiftUI
 
 struct HeaderView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    
     var body: some View {
         HStack {
-            // 햄버거 버튼: 사이드바 토글
             Button(action: {
                 withAnimation {
                     viewModel.isSidebarVisible.toggle()
                 }
             }) {
-                Image("menu") // Assets에 추가한 menu.png
+                Image("menu") // Assets의 menu.png 사용
                     .resizable()
                     .renderingMode(.template)
                     .foregroundColor(.black)
                     .frame(width: 32, height: 32)
                     .padding(.leading, 24)
             }
-            
             Text("검색")
                 .font(.headline)
                 .foregroundColor(.black)
                 .padding(.leading, 10)
-            
-            TextField("", text: $viewModel.searchText)
+            TextField("검색어 입력", text: $viewModel.searchText)
                 .padding(10)
                 .background(Color.white.opacity(0.2))
                 .cornerRadius(8)
                 .foregroundColor(.black)
-            
             Button(action: {
-                // 사용자 버튼 액션 (추후 구현)
+                // 사용자 버튼 액션
             }) {
                 Image(systemName: "person.crop.circle")
                     .font(.title2)

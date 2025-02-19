@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @StateObject private var viewModel = DashBoardViewModel() // 새 뷰모델 사용
+    @StateObject private var viewModel = DashBoardViewModel()
     @State private var sidebarDragOffset: CGFloat = 0
     private let sidebarWidth: CGFloat = 257
+    
+    // 리스트 모드 여부 (true: List, false: Grid)
+    @State private var isListView: Bool = true
     
     var body: some View {
         ZStack {
@@ -19,16 +22,16 @@ struct DashboardView: View {
                     .environmentObject(viewModel)
                     .padding(.top, 30)
                     .padding(.horizontal, 30)
-                // 파일/폴더 토글 (바인딩을 뷰모델로)
+                
                 FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
                     .padding(.horizontal, 416)
                     .padding(.top, 33)
                 
                 HStack {
                     SortToggleView(selectedSort: $viewModel.selectedSort)
-                        .frame(maxWidth: 150)
                     Spacer()
                     Button(action: {
+                        // 선택 이미지 버튼 액션 (추후 구현)
                     }) {
                         Image(systemName: "checkmark.circle")
                             .resizable()
@@ -36,29 +39,42 @@ struct DashboardView: View {
                     }
                     .padding(.trailing, 8)
                     
+                    // 리스트/그리드 토글 버튼
                     Button(action: {
+                        isListView.toggle()
                     }) {
                         Image(systemName: "list.bullet")
                             .resizable()
                             .frame(width: 21, height: 21)
+                            .foregroundColor(isListView ? .blue : .gray)
                     }
                 }
                 .padding(.horizontal, 168)
                 .padding(.top, 10)
                 
-                Group {
-                    switch viewModel.selectedContent {
-                    case .allDocuments:
-                        AllDocumentContentView()
-                    case .recentDocuments:
-                        RecentDocumentContentView()
-                    case .songList:
-                        SongListContentView()
-                    case .trashCan:
-                        TrashCanContentView()
+                // 내부 콘텐츠 영역: 폴더와 파일 ContentView 분리하여 표시
+                ScrollView {
+                    VStack(alignment: .leading, spacing: CGFloat(isListView ? 0 : 80)) {
+                        // 폴더 영역
+                        if viewModel.currentFilter == .all || viewModel.currentFilter == .folder {
+                            if isListView {
+                                FolderListView(folders: viewModel.sortedFolders, cellSpacing: 18)
+                            } else {
+                                FolderGridView(folders: viewModel.sortedFolders, cellSpacing: 8)
+                            }
+                        }
+                        // 파일 영역
+                        if viewModel.currentFilter == .all || viewModel.currentFilter == .file {
+                            if isListView {
+                                FileListView(files: viewModel.sortedFiles, cellSpacing: 18)
+                            } else {
+                                FileGridView(files: viewModel.sortedFiles, cellSpacing: 8)
+                            }
+                        }
                     }
+                    .padding(.horizontal, 168)
                 }
-                .padding(.horizontal, 30)
+                .padding()
                 
                 Spacer()
             }
@@ -74,10 +90,13 @@ struct DashboardView: View {
                     }
             }
             
+            // 사이드바 (드래그 제스처 포함)
             HStack(spacing: 0) {
                 SidebarView(onSelect: { newContent in
                     withAnimation(.easeInOut) {
                         viewModel.isSidebarVisible = false
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                         viewModel.selectedContent = newContent
                     }
                 })
@@ -119,5 +138,6 @@ struct DashboardView: View {
                 self.hideKeyboard()
             }
         )
+        .environmentObject(viewModel)
     }
 }

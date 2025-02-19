@@ -16,22 +16,69 @@ enum DashboardContent {
 }
 
 final class DashBoardViewModel: ObservableObject {
-    // 사이드바 열림 상태 (기존 DocumentViewModel에서 관리하던 값)
     @Published var isSidebarVisible: Bool = false
-    
-    // 파일/폴더 필터 상태
     @Published var currentFilter: ToggleFilter = .all
-    // 정렬 옵션 상태
     @Published var selectedSort: SortOption = .date
-    // 내부 콘텐츠 전환 상태
     @Published var selectedContent: DashboardContent = .allDocuments {
         didSet {
-            // 콘텐츠가 바뀌면 기본값으로 초기화
+            // 콘텐츠 변경 시 필터, 정렬, 검색어 기본값으로 초기화
             currentFilter = .all
             selectedSort = .date
             searchText = ""
         }
     }
-    // 검색어 상태
     @Published var searchText: String = ""
+    
+    @Published var files: [FileModel] = MockData.sampleFiles
+    @Published var folders: [FolderModel] = MockData.sampleFolders
+    
+    // 필터: currentFilter에 따라 파일/폴더 목록 분리
+    var filteredFolders: [FolderModel] {
+        currentFilter == .file ? [] : folders.filter { folder in
+            switch selectedContent {
+            case .allDocuments:
+                return true // 모든 폴더 포함
+            case .recentDocuments:
+                let calendar = Calendar.current
+                let today = Date()
+                let oneDayAgo = calendar.date(byAdding: .day, value: -1, to: today)!
+                return folder.accessedDate >= oneDayAgo // 최근 접근된 폴더
+            case .trashCan:
+                return false // trashCan에서 폴더는 제외
+            case .songList:
+                return false // songList는 폴더를 포함하지 않음
+            }
+        }
+    }
+    var filteredFiles: [FileModel] {
+        currentFilter == .folder ? [] : files.filter { file in
+            switch selectedContent {
+            case .allDocuments:
+                return true // 모든 파일 포함
+            case .recentDocuments:
+                let calendar = Calendar.current
+                let today = Date()
+                let oneDayAgo = calendar.date(byAdding: .day, value: -1, to: today)!
+                return file.isTrash == false && file.modifiedDate >= oneDayAgo // 최근 수정된 파일
+            case .trashCan:
+                return file.isTrash // trashCan: isTrash가 true인 파일만
+            case .songList:
+                return false // songList는 파일을 포함하지 않음
+            }
+        }
+    }
+    
+    // 정렬: selectedSort에 따라 정렬 (여기선 단순 name 정렬 예시)
+    var sortedFolders: [FolderModel] {
+        switch selectedSort {
+        case .date: return filteredFolders
+        case .name: return filteredFolders.sorted { $0.name < $1.name }
+        }
+    }
+    var sortedFiles: [FileModel] {
+        switch selectedSort {
+        case .date: return filteredFiles
+        case .name: return filteredFiles.sorted { $0.name < $1.name }
+        }
+    }
 }
