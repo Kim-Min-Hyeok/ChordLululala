@@ -22,15 +22,8 @@ struct ContentView: View {
                     switch route.name {
                     case "/": // initial Root(HomeView): "/"
                         HomeView()
-                    case "/scorelist":
-                        ScoreListView(context: viewContext)
-                    case "/detail":
-                        let timestamp = route.arguments?["timestamp"] ?? "No Date"
-                        DetailView(timestamp: timestamp)
-                    case "/mypage":
-                        MyPageView()
-                    case "/setting":
-                        SettingView()
+//                    case "/score":
+//                        ScoreView()
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }
