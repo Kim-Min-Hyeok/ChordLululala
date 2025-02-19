@@ -8,8 +8,7 @@
 import SwiftUI
 
 struct HeaderView: View {
-    @EnvironmentObject var viewModel: DocumentViewModel
-    @State private var searchText: String = ""
+    @EnvironmentObject var viewModel: DashBoardViewModel
     
     var body: some View {
         HStack {
@@ -32,7 +31,7 @@ struct HeaderView: View {
                 .foregroundColor(.black)
                 .padding(.leading, 10)
             
-            TextField("검색어 입력", text: $searchText)
+            TextField("", text: $viewModel.searchText)
                 .padding(10)
                 .background(Color.white.opacity(0.2))
                 .cornerRadius(8)

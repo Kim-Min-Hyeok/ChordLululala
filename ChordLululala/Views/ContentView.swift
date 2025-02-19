@@ -17,17 +17,11 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            AllDocumentView()
+            DashboardView()
                 .navigationDestination(for: Route.self) { route in
                     switch route.name {
                     case "/": // initial Root(HomeView): "/"
-                        AllDocumentView()
-                    case "/recent":
-                        RecentDocumentView()
-                    case "/songlist":
-                        SongListView()
-                    case "/trashcan":
-                        TrashCanView()
+                        DashboardView()
                         //                    case "/score":
                         //                        ScoreView()
                     default:

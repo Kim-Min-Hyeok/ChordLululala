@@ -7,9 +7,10 @@
 
 import SwiftUI
 
+import SwiftUI
+
 struct SidebarView: View {
-    @EnvironmentObject var router: NavigationRouter
-    @EnvironmentObject var viewModel: DocumentViewModel
+    var onSelect: (DashboardContent) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -22,39 +23,19 @@ struct SidebarView: View {
             Divider()
             
             SidebarButtonView(imageName: "house.fill", title: "최근 열어본 문서") {
-                withAnimation { viewModel.isSidebarVisible = false }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    if router.path.last?.name != "/recent" {
-                        router.toNamed("/recent")
-                    }
-                }
+                onSelect(.recentDocuments)
             }
             
             SidebarButtonView(imageName: "doc.text", title: "전체 문서") {
-                withAnimation { viewModel.isSidebarVisible = false }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    if router.path.last?.name != "/" {
-                        router.toNamed("/")
-                    }
-                }
+                onSelect(.allDocuments)
             }
             
             SidebarButtonView(imageName: "music.note", title: "송리스트") {
-                withAnimation { viewModel.isSidebarVisible = false }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    if router.path.last?.name != "/songlist" {
-                        router.toNamed("/songlist")
-                    }
-                }
+                onSelect(.songList)
             }
             
             SidebarButtonView(imageName: "trash", title: "휴지통") {
-                withAnimation { viewModel.isSidebarVisible = false }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    if router.path.last?.name != "/trashcan" {
-                        router.toNamed("/trashcan")
-                    }
-                }
+                onSelect(.trashCan)
             }
             
             Spacer()
