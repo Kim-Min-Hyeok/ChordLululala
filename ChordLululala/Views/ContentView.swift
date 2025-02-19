@@ -17,13 +17,19 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            HomeView()
+            AllDocumentView()
                 .navigationDestination(for: Route.self) { route in
                     switch route.name {
                     case "/": // initial Root(HomeView): "/"
-                        HomeView()
-//                    case "/score":
-//                        ScoreView()
+                        AllDocumentView()
+                    case "/recent":
+                        RecentDocumentView()
+                    case "/songlist":
+                        SongListView()
+                    case "/trashcan":
+                        TrashCanView()
+                        //                    case "/score":
+                        //                        ScoreView()
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }
