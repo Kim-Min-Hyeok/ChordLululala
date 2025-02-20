@@ -8,7 +8,7 @@ struct ScoreView : View {
         
         VStack{
             ScoreHeaderView()
-                .background(Color.yellow)
+            Divider()
             Spacer()
         }
         
