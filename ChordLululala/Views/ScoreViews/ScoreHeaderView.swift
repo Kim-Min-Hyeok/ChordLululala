@@ -4,7 +4,7 @@ import SwiftUI
 struct ScoreHeaderView: View {
     
     @State private var scoreTitle : String = "네잎 클로버"
-    @State private var isPencilActive: Bool = false
+    @Binding  var isPencilActive: Bool
     
     
     var body: some View {
@@ -17,6 +17,7 @@ struct ScoreHeaderView: View {
                 Image(systemName: "chevron.backward")
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             
             // 전체 페이지
@@ -47,6 +48,7 @@ struct ScoreHeaderView: View {
                 Image(systemName: isPencilActive ? "pencil.circle.fill" : "pencil") // 이미지 바꿔야 함
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             // 메모장
             Button(action:{
@@ -55,6 +57,7 @@ struct ScoreHeaderView: View {
                 Text("메모장")
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             // 키변환
             Button(action:{
@@ -63,6 +66,7 @@ struct ScoreHeaderView: View {
                 Text("키변환")
                     .foregroundColor(Color.blue)
             }
+            .padding(.trailing,10)
             
             // 설정
             Button(action:{
@@ -80,5 +84,5 @@ struct ScoreHeaderView: View {
 
 
 #Preview {
-    ScoreHeaderView()
+    ScoreHeaderView(isPencilActive: .constant(false))
 }
