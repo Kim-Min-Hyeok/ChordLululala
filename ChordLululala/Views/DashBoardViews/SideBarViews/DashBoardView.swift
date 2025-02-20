@@ -10,6 +10,7 @@ import SwiftUI
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
     @State private var sidebarDragOffset: CGFloat = 0
+    @State private var isFloatingMenuVisible: Bool = false
     private let sidebarWidth: CGFloat = 257
     
     // 리스트 모드 여부 (true: List, false: Grid)
@@ -74,9 +75,68 @@ struct DashboardView: View {
                     }
                     .padding(.horizontal, 168)
                 }
-                .padding()
                 
                 Spacer()
+            }
+            
+            ZStack {
+                // 메뉴가 열렸을 때 다른 영역 터치하면 닫히도록
+                if isFloatingMenuVisible {
+                    Color.clear
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                isFloatingMenuVisible = false
+                            }
+                        }
+                }
+                
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        ZStack(alignment: .bottomTrailing) {
+                            Button(action: {
+                                withAnimation {
+                                    isFloatingMenuVisible.toggle()
+                                }
+                            }) {
+                                Image(systemName: "plus")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.black)
+                                    .padding()
+                                    .background(Color.gray)
+                                    .clipShape(Circle())
+                            }
+                            .padding(.trailing, 29)
+                            .padding(.bottom, 40)
+                            
+                            // 메뉴 뷰: 플로팅 버튼 위에 (trailing: 29, bottom: 76)에 위치
+                            if isFloatingMenuVisible {
+                                VStack(spacing: 10) {
+                                    FloatingMenuView(
+                                        folderAction: {
+                                            print("폴더 만들기 액션 실행")
+                                            withAnimation {
+                                                isFloatingMenuVisible.toggle()
+                                            }
+                                        },
+                                        fileUploadAction: {
+                                            print("파일 업로드 액션 실행")
+                                            withAnimation {
+                                                isFloatingMenuVisible.toggle()
+                                            }
+                                        }
+                                    )
+                                }
+                                .padding(.trailing, 29)
+                                .padding(.bottom, 76)
+                                .transition(.opacity)
+                            }
+                        }
+                    }
+                }
             }
             
             // 사이드바 오버레이 배경
