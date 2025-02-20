@@ -17,19 +17,13 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            // initial Root: HomeView
-            HomeView()
+            DashboardView()
                 .navigationDestination(for: Route.self) { route in
                     switch route.name {
-                    case "scorelist":
-                        ScoreListView(context: viewContext)
-                    case "detail":
-                        let timestamp = route.arguments?["timestamp"] ?? "No Date"
-                        DetailView(timestamp: timestamp)
-                    case "mypage":
-                        MyPageView()
-                    case "setting":
-                        SettingView()
+                    case "/": // initial Root(HomeView): "/"
+                        DashboardView()
+                        //                    case "/score":
+                        //                        ScoreView()
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }
