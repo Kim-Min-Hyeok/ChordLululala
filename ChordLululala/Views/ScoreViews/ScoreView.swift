@@ -5,8 +5,19 @@ import SwiftUI
 
 struct ScoreView : View {
     var body: some View {
-        Text("")
+        
+        VStack{
+            ScoreHeaderView()
+                .background(Color.yellow)
+            Spacer()
+        }
+        
     }
+}
+
+
+#Preview {
+    ScoreView()
 }
 
 
