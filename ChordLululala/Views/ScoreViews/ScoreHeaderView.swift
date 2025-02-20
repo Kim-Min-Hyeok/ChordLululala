@@ -1,0 +1,84 @@
+
+import SwiftUI
+
+struct ScoreHeaderView: View {
+    
+    @State private var scoreTitle : String = "네잎 클로버"
+    @State private var isPencilActive: Bool = false
+    
+    
+    var body: some View {
+        
+        HStack{
+            // 뒤로가기
+            Button(action:{
+                print("뒤로 가기 클릭") // 기능 추가해야 함
+            }){
+                Image(systemName: "chevron.backward")
+                    .foregroundColor(Color.black)
+            }
+            
+            
+            // 전체 페이지
+            Button(action:{
+                print("전체 페이지 클릭")  // 기능 추가해야 함
+            }){
+               Text("전체 페이지")
+                    .foregroundColor(Color.black)
+                    .fontWeight(.semibold)
+                
+                Image(systemName: "line.3.horizontal")
+                    .foregroundColor(Color.black)
+            }
+            
+            Spacer()
+            
+            // 제목
+            Text(scoreTitle)
+                .fontWeight(.semibold)
+            
+            Spacer()
+            
+            // 펜슬
+            Button(action:{
+                isPencilActive.toggle()
+                print("펜슬 기능 클릭") // 기능 추가해야함
+            }){
+                Image(systemName: isPencilActive ? "pencil.circle.fill" : "pencil") // 이미지 바꿔야 함
+                    .foregroundColor(Color.black)
+            }
+            
+            // 메모장
+            Button(action:{
+                print("메모장 기능 클릭") // 기능 추가해야함
+            }){
+                Text("메모장")
+                    .foregroundColor(Color.black)
+            }
+            
+            // 키변환
+            Button(action:{
+                print("키변환 기능 클릭") // 기능 추가해야함
+            }){
+                Text("키변환")
+                    .foregroundColor(Color.blue)
+            }
+            
+            // 설정
+            Button(action:{
+                print("설정 기능 클릭") // 기능 추가해야함
+            }){
+                Image(systemName: "gear") // 이미지 바꿔야 함
+                    .foregroundColor(Color.black)
+            }
+        }
+        .frame(height: 83)
+        .padding(.horizontal)
+        
+    }
+}
+
+
+#Preview {
+    ScoreHeaderView()
+}
