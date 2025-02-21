@@ -7,7 +7,7 @@ struct ScoreHeaderView: View {
     @Binding  var isPencilActive: Bool
     @Binding  var isMemoActive: Bool
     @Binding var isSettingActive: Bool
-    
+    @Binding var isTransPose : Bool
     
     var body: some View {
         
@@ -64,6 +64,7 @@ struct ScoreHeaderView: View {
             
             // 키변환
             Button(action:{
+                isTransPose.toggle()
                 print("키변환 기능 클릭") // 기능 추가해야함
             }){
                 Text("키변환")
@@ -88,5 +89,5 @@ struct ScoreHeaderView: View {
 
 
 #Preview {
-    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false),isSettingActive: .constant(false))
+    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false),isSettingActive: .constant(false),isTransPose: .constant(false))
 }

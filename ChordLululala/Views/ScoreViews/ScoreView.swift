@@ -11,6 +11,7 @@ enum SettingsMenu {
 struct ScoreView : View {
     @State private var isPencilActive: Bool = false
     @State private var isMemoActive: Bool = false
+    @State private var isTransPose: Bool = false
     @State private var isSettingActive: Bool = false
     @State private var selectedMenu: SettingsMenu? = nil
     
@@ -19,8 +20,14 @@ struct ScoreView : View {
     var body: some View {
         ZStack{
             VStack{
-                ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive)
-                Divider()
+                if isTransPose {
+                        TransposeHeaderView(isTransPose: $isTransPose)
+                        Divider()
+                } else {
+                    ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive, isTransPose: $isTransPose)
+                    Divider()
+                }
+                
                 if isPencilActive {
                         PencilToolsView(isPencilActive: $isPencilActive)
                         .padding(.top, -10)
