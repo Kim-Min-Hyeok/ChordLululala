@@ -8,23 +8,18 @@
 import SwiftUI
 
 struct FolderGridView: View {
-    let folders: [FolderModel]
-    let cellSpacing: CGFloat
-    let columns: [GridItem]
-    
-    init(folders: [FolderModel], cellSpacing: CGFloat) {
-        self.folders = folders
-        self.cellSpacing = cellSpacing
-        self.columns = Array(repeating: GridItem(.flexible(), spacing: cellSpacing), count: 4)
-    }
+    let folders: [Content] // 폴더: type == 2
+    let cellSpacing: CGFloat = 8
+    let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
     
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: cellSpacing) {
-                ForEach(folders) { folder in
+                ForEach(folders, id: \.cid) { folder in
                     FolderGridCellView(folder: folder)
                 }
             }
+            .padding()
         }
     }
 }

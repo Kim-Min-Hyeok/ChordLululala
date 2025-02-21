@@ -11,6 +11,7 @@ struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
     @State private var sidebarDragOffset: CGFloat = 0
     @State private var isFloatingMenuVisible: Bool = false
+    @State private var isShowingPDFPicker: Bool = false
     private let sidebarWidth: CGFloat = 257
     
     // 리스트 모드 여부 (true: List, false: Grid)
@@ -56,20 +57,28 @@ struct DashboardView: View {
                 // 내부 콘텐츠 영역: 폴더와 파일 ContentView 분리하여 표시
                 ScrollView {
                     VStack(alignment: .leading, spacing: CGFloat(isListView ? 0 : 80)) {
+                        
+                        // TODO: 테스트 후 지우기
+                        Button("모든 데이터 삭제") {
+                            ContentManager.shared.deleteAllCoreDataObjects()
+                            FileManagerManager.shared.deleteAllFilesInScoreFolder()
+                            // 필요 시, 다른 폴더의 파일들도 삭제합니다.
+                        }
+                        .padding(.top, 50)
                         // 폴더 영역
                         if viewModel.currentFilter == .all || viewModel.currentFilter == .folder {
                             if isListView {
-                                FolderListView(folders: viewModel.sortedFolders, cellSpacing: 18)
+                                FolderListView(folders: viewModel.sortedFolders)
                             } else {
-                                FolderGridView(folders: viewModel.sortedFolders, cellSpacing: 8)
+                                FolderGridView(folders: viewModel.sortedFolders)
                             }
                         }
                         // 파일 영역
                         if viewModel.currentFilter == .all || viewModel.currentFilter == .file {
                             if isListView {
-                                FileListView(files: viewModel.sortedFiles, cellSpacing: 18)
+                                FileListView(files: viewModel.sortedFiles)
                             } else {
-                                FileGridView(files: viewModel.sortedFiles, cellSpacing: 8)
+                                FileGridView(files: viewModel.sortedFiles)
                             }
                         }
                     }
@@ -126,6 +135,7 @@ struct DashboardView: View {
                                             print("파일 업로드 액션 실행")
                                             withAnimation {
                                                 isFloatingMenuVisible.toggle()
+                                                isShowingPDFPicker = true
                                             }
                                         }
                                     )
@@ -199,5 +209,11 @@ struct DashboardView: View {
             }
         )
         .environmentObject(viewModel)
+        .sheet(isPresented: $isShowingPDFPicker) {
+            PDFPicker { selectedURL in
+                viewModel.uploadFile(with: selectedURL)
+                isShowingPDFPicker = false
+            }
+        }
     }
 }

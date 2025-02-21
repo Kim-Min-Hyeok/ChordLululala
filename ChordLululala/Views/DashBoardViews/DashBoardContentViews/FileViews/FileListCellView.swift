@@ -8,22 +8,21 @@
 import SwiftUI
 
 struct FileListCellView: View {
-    let file: FileModel
+    let file: Content
     var body: some View {
-        VStack() {
+        VStack {
             HStack(spacing: 12) {
-                file.image
+                Image(systemName: "doc.richtext")
                     .resizable()
                     .frame(width: 53, height: 53)
                     .foregroundColor(.black)
-                Text(file.name)
+                Text(file.name ?? "Unnamed")
                     .font(.body)
                     .foregroundColor(.black)
                 Spacer()
             }
             Divider()
         }
-        .background(Color.clear)
         .frame(height: 53)
     }
 }

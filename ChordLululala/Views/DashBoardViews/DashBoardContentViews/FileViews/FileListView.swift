@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct FileListView: View {
-    let files: [FileModel]
-    let cellSpacing: CGFloat
+    let files: [Content] 
+    let cellSpacing: CGFloat = 18
     
     var body: some View {
         VStack(spacing: cellSpacing) {
-            ForEach(files) { file in
+            ForEach(files, id: \.cid) { file in
                 FileListCellView(file: file)
             }
         }

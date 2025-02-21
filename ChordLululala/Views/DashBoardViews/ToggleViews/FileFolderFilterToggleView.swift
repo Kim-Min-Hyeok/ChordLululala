@@ -7,14 +7,6 @@
 
 import SwiftUI
 
-enum ToggleFilter: String, CaseIterable, Identifiable {
-    case all = "전체"
-    case file = "파일"
-    case folder = "폴더"
-    
-    var id: String { rawValue }
-}
-
 struct FileFolderFilterToggleView: View {
     @Binding var selectedFilter: ToggleFilter
     

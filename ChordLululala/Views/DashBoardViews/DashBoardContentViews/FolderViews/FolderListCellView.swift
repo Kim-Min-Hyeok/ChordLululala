@@ -8,22 +8,21 @@
 import SwiftUI
 
 struct FolderListCellView: View {
-    let folder: FolderModel
+    let folder: Content
     var body: some View {
-        VStack(){
-            HStack(spacing: 2) {
+        VStack {
+            HStack(spacing: 8) {
                 Image(systemName: "folder.fill")
                     .resizable()
                     .frame(width: 53, height: 53)
-                    .foregroundColor(.black)
-                Text(folder.name)
+                    .foregroundColor(.blue)
+                Text(folder.name ?? "Unnamed")
                     .font(.body)
                     .foregroundColor(.black)
                 Spacer()
             }
             Divider()
         }
-        .background(Color.clear)
         .frame(height: 53)
     }
 }
