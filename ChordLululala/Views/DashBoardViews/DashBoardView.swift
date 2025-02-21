@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct DashboardView: View {
+    @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel = DashBoardViewModel()
     @State private var sidebarDragOffset: CGFloat = 0
     @State private var isFloatingMenuVisible: Bool = false
@@ -93,6 +94,16 @@ struct DashboardView: View {
                 }
                 
                 VStack {
+                    Button(action: {
+                        router.toNamed("/scoreview")
+                    }) {
+                        Image(systemName: "cancel")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.gray)
+                            .clipShape(Circle())
+                    }
                     Spacer()
                     HStack {
                         Spacer()
