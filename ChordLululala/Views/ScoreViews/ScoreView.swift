@@ -22,12 +22,9 @@ struct ScoreView : View {
                 ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive)
                 Divider()
                 if isPencilActive {
-                    VStack {
                         PencilToolsView(isPencilActive: $isPencilActive)
-                        Spacer()
-                    }
-                    .transition(.opacity)
-                    
+                        .padding(.top, -10)
+                        .transition(.opacity)
                 }
                 Spacer()
             }
