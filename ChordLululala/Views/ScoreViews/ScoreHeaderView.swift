@@ -6,6 +6,8 @@ struct ScoreHeaderView: View {
     @State private var scoreTitle : String = "네잎 클로버"
     @Binding  var isPencilActive: Bool
     @Binding  var isMemoActive: Bool
+    @Binding var isSettingActive: Bool
+    
     
     var body: some View {
         
@@ -71,6 +73,7 @@ struct ScoreHeaderView: View {
             
             // 설정
             Button(action:{
+                isSettingActive.toggle()
                 print("설정 기능 클릭") // 기능 추가해야함
             }){
                 Image(systemName: "gear") // 이미지 바꿔야 함
@@ -85,5 +88,5 @@ struct ScoreHeaderView: View {
 
 
 #Preview {
-    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false))
+    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false),isSettingActive: .constant(false))
 }
