@@ -18,40 +18,47 @@ struct ScoreView : View {
     
     var body: some View {
         ZStack{
-            
             VStack{
                 ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive)
                 Divider()
-                
-                HStack{
-                    Spacer()
-                    if isSettingActive {
-                        SettingModalView(selectedMenu: $selectedMenu)
-                            .padding(.trailing, 5)
+                if isPencilActive {
+                    VStack {
+                        PencilToolsView(isPencilActive: $isPencilActive)
+                        Spacer()
                     }
+                    .transition(.opacity)
                     
                 }
-                
-                if isPencilActive {
-                    PencilToolsView(isPencilActive: $isPencilActive)
-                }
                 Spacer()
-                
-                
-                if isMemoActive {
-                    MemoView(isMemoActive: $isMemoActive)
-                        .offset(gestureViewModel.draggedOffset)
-                        .gesture(gestureViewModel.drag)
-                        .scaleEffect(gestureViewModel.magnifyBy)
-                        .gesture(gestureViewModel.magnification)
-                }
-                
-                Spacer()
-                
-                
-                
             }
-        }
+            
+            
+            if isMemoActive {
+                MemoView(isMemoActive: $isMemoActive)
+                    .offset(gestureViewModel.draggedOffset)
+                    .gesture(gestureViewModel.drag)
+                    .scaleEffect(gestureViewModel.magnifyBy)
+                    .gesture(gestureViewModel.magnification)
+            }
+            
+            
+            if isSettingActive {
+                VStack{
+                    HStack{
+                        Spacer()
+                        SettingModalView(selectedMenu: $selectedMenu)
+                            .padding(.trailing, 5)
+                            .padding(.top, 55)
+                    }
+                    Spacer()
+                }
+            }
+            Spacer()
+        } // z
+        .animation(.easeInOut, value: isMemoActive)
+        .animation(.easeInOut, value: isSettingActive)
+        .animation(.easeInOut, value: isPencilActive)
+
     }
 }
 
