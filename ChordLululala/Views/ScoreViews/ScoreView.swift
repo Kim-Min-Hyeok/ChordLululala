@@ -22,19 +22,25 @@ struct ScoreView : View {
             VStack{
                 if isTransPose {
                         TransposeHeaderView(isTransPose: $isTransPose)
-                        Divider()
                 } else {
                     ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive, isTransPose: $isTransPose)
-                    Divider()
                 }
+                
+                Divider()
                 
                 if isPencilActive {
                         PencilToolsView(isPencilActive: $isPencilActive)
                         .padding(.top, -10)
                         .transition(.opacity)
                 }
+                
+                ScoreDisplayView()
                 Spacer()
-            }
+            } // v
+            
+            
+                
+
             
             
             if isMemoActive {
@@ -57,6 +63,13 @@ struct ScoreView : View {
                     Spacer()
                 }
             }
+            
+            //MARK: - body
+            
+            
+            
+            
+            
             Spacer()
         } // z
         .animation(.easeInOut, value: isMemoActive)
