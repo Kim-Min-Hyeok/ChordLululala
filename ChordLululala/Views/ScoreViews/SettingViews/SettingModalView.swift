@@ -1,14 +1,24 @@
 import SwiftUI
 
-
 struct SettingModalView: View {
+    @Binding var selectedMenu: SettingsMenu?
+    
+
     var body: some View {
-        VStack{
-            Text("설정 뷰")
+        VStack {
+            if selectedMenu == nil {
+                SettingsMainView(selectedMenu: $selectedMenu)
+            } else if selectedMenu == .pageLayout {
+                PageLayoutView(selectedMenu: $selectedMenu)
+            } else if selectedMenu == .pageRotation {
+                PageRotationView(selectedMenu: $selectedMenu)
+            }
         }
         .frame(width: 280, height: 220)
-        .cornerRadius(5)
+        .background(Color.white)
+        .cornerRadius(15)
         .shadow(radius: 5)
         .transition(.move(edge: .bottom))
     }
 }
+
