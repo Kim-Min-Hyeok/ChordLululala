@@ -20,6 +20,7 @@ struct ScoreDisplayView : View {
                         .background(Color.white)
                         .scaleEffect(viewModel.magnifyBy)
                         .gesture(viewModel.magnification)
+                    
                 }
             }
                 .tabViewStyle(PageTabViewStyle())

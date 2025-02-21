@@ -2,7 +2,8 @@ import SwiftUI
 
 struct PageLayoutView: View {
     @Binding var selectedMenu: SettingsMenu?
-
+    @Binding var layout: ScoreLayout
+    
     var body: some View {
         VStack(spacing: 10) {
             HStack {
@@ -19,11 +20,15 @@ struct PageLayoutView: View {
 
             Divider()
 
-            Button(action: {}) {
+            Button(action: {
+                layout = .single
+            }) {
                 SettingsRowView(icon: "doc.text", title: "한 페이지 보기")
             }
             
-            Button(action: {}) {
+            Button(action: {
+                layout = .double
+            }) {
                 SettingsRowView(icon: "square.grid.2x2", title: "여러 페이지 보기")
             }
             
