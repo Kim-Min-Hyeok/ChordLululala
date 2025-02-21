@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FileGridView: View {
     let files: [Content]  // 파일: type != 2
-    let cellSpacing: CGFloat = 8
+    let cellSpacing: CGFloat = 18
     // 4열 그리드로 구성
     let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
     
@@ -20,7 +20,6 @@ struct FileGridView: View {
                     FileGridCellView(file: file)
                 }
             }
-            .padding()
         }
     }
 }

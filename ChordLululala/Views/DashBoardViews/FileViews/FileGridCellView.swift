@@ -43,14 +43,17 @@ struct FileGridCellView: View {
         }
     }
     
+    // 재사용성이 없어보여서,,, 분리하면 쓸데 없는 코드가 많아질 것 같아서 여기에 선언함.
     func loadThumbnail() {
-        // file.path가 nil이 아니면 언랩하여 사용
-        guard let filePath = file.path, !filePath.isEmpty else {
-            print("파일 경로가 없습니다.")
+        guard let relativePath = file.path, !relativePath.isEmpty,
+              let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("상대 경로가 없거나 Documents 경로를 찾을 수 없음")
             return
         }
-        let fileURL = URL(fileURLWithPath: filePath)
-        // 원하는 썸네일 사이즈와 스케일 설정
+        
+        let fileURL = docsURL.appendingPathComponent(relativePath)
+        print("썸네일 생성할 파일 URL: \(fileURL)")
+        
         let request = QLThumbnailGenerator.Request(fileAt: fileURL, size: CGSize(width: 200, height: 200), scale: UIScreen.main.scale, representationTypes: .thumbnail)
         QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { (thumbnailRep, error) in
             if let thumbnailRep = thumbnailRep {

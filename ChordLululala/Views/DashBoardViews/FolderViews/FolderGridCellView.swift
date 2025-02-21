@@ -1,28 +1,31 @@
 //
-//  FolderListCellView.swift
+//  FolderGridCellView.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 2/19/25.
+//  Created by Minhyeok Kim on 2/21/25.
 //
 
 import SwiftUI
 
-struct FolderListCellView: View {
+struct FolderGridCellView: View {
     let folder: Content
+    var onTap: () -> Void
+    
     var body: some View {
-        VStack {
+        Button(action: onTap) {
             HStack(spacing: 8) {
                 Image(systemName: "folder.fill")
                     .resizable()
-                    .frame(width: 53, height: 53)
+                    .frame(width: 32, height: 32)
                     .foregroundColor(.blue)
                 Text(folder.name ?? "Unnamed")
-                    .font(.body)
+                    .font(.caption)
                     .foregroundColor(.black)
                 Spacer()
             }
-            Divider()
+            .padding(8)
+            .background(Color.gray.opacity(0.2))
+            .cornerRadius(8)
         }
-        .frame(height: 53)
     }
 }

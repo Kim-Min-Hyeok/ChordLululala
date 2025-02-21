@@ -69,6 +69,17 @@ final class FileManagerManager {
         }
     }
     
+    // 상대경로를 통해 빌드 후에 절대 경로가 달라지는 것을 보완
+    func relativePath(for absolutePath: String) -> String? {
+        guard let docsURL = documentsURL else { return nil }
+        let docsPath = docsURL.path
+        if absolutePath.hasPrefix(docsPath) {
+            let startIndex = absolutePath.index(absolutePath.startIndex, offsetBy: docsPath.count + 1)
+            return String(absolutePath[startIndex...])
+        }
+        return nil
+    }
+    
     // TODO: 테스트용 모든 데이터 삭제 (Score)
     func deleteAllFilesInScoreFolder() {
         guard let scoreFolderURL = FileManagerManager.shared.scoreFolderURL else { return }
@@ -82,5 +93,5 @@ final class FileManagerManager {
             print("Score 폴더 파일 삭제 실패: \(error)")
         }
     }
-
+    
 }

@@ -9,8 +9,10 @@ import SwiftUI
 
 struct FileListCellView: View {
     let file: Content
+    var onTap: () -> Void
+
     var body: some View {
-        VStack {
+        Button(action: onTap) {
             HStack(spacing: 12) {
                 Image(systemName: "doc.richtext")
                     .resizable()
@@ -21,8 +23,15 @@ struct FileListCellView: View {
                     .foregroundColor(.black)
                 Spacer()
             }
-            Divider()
+            .frame(height: 53)
         }
-        .frame(height: 53)
+        .buttonStyle(PlainButtonStyle())
+        .frame(height: 54)
+        .overlay(
+            Divider()
+                .frame(height: 1)
+                .background(Color.gray),
+            alignment: .bottom
+        )
     }
 }

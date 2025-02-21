@@ -9,14 +9,15 @@ import SwiftUI
 
 struct FileListView: View {
     let files: [Content] 
-    let cellSpacing: CGFloat = 18
+    let cellSpacing: CGFloat = 8
     
     var body: some View {
         VStack(spacing: cellSpacing) {
             ForEach(files, id: \.cid) { file in
-                FileListCellView(file: file)
+                FileListCellView(file: file, onTap: {
+                    
+                })
             }
         }
-        .padding()
     }
 }
