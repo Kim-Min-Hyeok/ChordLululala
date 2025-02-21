@@ -28,8 +28,8 @@ struct MemoView: View {
                 
                 // 텍스트 필드
                 TextEditor(text: $memoText)
+                    .background(Color.clear)
                     .scrollContentBackground(.hidden)
-                    .background(Color.init(#colorLiteral(red: 1, green: 0.9647058845, blue: 0.5921568871, alpha: 1)))
                     .padding(.horizontal)
                     
                 Spacer()

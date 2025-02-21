@@ -6,7 +6,8 @@ import SwiftUI
 struct ScoreView : View {
     @State private var isPencilActive: Bool = false
     @State private var isMemoActive: Bool = false
-    
+    @StateObject private var gestureViewModel = MemoGestureViewModel()
+
     var body: some View {
         
         VStack{
@@ -21,6 +22,10 @@ struct ScoreView : View {
             
             if isMemoActive {
                 MemoView(isMemoActive: $isMemoActive)
+                .offset(gestureViewModel.draggedOffset)
+                .gesture(gestureViewModel.drag)
+                .scaleEffect(gestureViewModel.magnifyBy)
+                .gesture(gestureViewModel.magnification)
             }
             
             Spacer()
