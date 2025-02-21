@@ -5,7 +5,7 @@ struct ScoreHeaderView: View {
     
     @State private var scoreTitle : String = "네잎 클로버"
     @Binding  var isPencilActive: Bool
-    
+    @Binding  var isMemoActive: Bool
     
     var body: some View {
         
@@ -52,6 +52,7 @@ struct ScoreHeaderView: View {
             
             // 메모장
             Button(action:{
+                isMemoActive.toggle()
                 print("메모장 기능 클릭") // 기능 추가해야함
             }){
                 Text("메모장")
@@ -84,5 +85,5 @@ struct ScoreHeaderView: View {
 
 
 #Preview {
-    ScoreHeaderView(isPencilActive: .constant(false))
+    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false))
 }

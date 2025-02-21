@@ -2,8 +2,9 @@ import SwiftUI
 
 
 
-struct MeomView: View {
+struct MemoView: View {
     @State var memoText : String = ""
+    @Binding  var isMemoActive: Bool
     
     var body: some View {
         
@@ -16,6 +17,7 @@ struct MeomView: View {
                     Spacer()
                     Button(action:{
                         print("x 버튼 클릭")
+                        isMemoActive.toggle()
                     }){
                         Image(systemName: "x.circle")
                             .foregroundColor(Color.black)
@@ -39,7 +41,7 @@ struct MeomView: View {
     }
 }
 
-
-#Preview {
-    MeomView(memoText: "")
-}
+//
+//#Preview {
+//    MemoView(memoText: "", isMemoActive: )
+//}
