@@ -10,7 +10,7 @@ import SwiftUI
 struct FloatingMenuView: View {
     let folderAction: () -> Void
     let fileUploadAction: () -> Void
-
+    
     var body: some View {
         VStack(spacing: 0) {
             FloatingMenuButton(icon: "folder.fill.badge.plus", title: "폴더 만들기", action: folderAction)
@@ -28,21 +28,19 @@ struct FloatingMenuButton: View {
     let icon: String
     let title: String
     let action: () -> Void
-
+    
     var body: some View {
         Button(action: action) {
-            HStack() {
+            HStack {
                 Image(systemName: icon)
                     .font(.system(size: 19))
                     .foregroundColor(.black)
                     .padding(.leading, 10)
                     .padding(.vertical, 8.34)
-
                 Text(title)
                     .font(.system(size: 14))
                     .foregroundColor(.black)
                     .padding(.leading, 19)
-                
                 Spacer()
             }
         }

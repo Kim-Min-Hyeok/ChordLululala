@@ -9,20 +9,31 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
-    @State private var sidebarDragOffset: CGFloat = 0
+    
+    // MARK: 파일/폴더 생성 버튼 관련 상태
     @State private var isFloatingMenuVisible: Bool = false
     @State private var isShowingPDFPicker: Bool = false
     @State private var isShowingCreateFolderModal: Bool = false
+    
+    // MARK: 사이드바 관련 설정
+    @State private var sidebarDragOffset: CGFloat = 0
     private let sidebarWidth: CGFloat = 257
     
-    // 리스트 모드 여부 (true: List, false: Grid)
+    // MARK: 수정 모달 상태
+    @State private var showModifyModal = false
+    @State private var selectedContent: Content? = nil
+    @State private var modalFrame: CGRect = .zero
+    
+    // MARK: 리스트/그리드 상태
     @State private var isListView: Bool = true
     
     var body: some View {
+        // MARK: 파일 생성 시트 (파일 Picker) & 폴더 생성 모달 구현을 위한 ZStack
         ZStack {
+            // MARK: 사이드바 & 파일/폴더 생성/수정 메뉴 구현을 위한 ZStack
             ZStack {
                 VStack(spacing: 0) {
-                    // TODO: 테스트용
+                    // TODO: 테스트용 이전 폴더 되돌아가기
                     if viewModel.currentParent != nil {
                         HStack {
                             Button(action: {
@@ -38,20 +49,25 @@ struct DashboardView: View {
                         }
                     }
                     
+                    // MARK: HEADER
                     HeaderView()
                         .environmentObject(viewModel)
                         .padding(.top, 30)
                         .padding(.horizontal, 30)
                     
+                    // MARK: 전체/파일/폴더
                     FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
                         .padding(.horizontal, 416)
                         .padding(.top, 33)
                     
                     HStack {
+                        // MARK: 날짜순/이름순
                         SortToggleView(selectedSort: $viewModel.selectedSort)
                         Spacer()
+                        
+                        // MARK: 선택 버튼
                         Button(action: {
-                            // 선택 이미지 버튼 액션 (추후 구현)
+                            // TODO: 선택 이미지 버튼 액션 (추후 구현)
                         }) {
                             Image(systemName: "checkmark.circle")
                                 .resizable()
@@ -59,7 +75,7 @@ struct DashboardView: View {
                         }
                         .padding(.trailing, 8)
                         
-                        // 리스트/그리드 토글 버튼
+                        // MARK: 리스트/그리드 토글 버튼
                         Button(action: {
                             isListView.toggle()
                         }) {
@@ -72,47 +88,64 @@ struct DashboardView: View {
                     .padding(.horizontal, 168)
                     .padding(.top, 10)
                     
-                    // TODO: 테스트 후 지우기
+                    // TODO: 테스트용: 모든 데이터 삭제 버튼
                     Button("모든 데이터 삭제") {
                         ContentManager.shared.deleteAllCoreDataObjects()
                         FileManagerManager.shared.deleteAllFilesInScoreFolder()
-                        // 필요 시, 다른 폴더의 파일들도 삭제합니다.
                     }
                     .padding(.vertical, 50)
                     
-                    // 내부 콘텐츠 영역: 폴더와 파일 ContentView 분리하여 표시
+                    // MARK: 파일/폴더 리스트/그리드 뷰
                     ScrollView {
-                        VStack(alignment: .leading, spacing: CGFloat(isListView ? 8 : 80)) {
-                            // 파일 영역
-                            if viewModel.currentFilter == .all || viewModel.currentFilter == .file {
-                                if isListView {
-                                    FileListView(files: viewModel.sortedFiles)
-                                } else {
-                                    FileGridView(files: viewModel.sortedFiles)
-                                }
-                            }
-                            // 폴더 영역
-                            if viewModel.currentFilter == .all || viewModel.currentFilter == .folder {
-                                if isListView {
-                                    FolderListView(folders: viewModel.sortedFolders) { folder in
-                                        viewModel.didTapFolder(folder)
-                                    }
-                                } else {
-                                    FolderGridView(folders: viewModel.sortedFolders) { folder in
-                                        viewModel.didTapFolder(folder)
-                                    }
-                                }
-                            }
-                            
+                        ContentListView(isListView: isListView,
+                                        onFolderTap: { folder in
+                            viewModel.didTapFolder(folder)
+                        },
+                                        onFolderEllipsisTapped: { folder, frame in
+                            selectedContent = folder
+                            modalFrame = frame
+                            showModifyModal = true
+                        },
+                                        onFileTap: { file in
+                        },
+                                        onFileEllipsisTapped: { file, frame in
+                            selectedContent = file
+                            modalFrame = frame
+                            showModifyModal = true
                         }
-                        .padding(.horizontal, 168)
+                        )
                     }
-                    
                     Spacer()
                 }
                 
+                // MARK: 수정 모달 뷰
+                if showModifyModal, let content = selectedContent {
+                    Color.black.opacity(0.3)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            showModifyModal = false
+                        }
+                    
+                    // 셀 별 모달 뷰 위치 설정
+                    let modalHeight: CGFloat = 195
+                    let screenHeight = UIScreen.main.bounds.height
+                    let desiredY: CGFloat = (modalFrame.maxY + modalHeight > screenHeight)
+                    ? (modalFrame.minY - 30 - modalHeight/2)
+                    : (modalFrame.maxY - 20 + modalHeight/2)
+                    
+                    ModifyModalView(content: content) {
+                        showModifyModal = false
+                    }
+                    .frame(width: 273, height: modalHeight)
+                    .position(
+                        x: modalFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
+                        y: desiredY
+                    )
+                    .transition(.opacity)
+                }
+                
+                // MARK: 파일 생성 모달 뷰
                 ZStack {
-                    // 메뉴가 열렸을 때 다른 영역 터치하면 닫히도록
                     if isFloatingMenuVisible {
                         Color.clear
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -144,7 +177,6 @@ struct DashboardView: View {
                                 .padding(.trailing, 29)
                                 .padding(.bottom, 40)
                                 
-                                // 메뉴 뷰: 플로팅 버튼 위에 (trailing: 29, bottom: 76)에 위치
                                 if isFloatingMenuVisible {
                                     VStack(spacing: 10) {
                                         FloatingMenuView(
@@ -171,7 +203,7 @@ struct DashboardView: View {
                     }
                 }
                 
-                // 사이드바 오버레이 배경
+                // MARK: 사이드바 오버레이 배경
                 if viewModel.isSidebarVisible {
                     Color.black.opacity(0.3)
                         .edgesIgnoringSafeArea(.all)
@@ -182,7 +214,7 @@ struct DashboardView: View {
                         }
                 }
                 
-                // 사이드바 (드래그 제스처 포함)
+                // MARK: 사이드바
                 HStack(spacing: 0) {
                     SidebarView(onSelect: { newContent in
                         withAnimation(.easeInOut) {
@@ -231,14 +263,17 @@ struct DashboardView: View {
                 }
             )
             .environmentObject(viewModel)
+            
+            // MARK: 파일 생성 시트 (파일 Picker)
             .sheet(isPresented: $isShowingPDFPicker) {
                 PDFPicker { selectedURL in
                     viewModel.uploadFile(with: selectedURL)
                     isShowingPDFPicker = false
                 }
             }
+            
+            // MARK: 폴더 생성 모달
             if isShowingCreateFolderModal {
-                // 전체 배경을 흐리게 처리하고, 모달 뷰를 중앙에 오버레이
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {

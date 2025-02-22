@@ -91,6 +91,7 @@ final class DashBoardViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    
     // 폴더 셀 탭 시 호출. 해당 폴더로 들어가기 위해 currentParent를 업데이트
     func didTapFolder(_ folder: Content) {
         currentParent = folder

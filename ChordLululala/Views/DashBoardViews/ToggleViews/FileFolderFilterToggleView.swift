@@ -18,7 +18,6 @@ struct FileFolderFilterToggleView: View {
         HStack(spacing: 0) {
             ForEach(Array(ToggleFilter.allCases.enumerated()), id: \.element.id) { index, filter in
                 let isSelected = (filter == selectedFilter)
-                
                 Button {
                     selectedFilter = filter
                 } label: {
@@ -34,16 +33,11 @@ struct FileFolderFilterToggleView: View {
                                 .stroke(Color.gray, lineWidth: 1)
                         )
                 }
-                
                 if index < ToggleFilter.allCases.count - 1 {
-                    Spacer()
-                        .frame(width: buttonSpacing)
+                    Spacer().frame(width: buttonSpacing)
                 }
             }
-            
-            Spacer()
-                .frame(width: separatorSpacing)
-                
+            Spacer().frame(width: separatorSpacing)
             Capsule()
                 .fill(Color.gray)
                 .frame(width: 1, height: 12)

@@ -30,16 +30,16 @@ final class ContentManager {
     
     // 특정 cid를 가진 Content를 fetch (예: 상위 폴더 정보를 불러오기 위해)
     func fetchContent(with id: UUID, completion: @escaping (Content?) -> Void) {
-        let request: NSFetchRequest<Content> = Content.fetchRequest()
-        request.predicate = NSPredicate(format: "cid == %@", id as CVarArg)
-        do {
-            let results = try context.fetch(request)
-            completion(results.first)
-        } catch {
-            print("Error fetching content with id: \(error)")
-            completion(nil)
+            let request: NSFetchRequest<Content> = Content.fetchRequest()
+            request.predicate = NSPredicate(format: "cid == %@", id as CVarArg)
+            do {
+                let results = try context.fetch(request)
+                completion(results.first)
+            } catch {
+                print("Error fetching content with id: \(error)")
+                completion(nil)
+            }
         }
-    }
     
     // 새 Content 생성 (파일/폴더)
     func createContent(name: String,
