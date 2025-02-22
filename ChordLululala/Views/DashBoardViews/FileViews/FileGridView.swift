@@ -8,23 +8,19 @@
 import SwiftUI
 
 struct FileGridView: View {
-    let files: [FileModel]
-    let cellSpacing: CGFloat
-    let columns: [GridItem]
-    
-    init(files: [FileModel], cellSpacing: CGFloat) {
-        self.files = files
-        self.cellSpacing = cellSpacing
-        self.columns = Array(repeating: GridItem(.flexible(), spacing: cellSpacing), count: 4)
-    }
+    let files: [Content]  // 파일: type != 2
+    let cellSpacing: CGFloat = 18
+    // 4열 그리드로 구성
+    let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
     
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: cellSpacing) {
-                ForEach(files) { file in
+                ForEach(files, id: \.cid) { file in
                     FileGridCellView(file: file)
                 }
             }
         }
     }
 }
+

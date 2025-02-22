@@ -7,13 +7,6 @@
 
 import SwiftUI
 
-enum SortOption: String, CaseIterable, Identifiable {
-    case date = "날짜순"
-    case name = "이름순"
-    
-    var id: String { rawValue }
-}
-
 struct SortToggleView: View {
     @Binding var selectedSort: SortOption
     private let spacing: CGFloat = 11
