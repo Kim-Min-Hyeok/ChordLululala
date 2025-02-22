@@ -4,8 +4,10 @@ import SwiftUI
 struct ScoreHeaderView: View {
     
     @State private var scoreTitle : String = "네잎 클로버"
-    @State private var isPencilActive: Bool = false
-    
+    @Binding  var isPencilActive: Bool
+    @Binding  var isMemoActive: Bool
+    @Binding var isSettingActive: Bool
+    @Binding var isTransPose : Bool
     
     var body: some View {
         
@@ -17,6 +19,7 @@ struct ScoreHeaderView: View {
                 Image(systemName: "chevron.backward")
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             
             // 전체 페이지
@@ -47,25 +50,31 @@ struct ScoreHeaderView: View {
                 Image(systemName: isPencilActive ? "pencil.circle.fill" : "pencil") // 이미지 바꿔야 함
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             // 메모장
             Button(action:{
+                isMemoActive.toggle()
                 print("메모장 기능 클릭") // 기능 추가해야함
             }){
                 Text("메모장")
                     .foregroundColor(Color.black)
             }
+            .padding(.trailing,10)
             
             // 키변환
             Button(action:{
+                isTransPose.toggle()
                 print("키변환 기능 클릭") // 기능 추가해야함
             }){
                 Text("키변환")
                     .foregroundColor(Color.blue)
             }
+            .padding(.trailing,10)
             
             // 설정
             Button(action:{
+                isSettingActive.toggle()
                 print("설정 기능 클릭") // 기능 추가해야함
             }){
                 Image(systemName: "gear") // 이미지 바꿔야 함
@@ -80,5 +89,5 @@ struct ScoreHeaderView: View {
 
 
 #Preview {
-    ScoreHeaderView()
+    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false),isSettingActive: .constant(false),isTransPose: .constant(false))
 }

@@ -1,6 +1,8 @@
 import SwiftUI
 
-struct PencilToolsView: View {
+struct PencilToolsView: View {      
+    @Binding  var isPencilActive: Bool
+    
     var body: some View {
         ZStack{
             Color.init(#colorLiteral(red: 0.1674384475, green: 0.1674384475, blue: 0.1674384475, alpha: 1)).ignoresSafeArea(.all).opacity(0.92)
@@ -65,6 +67,7 @@ struct PencilToolsView: View {
                 
                 // 취소 버튼
                 Button(action:{
+                    isPencilActive.toggle()
                     print("취소 ")
                 }){
                     Image(systemName: "x.circle.fill")
@@ -78,7 +81,7 @@ struct PencilToolsView: View {
 }
 
 
-
-#Preview {
-    PencilToolsView()
-}
+//
+//#Preview {
+//    PencilToolsView()
+//}
