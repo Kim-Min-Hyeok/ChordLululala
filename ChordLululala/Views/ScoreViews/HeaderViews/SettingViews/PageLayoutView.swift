@@ -17,9 +17,9 @@ struct PageLayoutView: View {
                 Spacer()
             }
             .padding()
-
+            
             Divider()
-
+            
             Button(action: {
                 layout = .single
             }) {

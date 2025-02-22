@@ -13,7 +13,7 @@ struct MemoView: View {
             
             VStack {
                 HStack {
-                    // x 버
+                    // x 버튼
                     Spacer()
                     Button(action:{
                         print("x 버튼 클릭")
@@ -37,11 +37,6 @@ struct MemoView: View {
             
         }
         .cornerRadius(10)
-        .frame(width: 300,height: 300) // 추후 삭제하기
+        .frame(width: 300,height: 300)
     }
 }
-
-//
-//#Preview {
-//    MemoView(memoText: "", isMemoActive: )
-//}

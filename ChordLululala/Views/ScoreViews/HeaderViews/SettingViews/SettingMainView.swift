@@ -2,13 +2,13 @@ import SwiftUI
 
 struct SettingsMainView: View {
     @Binding var selectedMenu: SettingsMenu?
-
+    
     var body: some View {
         VStack(spacing: 10) {
             Text("설정")
                 .font(.headline)
                 .padding(.top)
-
+            
             Divider()
             
             Button(action: { selectedMenu = .pageLayout }) {
@@ -22,7 +22,7 @@ struct SettingsMainView: View {
             Button(action: { selectedMenu = nil }) {
                 SettingsRowView(icon: "xmark.circle", title: "페이지 지우기", isDestructive: true, isChevron: false)
             }
-
+            
             Spacer()
         }
         .padding()

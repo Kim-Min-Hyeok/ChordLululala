@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PageRotationView: View {
     @Binding var selectedMenu: SettingsMenu?
-
+    
     var body: some View {
         VStack(spacing: 10) {
             HStack {
@@ -16,9 +16,9 @@ struct PageRotationView: View {
                 Spacer()
             }
             .padding()
-
+            
             Divider()
-
+            
             Button(action: {}) {
                 SettingsRowView(icon: "arrow.clockwise", title: "시계방향 90" , isChevron: false)
             }
@@ -26,7 +26,7 @@ struct PageRotationView: View {
             Button(action: {}) {
                 SettingsRowView(icon: "arrow.counterclockwise", title: "반시계방향 90", isChevron: false)
             }
-
+            
             Spacer()
         }
         .padding()

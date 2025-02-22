@@ -13,8 +13,6 @@ enum ScoreLayout {
 }
 
 
-
-
 struct ScoreView : View {
     @State private var isPencilActive: Bool = false
     @State private var isMemoActive: Bool = false
@@ -22,14 +20,20 @@ struct ScoreView : View {
     @State private var isSettingActive: Bool = false
     @State private var selectedMenu: SettingsMenu? = nil
     @State private var currentLayout: ScoreLayout = .single
-
+    
+    @StateObject private var pageControlViewModel = PageControlViewModel(
+        images: ["pencil", "square.and.arrow.up.circle.fill", "figure.walk", "sun.min", "sunrise"]
+        // 더미 데이터
+    )
+    
+    
     @StateObject private var gestureViewModel = MemoGestureViewModel()
     
     var body: some View {
         ZStack{
             VStack{
                 if isTransPose {
-                        TransposeHeaderView(isTransPose: $isTransPose)
+                    TransposeHeaderView(isTransPose: $isTransPose)
                 } else {
                     ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive, isTransPose: $isTransPose)
                 }
@@ -37,25 +41,21 @@ struct ScoreView : View {
                 Divider()
                 
                 if isPencilActive {
-                        PencilToolsView(isPencilActive: $isPencilActive)
+                    PencilToolsView(isPencilActive: $isPencilActive)
                         .padding(.top, -10)
                         .transition(.opacity)
                 }
                 
-                
+                //MARK: - 악보 이미지 뷰
                 switch currentLayout {
                 case .single:
-                    ScoreDisplayView()
+                    ScoreDisplayView(pageControlViewModel: pageControlViewModel)
                 case .double:
-                    ScoreDoubleDisplayView()
+                    ScoreDoubleDisplayView(pageControlViewModel: pageControlViewModel)
                 }
                 Spacer()
-            } // v
-            
-            
                 
-
-            
+            } // v
             
             if isMemoActive {
                 MemoView(isMemoActive: $isMemoActive)
@@ -77,14 +77,17 @@ struct ScoreView : View {
                     Spacer()
                 }
             }
-        
+            
             
             Spacer()
         } // z
+        .onChange(of: currentLayout) { newLayout in
+            pageControlViewModel.layout = newLayout
+        }
         .animation(.easeInOut, value: isMemoActive)
         .animation(.easeInOut, value: isSettingActive)
         .animation(.easeInOut, value: isPencilActive)
-
+        
     }
 }
 
