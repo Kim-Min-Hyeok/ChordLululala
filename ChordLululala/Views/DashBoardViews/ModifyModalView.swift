@@ -10,14 +10,42 @@ import SwiftUI
 struct ModifyModalView: View {
     let content: Content
     var onDismiss: () -> Void
+    
+    /// 파일 이름 수정 액션
+    var onRename: (String) -> Void
+    
+    /// 복제하기 액션
+    var onDuplicate: () -> Void
+    
+    /// 휴지통으로 이동 액션
+    var onMoveToTrash: () -> Void
+    
     @State private var name: String
-
-    init(content: Content, onDismiss: @escaping () -> Void) {
+    
+    private let originalName: String
+    
+    init(content: Content,
+         onDismiss: @escaping () -> Void,
+         onRename: @escaping (String) -> Void,
+         onDuplicate: @escaping () -> Void,
+         onMoveToTrash: @escaping () -> Void) {
         self.content = content
         self.onDismiss = onDismiss
-        _name = State(initialValue: content.name ?? "")
+        self.onRename = onRename
+        self.onDuplicate = onDuplicate
+        self.onMoveToTrash = onMoveToTrash
+        
+        // 파일인 경우 확장자(.pdf)가 있다면 제거해서 보여줌
+        if content.type != 2, let fullName = content.name {
+            let baseName = (fullName as NSString).deletingPathExtension
+            _name = State(initialValue: baseName)
+            self.originalName = baseName
+        } else {
+            _name = State(initialValue: content.name ?? "")
+            self.originalName = content.name ?? ""
+        }
     }
-
+    
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
@@ -36,19 +64,10 @@ struct ModifyModalView: View {
                 
                 // 옵션 버튼 영역
                 VStack(spacing: 0) {
-                    Button(action: { onDismiss() }) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.black)
-                            Text("내보내기")
-                                .foregroundColor(.black)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .frame(height: 44)
-                    }
-                    Divider()
-                    Button(action: { onDismiss() }) {
+                    Button(action: {
+                        onDuplicate()
+                        onDismiss()
+                    }) {
                         HStack(spacing: 12) {
                             Image(systemName: "doc.on.doc")
                                 .foregroundColor(.black)
@@ -60,7 +79,10 @@ struct ModifyModalView: View {
                         .frame(height: 44)
                     }
                     Divider()
-                    Button(action: { onDismiss() }) {
+                    Button(action: {
+                        onMoveToTrash()
+                        onDismiss()
+                    }) {
                         HStack(spacing: 12) {
                             Image(systemName: "trash")
                                 .foregroundColor(.red)
@@ -78,6 +100,12 @@ struct ModifyModalView: View {
             .padding(.horizontal, 9)
             .padding(.top, 14)
             .padding(.bottom, 17.9)
+        }
+        .onDisappear() {
+            // MARK:  모달이 dismiss될 때, 텍스트필드 값이 변경되었다면 onRename 호출 (이름 수정용)
+            if name != originalName {
+                onRename(name)
+            }
         }
     }
 }

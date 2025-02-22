@@ -133,9 +133,18 @@ struct DashboardView: View {
                     ? (modalFrame.minY - 30 - modalHeight/2)
                     : (modalFrame.maxY - 20 + modalHeight/2)
                     
-                    ModifyModalView(content: content) {
-                        showModifyModal = false
+                    ModifyModalView(content: content,
+                                    onDismiss: { showModifyModal = false },
+                                    onRename: { newName in
+                        viewModel.renameContent(content, newName: newName)
+                    },
+                                    onDuplicate: {
+                        viewModel.duplicateContent(content)
+                    },
+                                    onMoveToTrash: {
+                        viewModel.moveContentToTrash(content)
                     }
+                    )
                     .frame(width: 273, height: modalHeight)
                     .position(
                         x: modalFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
