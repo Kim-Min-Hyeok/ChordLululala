@@ -185,6 +185,14 @@ final class DashBoardViewModel: ObservableObject {
         loadContents()
     }
     
+    func duplicateSelectedContents() {
+        for content in selectedContents {
+            ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
+        }
+        selectedContents.removeAll()
+        loadContents()
+    }
+    
     func moveContentToTrash(_ content: Content) {
         ContentInteractor.shared.moveContentToTrash(content)
         loadContents()
