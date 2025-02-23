@@ -18,7 +18,7 @@ final class FileManagerManager {
     
     /// 기본 폴더 URL을 Documents 폴더로 설정합니다.
     /// 이후 파일이나 폴더 생성 시, Core Data에 저장된 Content 객체의 path를 그대로 사용하여 Documents 하위에 경로를 구성합니다.
-    func baseFolderURL(for category: DashboardContent) -> URL? {
+    func baseFolderURL(for category: DashboardContents) -> URL? {
         return documentsURL // 항상 Documents 폴더 기준
     }
     

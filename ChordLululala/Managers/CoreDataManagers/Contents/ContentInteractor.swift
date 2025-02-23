@@ -10,8 +10,8 @@ final class ContentInteractor {
     
     // MARK: Create
     // 1. 파일 생성
-    func uploadFile(with url: URL, currentParent: Content?, selectedContent: DashboardContent) {
-        let baseFolder = FileManagerManager.shared.baseFolderURL(for: selectedContent)
+    func uploadFile(with url: URL, currentParent: Content?, dashboardContents: DashboardContents) {
+        let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents)
         let relativeFolderPath = currentParent?.path
         if let destinationURL = FileManagerManager.shared.copyPDFToBaseFolder(from: url,
                                                                               relativeFolderPath: relativeFolderPath,
@@ -27,8 +27,8 @@ final class ContentInteractor {
     }
     
     // 2. 폴더 생성
-    func createFolder(folderName: String, currentParent: Content?, selectedContent: DashboardContent) {
-        let baseFolder = FileManagerManager.shared.baseFolderURL(for: selectedContent)
+    func createFolder(folderName: String, currentParent: Content?, dashboardContents: DashboardContents) {
+        let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents)
         let parentRelativePath = currentParent?.path ?? ""
         let relativeFolderPath = parentRelativePath.isEmpty ? folderName : (parentRelativePath as NSString).appendingPathComponent(folderName)
         if let newFolderURL = FileManagerManager.shared.createSubfolderIfNeeded(for: relativeFolderPath, inBaseFolder: baseFolder),
@@ -43,7 +43,7 @@ final class ContentInteractor {
     }
     
     // MARK: Read
-    func loadContents(forParent parent: Content?, selectedContent: DashboardContent) -> AnyPublisher<[Content], Error> {
+    func loadContents(forParent parent: Content?, dashboardContents: DashboardContents) -> AnyPublisher<[Content], Error> {
         var predicate: NSPredicate
         if let parentID = parent?.cid {
             predicate = NSPredicate(format: "parent == %@", parentID as CVarArg)
@@ -51,7 +51,7 @@ final class ContentInteractor {
             predicate = NSPredicate(format: "parent == nil")
         }
         
-        switch selectedContent {
+        switch dashboardContents {
         case .trashCan:
             let trashPredicate = NSPredicate(format: "isTrash == YES")
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate])
@@ -112,14 +112,14 @@ final class ContentInteractor {
     
     // MARK: 복제 (파일이면 복제, 폴더이면 재귀 복제)
     // - 최상위 호출(newParent == nil)일 경우, 새 이름을 생성하여 복제된 폴더는 원본 폴더와 같은 parent에 생성
-    func duplicateContent(_ content: Content, newParent: UUID? = nil, selectedContent: DashboardContent) {
+    func duplicateContent(_ content: Content, newParent: UUID? = nil, dashboardContents: DashboardContents) {
         if content.type == 2 {  // 폴더 복제
             let targetParent = newParent ?? content.parent
             let newFolderName = (newParent == nil)
                 ? generateDuplicateFolderName(for: content)
                 : (content.name ?? "Unnamed")
             
-            guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: selectedContent),
+            guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
                   let oldPath = content.path else { return }
             
             // 새 대상 폴더 URL 계산
@@ -163,7 +163,7 @@ final class ContentInteractor {
                     for child in children {
                         if child.type == 2 {  // 폴더인 경우 재귀 복제
                             print("하위 폴더 복제 시작: \(child.name ?? "")")
-                            duplicateContent(child, newParent: newFolder?.cid, selectedContent: selectedContent)
+                            duplicateContent(child, newParent: newFolder?.cid, dashboardContents: dashboardContents)
                         } else {  // 파일 복제
                             guard let oldFilePath = child.path else { continue }
                             let sourceFileURL = baseFolder.appendingPathComponent(oldFilePath)
@@ -208,10 +208,10 @@ final class ContentInteractor {
             
         } else {  // 파일 복제
             let newName = (newParent == nil)
-                ? generateDuplicateFileName(for: content, selectedContent: selectedContent)
+                ? generateDuplicateFileName(for: content, dashboardContents: dashboardContents)
                 : (content.name ?? "Unnamed")
             
-            if let baseFolder = FileManagerManager.shared.baseFolderURL(for: selectedContent),
+            if let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
                let relativePath = content.path {
                 let destinationURL: URL
                 if let newParent = newParent,
@@ -254,7 +254,7 @@ final class ContentInteractor {
     
     // MARK: Helper 함수들
     // 1. 복제 시 파일명
-    private func generateDuplicateFileName(for content: Content, selectedContent: DashboardContent) -> String {
+    private func generateDuplicateFileName(for content: Content, dashboardContents: DashboardContents) -> String {
         guard content.type != 2, let originalName = content.name else { return "Unnamed.pdf" }
         let baseName = (originalName as NSString).deletingPathExtension
         let ext = (originalName as NSString).pathExtension

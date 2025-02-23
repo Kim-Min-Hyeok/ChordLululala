@@ -15,9 +15,9 @@
 import SwiftUI
 
 struct FileListCellView: View {
+    @EnvironmentObject var viewModel: DashBoardViewModel
+    
     let file: Content
-    var onTap: () -> Void
-    var onEllipsisTapped: (CGRect) -> Void
 
     @State private var cellFrame: CGRect = .zero
 
@@ -35,15 +35,18 @@ struct FileListCellView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                onTap()
+                viewModel.selectedContent = file
             }
-            Button(action: {
-                onEllipsisTapped(cellFrame)
-            }) {
-                Image(systemName: "ellipsis")
-                    .foregroundColor(.gray)
+            if !viewModel.isSelectionMode {
+                Button(action: {
+                    viewModel.selectedContent = file
+                    viewModel.showModifyModal = true
+                }) {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(.gray)
+                }
+                .frame(width: 44, height: 44)
             }
-            .frame(width: 44, height: 44)
         }
         .frame(height: 54)
         .overlay(
@@ -57,7 +60,7 @@ struct FileListCellView: View {
             GeometryReader { geo in
                 Color.clear
                     .onAppear {
-                        cellFrame = geo.frame(in: .global)
+                        viewModel.cellFrame = geo.frame(in: .global)
                     }
             }
         )

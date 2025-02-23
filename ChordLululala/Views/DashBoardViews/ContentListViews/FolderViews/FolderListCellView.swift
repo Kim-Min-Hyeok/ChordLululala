@@ -8,9 +8,9 @@
 import SwiftUI
 
 struct FolderListCellView: View {
+    @EnvironmentObject var viewModel: DashBoardViewModel
+    
     let folder: Content
-    var onTap: () -> Void
-    var onEllipsisTapped: (CGRect) -> Void
     
     @State private var cellFrame: CGRect = .zero
     
@@ -30,15 +30,18 @@ struct FolderListCellView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                onTap()
+                viewModel.selectedContent = folder
             }
-            Button(action: {
-                onEllipsisTapped(cellFrame)
-            }) {
-                Image(systemName: "ellipsis")
-                    .foregroundColor(.gray)
+            if !viewModel.isSelectionMode {
+                Button(action: {
+                    viewModel.selectedContent = folder
+                    viewModel.showModifyModal = true
+                }) {
+                    Image(systemName: "ellipsis")
+                        .foregroundColor(.gray)
+                }
+                .frame(width: 44, height: 44)
             }
-            .frame(width: 44, height: 44)
         }
         .frame(height: 54)
         .overlay(
@@ -51,7 +54,7 @@ struct FolderListCellView: View {
             GeometryReader { geo in
                 Color.clear
                     .onAppear {
-                        self.cellFrame = geo.frame(in: .global)
+                        viewModel.cellFrame = geo.frame(in: .global)
                     }
             }
         )

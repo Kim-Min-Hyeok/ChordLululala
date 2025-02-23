@@ -8,7 +8,7 @@
 import Combine
 import SwiftUI
 
-enum DashboardContent {
+enum DashboardContents {
     case allDocuments
     case recentDocuments
     case songList
@@ -34,7 +34,7 @@ final class DashBoardViewModel: ObservableObject {
     @Published var isSidebarVisible: Bool = false
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
-    @Published var selectedContent: DashboardContent = .allDocuments {
+    @Published var dashboardContents: DashboardContents = .allDocuments {
         didSet {
             currentFilter = .all
             selectedSort = .date
@@ -47,9 +47,12 @@ final class DashBoardViewModel: ObservableObject {
     @Published var contents: [Content] = []
     
     // 편집 모달 관련 상태
-    @Published var contentForEdit: Content? = nil
-    @Published var modalFrame: CGRect = .zero
+    @Published var cellFrame: CGRect = .zero
     @Published var showModifyModal: Bool = false
+    @Published var selectedContent: Content? = nil
+    
+    // 선택 모드 상태 (추가)
+    @Published var isSelectionMode: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -57,7 +60,7 @@ final class DashBoardViewModel: ObservableObject {
         // 앱 시작 시 기본 디렉토리 Content 객체들을 초기화합니다.
         ContentManager.shared.initializeBaseDirectories()
         // 선택된 DashboardContent에 따라 기본 디렉토리를 currentParent로 지정합니다.
-        switch selectedContent {
+        switch dashboardContents {
         case .allDocuments, .recentDocuments:
             if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                 currentParent = scoreBase
@@ -76,7 +79,7 @@ final class DashBoardViewModel: ObservableObject {
     
     // Content 업데이트
     func loadContents() {
-        ContentInteractor.shared.loadContents(forParent: currentParent, selectedContent: selectedContent)
+        ContentInteractor.shared.loadContents(forParent: currentParent, dashboardContents: dashboardContents)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case let .failure(error) = completion {
@@ -129,7 +132,7 @@ final class DashBoardViewModel: ObservableObject {
                 currentParent = parentFolder
             } else {
                 print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
-                switch selectedContent {
+                switch dashboardContents {
                 case .allDocuments, .recentDocuments:
                     if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                         currentParent = scoreBase
@@ -150,12 +153,12 @@ final class DashBoardViewModel: ObservableObject {
     
     // MARK: Content 관련 비즈니스 로직 호출
     func uploadFile(with url: URL) {
-        ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, selectedContent: selectedContent)
+        ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
         loadContents()
     }
     
     func createFolder(folderName: String) {
-        ContentInteractor.shared.createFolder(folderName: folderName, currentParent: currentParent, selectedContent: selectedContent)
+        ContentInteractor.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
         loadContents()
     }
     
@@ -165,7 +168,7 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func duplicateContent(_ content: Content) {
-        ContentInteractor.shared.duplicateContent(content, selectedContent: selectedContent)
+        ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
         loadContents()
     }
     

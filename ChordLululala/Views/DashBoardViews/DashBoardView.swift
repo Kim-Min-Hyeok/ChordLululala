@@ -19,11 +19,6 @@ struct DashboardView: View {
     @State private var sidebarDragOffset: CGFloat = 0
     private let sidebarWidth: CGFloat = 257
     
-    // MARK: 수정 모달 상태
-    @State private var showModifyModal = false
-    @State private var selectedContent: Content? = nil
-    @State private var modalFrame: CGRect = .zero
-    
     // MARK: 리스트/그리드 상태
     @State private var isListView: Bool = true
     
@@ -34,107 +29,100 @@ struct DashboardView: View {
             ZStack {
                 VStack(spacing: 0) {
                     // TODO: 테스트용 이전 폴더 되돌아가기
-                    if viewModel.currentParent != nil {
-                        HStack {
-                            Button(action: {
-                                viewModel.goBack()
-                            }) {
-                                HStack {
-                                    Image(systemName: "chevron.left")
-                                    Text("상위 폴더")
+                    if !viewModel.isSelectionMode {
+                        if viewModel.currentParent != nil {
+                            HStack {
+                                Button(action: {
+                                    viewModel.goBack()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "chevron.left")
+                                        Text("상위 폴더")
+                                    }
                                 }
+                                .padding()
+                                Spacer()
                             }
-                            .padding()
+                        }
+                        
+                        // MARK: HEADER
+                        HeaderView()
+                            .environmentObject(viewModel)
+                            .padding(.top, 30)
+                            .padding(.horizontal, 30)
+                        
+                        // MARK: 전체/파일/폴더
+                        FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
+                            .padding(.horizontal, 416)
+                            .padding(.top, 33)
+                        
+                        HStack {
+                            // MARK: 날짜순/이름순
+                            SortToggleView(selectedSort: $viewModel.selectedSort)
                             Spacer()
+                            
+                            // MARK: 선택 버튼
+                            Button(action: {
+                                withAnimation {
+                                    viewModel.isSelectionMode = true
+                                }
+                            }) {
+                                Image(systemName: "checkmark.circle")
+                                    .resizable()
+                                    .frame(width: 21, height: 21)
+                            }
+                            .padding(.trailing, 8)
+                            
+                            // MARK: 리스트/그리드 토글 버튼
+                            Button(action: {
+                                isListView.toggle()
+                            }) {
+                                Image(systemName: "list.bullet")
+                                    .resizable()
+                                    .frame(width: 21, height: 21)
+                                    .foregroundColor(isListView ? .blue : .gray)
+                            }
                         }
-                    }
-                    
-                    // MARK: HEADER
-                    HeaderView()
-                        .environmentObject(viewModel)
-                        .padding(.top, 30)
-                        .padding(.horizontal, 30)
-                    
-                    // MARK: 전체/파일/폴더
-                    FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
-                        .padding(.horizontal, 416)
-                        .padding(.top, 33)
-                    
-                    HStack {
-                        // MARK: 날짜순/이름순
-                        SortToggleView(selectedSort: $viewModel.selectedSort)
-                        Spacer()
+                        .padding(.horizontal, 168)
+                        .padding(.top, 10)
                         
-                        // MARK: 선택 버튼
-                        Button(action: {
-                            // TODO: 선택 이미지 버튼 액션 (추후 구현)
-                        }) {
-                            Image(systemName: "checkmark.circle")
-                                .resizable()
-                                .frame(width: 21, height: 21)
+                        // TODO: 테스트용: 모든 데이터 삭제 버튼
+                        Button("모든 데이터 삭제") {
+                            ContentManager.shared.deleteAllCoreDataObjects()
+                            FileManagerManager.shared.deleteAllFilesInScoreFolder()
                         }
-                        .padding(.trailing, 8)
-                        
-                        // MARK: 리스트/그리드 토글 버튼
-                        Button(action: {
-                            isListView.toggle()
-                        }) {
-                            Image(systemName: "list.bullet")
-                                .resizable()
-                                .frame(width: 21, height: 21)
-                                .foregroundColor(isListView ? .blue : .gray)
-                        }
+                        .padding(.vertical, 50)
                     }
-                    .padding(.horizontal, 168)
-                    .padding(.top, 10)
-                    
-                    // TODO: 테스트용: 모든 데이터 삭제 버튼
-                    Button("모든 데이터 삭제") {
-                        ContentManager.shared.deleteAllCoreDataObjects()
-                        FileManagerManager.shared.deleteAllFilesInScoreFolder()
+                    else {
+                        Rectangle()
+                            .frame(height: 168)
                     }
-                    .padding(.vertical, 50)
                     
                     // MARK: 파일/폴더 리스트/그리드 뷰
                     ScrollView {
-                        ContentListView(isListView: isListView,
-                                        onFolderTap: { folder in
-                            viewModel.didTapFolder(folder)
-                        },
-                                        onFolderEllipsisTapped: { folder, frame in
-                            selectedContent = folder
-                            modalFrame = frame
-                            showModifyModal = true
-                        },
-                                        onFileTap: { file in
-                        },
-                                        onFileEllipsisTapped: { file, frame in
-                            selectedContent = file
-                            modalFrame = frame
-                            showModifyModal = true
-                        }
-                        )
+                        ContentListView(isListView: isListView)
                     }
+                    .padding(.top, 70)
                     Spacer()
                 }
                 
                 // MARK: 수정 모달 뷰
-                if showModifyModal, let content = selectedContent {
+                if viewModel.showModifyModal, let content = viewModel.selectedContent {
                     Color.black.opacity(0.3)
                         .edgesIgnoringSafeArea(.all)
                         .onTapGesture {
-                            showModifyModal = false
+                            viewModel.showModifyModal = false
                         }
                     
                     // 셀 별 모달 뷰 위치 설정
                     let modalHeight: CGFloat = 195
                     let screenHeight = UIScreen.main.bounds.height
-                    let desiredY: CGFloat = (modalFrame.maxY + modalHeight > screenHeight)
-                    ? (modalFrame.minY - 30 - modalHeight/2)
-                    : (modalFrame.maxY - 20 + modalHeight/2)
+                    let desiredY: CGFloat = (viewModel.cellFrame.maxY + modalHeight > screenHeight)
+                    ? (viewModel.cellFrame.minY - 30 - modalHeight/2)
+                    : (viewModel.cellFrame.maxY - 20 + modalHeight/2)
                     
                     ModifyModalView(content: content,
-                                    onDismiss: { showModifyModal = false },
+                                    onDismiss: { viewModel.showModifyModal = false },
                                     onRename: { newName in
                         viewModel.renameContent(content, newName: newName)
                     },
@@ -147,7 +135,7 @@ struct DashboardView: View {
                     )
                     .frame(width: 273, height: modalHeight)
                     .position(
-                        x: modalFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
+                        x: viewModel.cellFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
                         y: desiredY
                     )
                     .transition(.opacity)
@@ -230,7 +218,7 @@ struct DashboardView: View {
                             viewModel.isSidebarVisible = false
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                            viewModel.selectedContent = newContent
+                            viewModel.dashboardContents = newContent
                         }
                     })
                     .environmentObject(viewModel)
@@ -295,5 +283,33 @@ struct DashboardView: View {
                 .transition(.opacity)
             }
         }
+        // MARK: 선택 모드 뷰
+        .overlay(
+            Group {
+                if viewModel.isSelectionMode {
+                    SelectionView(
+                        onSelectAll: {
+                            // 전체 선택 구현
+                        },
+                        onComplete: {
+                            // 완료 후 처리
+                            viewModel.isSelectionMode = false
+                        },
+                        onSend: {
+                            // 보내기 작업 구현
+                        },
+                        onDuplicate: {
+                            // 복제 작업 구현
+                        },
+                        onMove: {
+                            // 이동 작업 구현
+                        },
+                        onTrash: {
+                            // 휴지통 이동 작업 구현
+                        })
+                }
+            },
+            alignment: .top
+        )
     }
 }

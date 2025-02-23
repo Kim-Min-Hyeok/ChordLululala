@@ -9,9 +9,9 @@ import SwiftUI
 import QuickLookThumbnailing
 
 struct FileGridCellView: View {
+    @EnvironmentObject var viewModel: DashBoardViewModel
+    
     let file: Content
-    // onEllipsisTapped: 셀의 전체 global frame을 전달 (모달 위치 계산에 사용)
-    var onEllipsisTapped: (CGRect) -> Void
     
     @State private var thumbnail: UIImage? = nil
     @State private var cellFrame: CGRect = .zero
@@ -44,13 +44,16 @@ struct FileGridCellView: View {
                     .font(.caption)
                     .foregroundColor(.black)
                 Spacer()
-                Button(action: {
-                    onEllipsisTapped(cellFrame)
-                }) {
-                    Image(systemName: "ellipsis")
-                        .foregroundColor(.gray)
+                if !viewModel.isSelectionMode {
+                    Button(action: {
+                        viewModel.selectedContent = file
+                        viewModel.showModifyModal = true
+                    }) {
+                        Image(systemName: "ellipsis")
+                            .foregroundColor(.gray)
+                    }
+                    .frame(width: 44, height: 44)
                 }
-                .frame(width: 24, height: 24)
             }
             .frame(height: 32)
             .background(Color.blue)
@@ -64,7 +67,7 @@ struct FileGridCellView: View {
         .background(
             GeometryReader { geo in
                 Color.clear.onAppear {
-                    self.cellFrame = geo.frame(in: .global)
+                    viewModel.cellFrame = geo.frame(in: .global)
                 }
             }
         )
