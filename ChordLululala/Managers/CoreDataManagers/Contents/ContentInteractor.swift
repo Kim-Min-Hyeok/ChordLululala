@@ -1,3 +1,10 @@
+//
+//  ContentInteractor.swift
+//  ChordLululala
+//
+//  Created by Minhyeok Kim on 2/19/25.
+//
+
 import Foundation
 import Combine
 import SwiftUI
@@ -52,15 +59,27 @@ final class ContentInteractor {
         }
         
         switch dashboardContents {
+        case .allDocuments:
+            let trashPredicate = NSPredicate(format: "isTrash == NO")
+            let typePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
+                NSPredicate(format: "type == %d", 0),
+                NSPredicate(format: "type == %d", 2)
+            ])
+            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate, typePredicate])
+            
+        case .recentDocuments:
+            let trashPredicate = NSPredicate(format: "isTrash == NO")
+            let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            let recentPredicate = NSPredicate(format: "lastAccessedAt >= %@", oneDayAgo as NSDate)
+            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate, recentPredicate])
+            
+        case .songList:
+            let typePredicate = NSPredicate(format: "type == %d", 1)
+            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, typePredicate])
+            
         case .trashCan:
             let trashPredicate = NSPredicate(format: "isTrash == YES")
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate])
-        case .recentDocuments:
-            let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-            let recentPredicate = NSPredicate(format: "modifiedAt >= %@", oneDayAgo as NSDate)
-            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, recentPredicate])
-        default:
-            break
         }
         
         return ContentManager.shared.fetchContentsPublisher(predicate: predicate)
@@ -73,6 +92,7 @@ final class ContentInteractor {
         let updatedName = isFile ? newName + ".pdf" : newName
         content.name = updatedName
         content.modifiedAt = Date()
+        content.lastAccessedAt = Date()
         if isFile, let oldPath = content.path,
            let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let oldURL = docsURL.appendingPathComponent(oldPath)
@@ -93,19 +113,40 @@ final class ContentInteractor {
     func moveContentToTrash(_ content: Content) {
         content.isTrash = true
         content.modifiedAt = Date()
-        if content.type != 2, let oldPath = content.path,
-           let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
-           let trashURL = FileManagerManager.shared.documentsURL?.appendingPathComponent("Trash_Can", isDirectory: true) {
-            let oldURL = docsURL.appendingPathComponent(oldPath)
-            let newURL = trashURL.appendingPathComponent(oldURL.lastPathComponent)
+        content.lastAccessedAt = Date()
+        // 파일만 처리
+        guard content.type != 2,
+              let oldPath = content.path,
+              let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+              let trashURL = FileManagerManager.shared.documentsURL?.appendingPathComponent("Trash_Can", isDirectory: true)
+        else { return }
+        
+        let oldURL = docsURL.appendingPathComponent(oldPath)
+        
+        // 원본 파일 존재 여부 확인
+        guard FileManager.default.fileExists(atPath: oldURL.path) else {
+            print("원본 파일이 존재하지 않습니다: \(oldURL.path)")
+            return
+        }
+        
+        // 대상 Trash_Can 폴더가 없으면 생성
+        if !FileManager.default.fileExists(atPath: trashURL.path) {
             do {
-                try FileManager.default.moveItem(at: oldURL, to: newURL)
-                if let newRelativePath = FileManagerManager.shared.relativePath(for: newURL.path) {
-                    content.path = newRelativePath
-                }
+                try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true, attributes: nil)
             } catch {
-                print("파일 휴지통 이동 실패: \(error)")
+                print("Trash_Can 폴더 생성 실패: \(error)")
+                return
             }
+        }
+        
+        let newURL = trashURL.appendingPathComponent(oldURL.lastPathComponent)
+        do {
+            try FileManager.default.moveItem(at: oldURL, to: newURL)
+            if let newRelativePath = FileManagerManager.shared.relativePath(for: newURL.path) {
+                content.path = newRelativePath
+            }
+        } catch {
+            print("파일 휴지통 이동 실패: \(error)")
         }
         CoreDataManager.shared.saveContext()
     }

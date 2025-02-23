@@ -9,18 +9,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
-    
-    // MARK: 파일/폴더 생성 버튼 관련 상태
-    @State private var isFloatingMenuVisible: Bool = false
-    @State private var isShowingPDFPicker: Bool = false
-    @State private var isShowingCreateFolderModal: Bool = false
-    
-    // MARK: 사이드바 관련 설정
-    @State private var sidebarDragOffset: CGFloat = 0
     private let sidebarWidth: CGFloat = 257
-    
-    // MARK: 리스트/그리드 상태
-    @State private var isListView: Bool = true
     
     var body: some View {
         // MARK: 파일 생성 시트 (파일 Picker) & 폴더 생성 모달 구현을 위한 ZStack
@@ -75,12 +64,12 @@ struct DashboardView: View {
                             
                             // MARK: 리스트/그리드 토글 버튼
                             Button(action: {
-                                isListView.toggle()
+                                viewModel.isListView.toggle()
                             }) {
                                 Image(systemName: "list.bullet")
                                     .resizable()
                                     .frame(width: 21, height: 21)
-                                    .foregroundColor(isListView ? .blue : .gray)
+                                    .foregroundColor(viewModel.isListView ? .blue : .gray)
                             }
                         }
                         .padding(.horizontal, 168)
@@ -100,7 +89,7 @@ struct DashboardView: View {
                     
                     // MARK: 파일/폴더 리스트/그리드 뷰
                     ScrollView {
-                        ContentListView(isListView: isListView)
+                        ContentListView(isListView: viewModel.isListView)
                     }
                     .padding(.top, 70)
                     Spacer()
@@ -143,13 +132,13 @@ struct DashboardView: View {
                 
                 // MARK: 파일 생성 모달 뷰
                 ZStack {
-                    if isFloatingMenuVisible {
+                    if viewModel.isFloatingMenuVisible {
                         Color.clear
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 withAnimation {
-                                    isFloatingMenuVisible = false
+                                    viewModel.isFloatingMenuVisible = false
                                 }
                             }
                     }
@@ -161,7 +150,7 @@ struct DashboardView: View {
                             ZStack(alignment: .bottomTrailing) {
                                 Button(action: {
                                     withAnimation {
-                                        isFloatingMenuVisible.toggle()
+                                        viewModel.isFloatingMenuVisible.toggle()
                                     }
                                 }) {
                                     Image(systemName: "plus")
@@ -174,19 +163,19 @@ struct DashboardView: View {
                                 .padding(.trailing, 29)
                                 .padding(.bottom, 40)
                                 
-                                if isFloatingMenuVisible {
+                                if viewModel.isFloatingMenuVisible {
                                     VStack(spacing: 10) {
                                         FloatingMenuView(
                                             folderAction: {
                                                 withAnimation {
-                                                    isFloatingMenuVisible.toggle()
-                                                    isShowingCreateFolderModal = true
+                                                    viewModel.isFloatingMenuVisible.toggle()
+                                                    viewModel.isShowingCreateFolderModal = true
                                                 }
                                             },
                                             fileUploadAction: {
                                                 withAnimation {
-                                                    isFloatingMenuVisible.toggle()
-                                                    isShowingPDFPicker = true
+                                                    viewModel.isFloatingMenuVisible.toggle()
+                                                    viewModel.isShowingPDFPicker = true
                                                 }
                                             }
                                         )
@@ -223,11 +212,11 @@ struct DashboardView: View {
                     })
                     .environmentObject(viewModel)
                     .frame(width: sidebarWidth)
-                    .offset(x: (viewModel.isSidebarVisible ? 0 : -sidebarWidth) + sidebarDragOffset)
+                    .offset(x: (viewModel.isSidebarVisible ? 0 : -sidebarWidth) + viewModel.sidebarDragOffset)
                     .gesture(
                         DragGesture()
                             .onChanged { value in
-                                sidebarDragOffset = value.translation.width
+                                viewModel.sidebarDragOffset = value.translation.width
                             }
                             .onEnded { value in
                                 let threshold = sidebarWidth / 2
@@ -245,7 +234,7 @@ struct DashboardView: View {
                                     }
                                 }
                                 withAnimation(.easeInOut(duration: 0.2)) {
-                                    sidebarDragOffset = 0
+                                    viewModel.sidebarDragOffset = 0
                                 }
                             }
                     )
@@ -259,26 +248,25 @@ struct DashboardView: View {
                     self.hideKeyboard()
                 }
             )
-            .environmentObject(viewModel)
             
             // MARK: 파일 생성 시트 (파일 Picker)
-            .sheet(isPresented: $isShowingPDFPicker) {
+            .sheet(isPresented: $viewModel.isShowingPDFPicker) {
                 PDFPicker { selectedURL in
                     viewModel.uploadFile(with: selectedURL)
-                    isShowingPDFPicker = false
+                    viewModel.isShowingPDFPicker = false
                 }
             }
             
             // MARK: 폴더 생성 모달
-            if isShowingCreateFolderModal {
+            if viewModel.isShowingCreateFolderModal {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        isShowingCreateFolderModal = false
+                        viewModel.isShowingCreateFolderModal = false
                     }
                 CreateFolderModalView(currentParent: viewModel.currentParent) { folderName, _ in
                     viewModel.createFolder(folderName: folderName)
-                    isShowingCreateFolderModal = false
+                    viewModel.isShowingCreateFolderModal = false
                 }
                 .transition(.opacity)
             }
@@ -287,29 +275,11 @@ struct DashboardView: View {
         .overlay(
             Group {
                 if viewModel.isSelectionMode {
-                    SelectionView(
-                        onSelectAll: {
-                            // 전체 선택 구현
-                        },
-                        onComplete: {
-                            // 완료 후 처리
-                            viewModel.isSelectionMode = false
-                        },
-                        onSend: {
-                            // 보내기 작업 구현
-                        },
-                        onDuplicate: {
-                            // 복제 작업 구현
-                        },
-                        onMove: {
-                            // 이동 작업 구현
-                        },
-                        onTrash: {
-                            // 휴지통 이동 작업 구현
-                        })
+                    SelectionView()
                 }
             },
             alignment: .top
         )
+        .environmentObject(viewModel)
     }
 }

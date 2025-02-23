@@ -31,7 +31,8 @@ enum SortOption: String, CaseIterable, Identifiable {
 }
 
 final class DashBoardViewModel: ObservableObject {
-    @Published var isSidebarVisible: Bool = false
+    
+    // MARK: 필터링 관련
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
     @Published var dashboardContents: DashboardContents = .allDocuments {
@@ -46,13 +47,26 @@ final class DashBoardViewModel: ObservableObject {
     @Published var currentParent: Content? = nil
     @Published var contents: [Content] = []
     
-    // 편집 모달 관련 상태
+    // MARK: 사이드바 관련
+    @Published var sidebarDragOffset: CGFloat = 0
+    @Published var isSidebarVisible: Bool = false
+    
+    // MARK: 리스트/그리드 관련
+    @Published var isListView: Bool = true
+    
+    // MARK: 파일/폴더 생성 버튼 관련
+    @Published var isFloatingMenuVisible: Bool = false
+    @Published var isShowingPDFPicker: Bool = false
+    @Published var isShowingCreateFolderModal: Bool = false
+    
+    // MARK: 편집 모달 관련
     @Published var cellFrame: CGRect = .zero
     @Published var showModifyModal: Bool = false
     @Published var selectedContent: Content? = nil
     
-    // 선택 모드 상태 (추가)
+    // MARK: 선택모드 관련
     @Published var isSelectionMode: Bool = false
+    @Published var selectedContents: [Content] = []
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -77,20 +91,6 @@ final class DashBoardViewModel: ObservableObject {
         loadContents()
     }
     
-    // Content 업데이트
-    func loadContents() {
-        ContentInteractor.shared.loadContents(forParent: currentParent, dashboardContents: dashboardContents)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case let .failure(error) = completion {
-                    print("Error loading contents: \(error)")
-                }
-            }, receiveValue: { [weak self] contents in
-                self?.contents = contents
-            })
-            .store(in: &cancellables)
-    }
-    
     // MARK: 폴더 및 파일 정렬
     // 1. 폴더
     var sortedFolders: [Content] {
@@ -102,7 +102,7 @@ final class DashBoardViewModel: ObservableObject {
             return folders.sorted { ($0.name ?? "") < ($1.name ?? "") }
         }
     }
-
+    
     // 2. 파일
     var sortedFiles: [Content] {
         let files = contents.filter { $0.type != 2 }
@@ -123,35 +123,48 @@ final class DashBoardViewModel: ObservableObject {
     
     // 2. 상위 폴더 이동: 기본 디렉토리(Score, Song_List, Trash_Can)에서는 goBack 동작 X
     func goBack() {
-            guard let current = currentParent, let parentID = current.parent else {
-                print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
-                return
-            }
-            // 동기적으로 부모 폴더를 가져옵니다.
-            if let parentFolder = ContentManager.shared.fetchContent(with: parentID) {
-                currentParent = parentFolder
-            } else {
-                print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
-                switch dashboardContents {
-                case .allDocuments, .recentDocuments:
-                    if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
-                        currentParent = scoreBase
-                    }
-                case .songList:
-                    if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
-                        currentParent = songListBase
-                    }
-                case .trashCan:
-                    if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                        currentParent = trashCanBase
-                    }
+        guard let current = currentParent, let parentID = current.parent else {
+            print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
+            return
+        }
+        // 동기적으로 부모 폴더를 가져옵니다.
+        if let parentFolder = ContentManager.shared.fetchContent(with: parentID) {
+            currentParent = parentFolder
+        } else {
+            print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
+            switch dashboardContents {
+            case .allDocuments, .recentDocuments:
+                if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
+                    currentParent = scoreBase
+                }
+            case .songList:
+                if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    currentParent = songListBase
+                }
+            case .trashCan:
+                if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                    currentParent = trashCanBase
                 }
             }
-            loadContents()
         }
-
+        loadContents()
+    }
+    
     
     // MARK: Content 관련 비즈니스 로직 호출
+    func loadContents() {
+        ContentInteractor.shared.loadContents(forParent: currentParent, dashboardContents: dashboardContents)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    print("Error loading contents: \(error)")
+                }
+            }, receiveValue: { [weak self] contents in
+                self?.contents = contents
+            })
+            .store(in: &cancellables)
+    }
+    
     func uploadFile(with url: URL) {
         ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
         loadContents()
@@ -174,6 +187,14 @@ final class DashBoardViewModel: ObservableObject {
     
     func moveContentToTrash(_ content: Content) {
         ContentInteractor.shared.moveContentToTrash(content)
+        loadContents()
+    }
+    
+    func moveSelectedContentsToTrash() {
+        for content in selectedContents {
+            ContentInteractor.shared.moveContentToTrash(content)
+        }
+        selectedContents.removeAll()
         loadContents()
     }
 }

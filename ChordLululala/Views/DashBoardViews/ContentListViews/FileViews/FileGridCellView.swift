@@ -10,70 +10,96 @@ import QuickLookThumbnailing
 
 struct FileGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
+    @State private var thumbnail: UIImage? = nil
     
     let file: Content
-    
-    @State private var thumbnail: UIImage? = nil
-    @State private var cellFrame: CGRect = .zero
-    
-    var body: some View {
-        VStack(spacing: 0) {
-            // 이미지 영역 (고정 높이 201, image가 꽉 차게)
-            Group {
-                if let thumbnail = thumbnail {
-                    Image(uiImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 114)
-                        .clipped()
-                } else {
-                    Rectangle()
-                        .fill(Color.gray.opacity(0.3))
-                        .frame(height: 114)
-                        .overlay(Text("Loading").font(.caption))
-                }
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                // 파일 셀 전체 탭 액션 필요 시 여기에 구현 가능
-            }
-            
-            // 텍스트 + 버튼 영역 (고정 높이 32)
-            HStack {
-                Text(file.name ?? "Unnamed")
-                    .font(.caption)
-                    .foregroundColor(.black)
-                Spacer()
-                if !viewModel.isSelectionMode {
-                    Button(action: {
-                        viewModel.selectedContent = file
-                        viewModel.showModifyModal = true
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
-                    }
-                    .frame(width: 44, height: 44)
-                }
-            }
-            .frame(height: 32)
-            .background(Color.blue)
-        }
-        .frame(height: 114 + 32)
-        .background(Color.red) // 셀의 배경 색상(테스트용)
-        .cornerRadius(9)
-        .onAppear {
-            loadThumbnail()
-        }
-        .background(
-            GeometryReader { geo in
-                Color.clear.onAppear {
-                    viewModel.cellFrame = geo.frame(in: .global)
-                }
-            }
-        )
+    private var isSelected: Bool {
+        viewModel.selectedContents.contains { $0.cid == file.cid }
     }
     
-    func loadThumbnail() {
+    var body: some View {
+        ZStack {
+            VStack(spacing: 0) {
+                // 이미지 영역
+                Group {
+                    if let thumbnail = thumbnail {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(height: 114)
+                            .clipped()
+                    } else {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.3))
+                            .frame(height: 114)
+                            .overlay(Text("Loading").font(.caption))
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if viewModel.isSelectionMode {
+                        toggleSelection()
+                    } else {
+                        // 일반 파일 탭 액션 구현
+                    }
+                }
+                
+                // 텍스트 + 버튼 영역
+                HStack {
+                    Text(file.name ?? "Unnamed")
+                        .font(.caption)
+                        .foregroundColor(.black)
+                    Spacer()
+                    if !viewModel.isSelectionMode {
+                        Button(action: {
+                            viewModel.selectedContent = file
+                            viewModel.showModifyModal = true
+                        }) {
+                            Image(systemName: "ellipsis")
+                                .foregroundColor(.gray)
+                        }
+                        .frame(width: 44, height: 44)
+                    }
+                }
+                .frame(height: 32)
+                .background(Color.blue)
+            }
+            .frame(height: 114 + 32)
+            .background(Color.red) // 테스트용 배경색
+            .cornerRadius(9)
+            .onAppear {
+                loadThumbnail()
+            }
+            .background(
+                GeometryReader { geo in
+                    Color.clear.onAppear {
+                        viewModel.cellFrame = geo.frame(in: .global)
+                    }
+                }
+            )
+            
+            // 선택 모드 오버레이: 체크 아이콘
+            if viewModel.isSelectionMode {
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                            .foregroundColor(isSelected ? .blue : .gray)
+                            .frame(width: 24, height: 24)
+                            .padding(.trailing, 9)
+                    }
+                    .padding(.bottom, 10)
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    toggleSelection()
+                }
+            }
+        }
+    }
+    
+    private func loadThumbnail() {
         guard let relativePath = file.path, !relativePath.isEmpty,
               let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             print("파일 경로 없음")
@@ -94,6 +120,14 @@ struct FileGridCellView: View {
             } else {
                 print("썸네일 생성 실패: \(String(describing: error))")
             }
+        }
+    }
+    
+    private func toggleSelection() {
+        if isSelected {
+            viewModel.selectedContents.removeAll { $0.cid == file.cid }
+        } else {
+            viewModel.selectedContents.append(file)
         }
     }
 }
