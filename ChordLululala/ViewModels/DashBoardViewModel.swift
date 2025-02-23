@@ -67,6 +67,7 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: 선택모드 관련
     @Published var isSelectionMode: Bool = false
     @Published var selectedContents: [Content] = []
+    @Published var showTrashModal: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     

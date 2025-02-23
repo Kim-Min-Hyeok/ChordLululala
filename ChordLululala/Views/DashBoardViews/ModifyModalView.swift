@@ -8,32 +8,16 @@
 import SwiftUI
 
 struct ModifyModalView: View {
+    @StateObject private var viewModel = DashBoardViewModel()
+    
     let content: Content
-    var onDismiss: () -> Void
-    
-    /// 파일 이름 수정 액션
-    var onRename: (String) -> Void
-    
-    /// 복제하기 액션
-    var onDuplicate: () -> Void
-    
-    /// 휴지통으로 이동 액션
-    var onMoveToTrash: () -> Void
     
     @State private var name: String
     
     private let originalName: String
     
-    init(content: Content,
-         onDismiss: @escaping () -> Void,
-         onRename: @escaping (String) -> Void,
-         onDuplicate: @escaping () -> Void,
-         onMoveToTrash: @escaping () -> Void) {
+    init(content: Content) {
         self.content = content
-        self.onDismiss = onDismiss
-        self.onRename = onRename
-        self.onDuplicate = onDuplicate
-        self.onMoveToTrash = onMoveToTrash
         
         // 파일인 경우 확장자(.pdf)가 있다면 제거해서 보여줌
         if content.type != 2, let fullName = content.name {
@@ -65,8 +49,8 @@ struct ModifyModalView: View {
                 // 옵션 버튼 영역
                 VStack(spacing: 0) {
                     Button(action: {
-                        onDuplicate()
-                        onDismiss()
+                        viewModel.duplicateContent(content)
+                        viewModel.showModifyModal = false
                     }) {
                         HStack(spacing: 12) {
                             Image(systemName: "doc.on.doc")
@@ -80,8 +64,8 @@ struct ModifyModalView: View {
                     }
                     Divider()
                     Button(action: {
-                        onMoveToTrash()
-                        onDismiss()
+                        viewModel.moveContentToTrash(content)
+                        viewModel.showModifyModal = false
                     }) {
                         HStack(spacing: 12) {
                             Image(systemName: "trash")
@@ -104,7 +88,7 @@ struct ModifyModalView: View {
         .onDisappear() {
             // MARK:  모달이 dismiss될 때, 텍스트필드 값이 변경되었다면 onRename 호출 (이름 수정용)
             if name != originalName {
-                onRename(name)
+                viewModel.renameContent(content, newName: name)
             }
         }
     }

@@ -33,16 +33,17 @@ struct SelectionView: View {
             
             HStack(spacing: 90) {
                 SelectionOptionButton(imageName: "paperplane.fill", title: "보내기", action: {
-                    print("")
+                    viewModel.isSelectionMode = false
                 })
                 SelectionOptionButton(imageName: "doc.on.doc", title: "복제", action: {
-                    print("")
+                    viewModel.duplicateSelectedContents()
+                    viewModel.isSelectionMode = false
                 })
                 SelectionOptionButton(imageName: "arrow.turn.up.left", title: "이동", action: {
-                    print("")
+                    viewModel.isSelectionMode = false
                 })
                 SelectionOptionButton(imageName: "trash.fill", title: "휴지통", action: {
-                    viewModel.moveSelectedContentsToTrash()
+                    viewModel.showTrashModal = true
                 })
             }
             
