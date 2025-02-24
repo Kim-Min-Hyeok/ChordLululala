@@ -26,8 +26,7 @@ struct ScoreDoubleDisplayView: View {
                     .background(Color.white)
                     .scaleEffect(viewModel.magnifyBy)
                     .gesture(viewModel.magnification)
-                    .offset(viewModel.draggedOffset)
-                    .gesture(viewModel.drag)
+                   
                 }
             }
             .tabViewStyle(PageTabViewStyle())

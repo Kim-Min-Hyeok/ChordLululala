@@ -19,6 +19,7 @@ class PageControlViewModel: ObservableObject {
         self.layout = layout
     }
     
+    // 전체 페이지 계산
     var totalPages: Int {
         switch layout {
         case .single:
@@ -28,7 +29,7 @@ class PageControlViewModel: ObservableObject {
         }
     }
     
-    
+    // 현재 페이지 계산
     var displayPage: Int {
           switch layout {
           case .single:

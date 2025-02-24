@@ -17,8 +17,6 @@ struct ScoreDisplayView : View {
                         .resizable()
                         .scaledToFit()
                         .background(Color.white)
-                        .offset(viewModel.draggedOffset)
-                        .gesture(viewModel.drag)
                         .scaleEffect(viewModel.magnifyBy)
                         .gesture(viewModel.magnification)
                         .tag(index + 1)

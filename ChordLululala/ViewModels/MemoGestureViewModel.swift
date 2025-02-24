@@ -15,16 +15,12 @@ class MemoGestureViewModel : ObservableObject {
     var drag: some Gesture {
         DragGesture()
             .onChanged { gesture in
-                
                 let newOffset = self.accumulatedOffset + gesture.translation
                 self.draggedOffset = self.clampedOffset(newOffset)
-//                self.draggedOffset = self.accumulatedOffset + gesture.translation
-                
             }
             .onEnded { gesture in
                 let finalOffset = self.accumulatedOffset + gesture.translation
                 self.accumulatedOffset = self.clampedOffset(finalOffset)
-                
                 self.draggedOffset = self.accumulatedOffset
             }
     }
