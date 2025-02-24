@@ -28,18 +28,18 @@ final class ContentManager {
                        parent: UUID? = nil,
                        s_dids: [UUID]? = nil) {
         let now = Date()
-        let model = ContentModel(id: UUID(),
+        let model = ContentModel(cid: UUID(),
                                  name: name,
                                  path: path,
                                  type: ContentType(rawValue: type) ?? .score,
                                  category: ContentCategory(rawValue: category) ?? .score,
-                                 parentID: parent,
+                                 parent: parent,
                                  createdAt: now,
                                  modifiedAt: now,
                                  lastAccessedAt: now,
                                  deletedAt: nil,
                                  isTrash: false,
-                                 originalParentId: nil,
+                                 originalParentId: parent,
                                  syncStatus: false,
                                  s_dids: s_dids)
         createContent(model: model)
@@ -144,9 +144,8 @@ final class ContentManager {
     
     // MARK: Update
     func updateContent(model: ContentModel) {
-        // CoreData 관련 처리는 ContentManager 내부에서만 수행합니다.
         let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "cid == %@", model.id as CVarArg)
+        fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
         do {
             if let coreEntity = try context.fetch(fetchRequest).first {
                 coreEntity.update(from: model)

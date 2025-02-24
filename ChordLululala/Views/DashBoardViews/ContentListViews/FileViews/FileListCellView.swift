@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FileListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    let file: Content
+    let file: ContentModel
     
     private var isSelected: Bool {
         viewModel.selectedContents.contains { $0.cid == file.cid }

@@ -11,7 +11,7 @@ struct FolderGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @State private var cellFrame: CGRect = .zero
     
-    let folder: Content
+    let folder: ContentModel
     private var isSelected: Bool {
         viewModel.selectedContents.contains { $0.cid == folder.cid }
     }
@@ -24,7 +24,7 @@ struct FolderGridCellView: View {
                         .resizable()
                         .frame(width: 32, height: 32)
                         .foregroundColor(.blue)
-                    Text(folder.name ?? "Unnamed")
+                    Text(folder.name)
                         .font(.caption)
                         .foregroundColor(.black)
                     Spacer()

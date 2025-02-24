@@ -16,13 +16,10 @@ final class FileManagerManager {
         fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
     }
     
-    /// 기본 폴더 URL을 Documents 폴더로 설정합니다.
-    /// 이후 파일이나 폴더 생성 시, Core Data에 저장된 Content 객체의 path를 그대로 사용하여 Documents 하위에 경로를 구성합니다.
     func baseFolderURL(for category: DashboardContents) -> URL? {
         return documentsURL // 항상 Documents 폴더 기준
     }
     
-    /// 지정한 상대 경로(예: "Score" 또는 "Score/SubFolder")에 해당하는 폴더가 Documents 폴더 기준으로 존재하지 않으면 생성하고, 생성된 폴더 URL을 반환합니다.
     func createSubfolderIfNeeded(for relativeFolderPath: String, inBaseFolder baseFolder: URL?) -> URL? {
         guard let baseFolder = baseFolder else { return nil }
         let targetFolder = baseFolder.appendingPathComponent(relativeFolderPath, isDirectory: true)
@@ -37,7 +34,7 @@ final class FileManagerManager {
         return targetFolder
     }
     
-    /// 파일 복사: Documents 폴더 기준으로 상대 폴더 경로를 덧붙여 복사합니다.
+    /// 파일 복사: Documents 폴더 기준으로 상대 폴더 경로를 덧붙여 복사
     func copyPDFToBaseFolder(from sourceURL: URL, relativeFolderPath: String? = nil, baseFolder: URL?) -> URL? {
         guard let baseFolder = baseFolder else { return nil }
         var destinationFolder = baseFolder
@@ -64,7 +61,7 @@ final class FileManagerManager {
         }
     }
     
-    /// Documents 폴더 기준 절대 경로에서 상대 경로를 추출합니다.
+    /// Documents 폴더 기준 절대 경로에서 상대 경로를 추출
     func relativePath(for absolutePath: String) -> String? {
         guard let docsURL = documentsURL else { return nil }
         let docsPath = docsURL.path
@@ -75,15 +72,16 @@ final class FileManagerManager {
         return nil
     }
     
-    func deleteAllFilesInScoreFolder() {
-        guard let scoreURL = documentsURL?.appendingPathComponent("Score", isDirectory: true) else { return }
+    func deleteAllFilesInDocumentsFolder() {
+        guard let documentsURL = documentsURL else { return }
         do {
-            let fileURLs = try fileManager.contentsOfDirectory(at: scoreURL, includingPropertiesForKeys: nil)
+            let fileURLs = try fileManager.contentsOfDirectory(at: documentsURL, includingPropertiesForKeys: nil)
             for url in fileURLs {
                 try fileManager.removeItem(at: url)
             }
+            print("Documents 내 모든 파일 삭제 완료")
         } catch {
-            print("Score 폴더 파일 삭제 실패: \(error)")
+            print("Documents 폴더 파일 삭제 실패: \(error)")
         }
     }
 }

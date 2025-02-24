@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FolderListView: View {
-    let folders: [Content]
+    let folders: [ContentModel]
     let cellSpacing: CGFloat = 8
     
     var body: some View {

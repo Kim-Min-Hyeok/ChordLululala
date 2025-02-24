@@ -80,7 +80,7 @@ struct DashboardView: View {
                             // TODO: 테스트용: 모든 데이터 삭제 버튼
                             Button("모든 데이터 삭제") {
                                 ContentManager.shared.deleteAllCoreDataObjects()
-                                FileManagerManager.shared.deleteAllFilesInScoreFolder()
+                                FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
                             }
                             .padding(.vertical, 50)
                         }

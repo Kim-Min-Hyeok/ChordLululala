@@ -12,7 +12,7 @@ struct FileGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @State private var thumbnail: UIImage? = nil
     
-    let file: Content
+    let file: ContentModel
     private var isSelected: Bool {
         viewModel.selectedContents.contains { $0.cid == file.cid }
     }

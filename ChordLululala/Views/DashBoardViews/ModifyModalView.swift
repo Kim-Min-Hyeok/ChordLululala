@@ -8,25 +8,25 @@
 import SwiftUI
 
 struct ModifyModalView: View {
-    @StateObject private var viewModel = DashBoardViewModel()
+    @EnvironmentObject var viewModel: DashBoardViewModel
     
-    let content: Content
+    let content: ContentModel
     
     @State private var name: String
     
     private let originalName: String
     
-    init(content: Content) {
+    init(content: ContentModel) {
         self.content = content
         
         // 파일인 경우 확장자(.pdf)가 있다면 제거해서 보여줌
-        if content.type != 2, let fullName = content.name {
-            let baseName = (fullName as NSString).deletingPathExtension
+        if content.type.rawValue != 2 {
+            let baseName = (content.name as NSString).deletingPathExtension
             _name = State(initialValue: baseName)
             self.originalName = baseName
         } else {
-            _name = State(initialValue: content.name ?? "")
-            self.originalName = content.name ?? ""
+            _name = State(initialValue: content.name)
+            self.originalName = content.name
         }
     }
     
@@ -49,8 +49,8 @@ struct ModifyModalView: View {
                 // 옵션 버튼 영역
                 VStack(spacing: 0) {
                     Button(action: {
-                        viewModel.duplicateContent(content)
                         viewModel.isModifyModalVisible = false
+                            viewModel.duplicateContent(content)
                     }) {
                         HStack(spacing: 12) {
                             Image(systemName: "doc.on.doc")

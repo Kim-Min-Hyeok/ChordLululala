@@ -1,5 +1,5 @@
 //
-//  DomainModels.swift
+//  ContentModel.swift
 //  ChordLululala
 //
 //  Created by Minhyeok Kim on 2/25/25.
@@ -9,12 +9,12 @@ import Foundation
 
 // 도메인 모델
 struct ContentModel {
-    let id: UUID
+    let cid: UUID
     var name: String
     var path: String?             // FileManager 내의 경로
     var type: ContentType         // score(0), song_list(1), folder(2)
     var category: ContentCategory // score(0), song_list(1), trash(2)
-    var parentID: UUID?           // 상위 폴더의 cid
+    var parent: UUID?           // 상위 폴더의 cid
     var createdAt: Date
     var modifiedAt: Date
     var lastAccessedAt: Date
@@ -40,12 +40,12 @@ enum ContentCategory: Int16 {
 // CoreData Entity(Content) -> 도메인 모델(ContentModel) Mapping
 extension ContentModel {
     init(entity: Content) {
-        self.id = entity.cid ?? UUID()
+        self.cid = entity.cid ?? UUID()
         self.name = entity.name ?? "Unnamed"
         self.path = entity.path
         self.type = ContentType(rawValue: entity.type) ?? .score
         self.category = ContentCategory(rawValue: entity.category) ?? .score
-        self.parentID = entity.parent
+        self.parent = entity.parent
         self.createdAt = entity.createdAt ?? Date()
         self.modifiedAt = entity.modifiedAt ?? Date()
         self.lastAccessedAt = entity.lastAccessedAt ?? Date()
@@ -64,12 +64,12 @@ extension ContentModel {
 // 도메인 모델(ContentModel) -> CoreData Entity(Content) 업데이트
 extension Content {
     func update(from model: ContentModel) {
-        self.cid = model.id
+        self.cid = model.cid
         self.name = model.name
         self.path = model.path
         self.type = model.type.rawValue
         self.category = model.category.rawValue
-        self.parent = model.parentID
+        self.parent = model.parent
         self.createdAt = model.createdAt
         self.modifiedAt = model.modifiedAt
         self.lastAccessedAt = model.lastAccessedAt

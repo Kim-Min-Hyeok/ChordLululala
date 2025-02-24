@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FolderListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    let folder: Content
+    let folder: ContentModel
     
     private var isSelected: Bool {
         viewModel.selectedContents.contains { $0.cid == folder.cid }
@@ -23,7 +23,7 @@ struct FolderListCellView: View {
                         .resizable()
                         .frame(width: 53, height: 53)
                         .foregroundColor(.blue)
-                    Text(folder.name ?? "Unnamed")
+                    Text(folder.name)
                         .font(.body)
                         .foregroundColor(.black)
                     Spacer()

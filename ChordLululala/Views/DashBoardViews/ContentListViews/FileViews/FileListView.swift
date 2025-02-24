@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FileListView: View {
-    let files: [Content]
+    let files: [ContentModel]
     let cellSpacing: CGFloat = 8
     
     var body: some View {
