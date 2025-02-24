@@ -7,8 +7,13 @@ import PencilKit
 struct ScoreDisplayView : View {
     
     @StateObject var pageControlViewModel: PageControlViewModel
-    @StateObject var viewModel = MemoGestureViewModel()
-    @StateObject var pencilToolsViewModel = PencilToolsViewModel()
+    @StateObject var memoViewModel = MemoGestureViewModel()
+    @ObservedObject var pencilToolsViewModel : PencilToolsViewModel
+    
+    init(pageControlViewModel : PageControlViewModel, pencilToolsViewModel: PencilToolsViewModel){
+        self._pageControlViewModel = StateObject(wrappedValue: pageControlViewModel)
+        self.pencilToolsViewModel = pencilToolsViewModel
+    }
     
     var body: some View {
         ZStack{
@@ -20,12 +25,14 @@ struct ScoreDisplayView : View {
                             .resizable()
                             .scaledToFit()
                             .background(Color.white)
-                            .scaleEffect(viewModel.magnifyBy)
-                            .gesture(viewModel.magnification)
+                            .scaleEffect(memoViewModel.magnifyBy)
+                            .gesture(memoViewModel.magnification)
                         
             
                         
-                    
+                        PencilKitView(canvasView: pencilToolsViewModel.canvasViews[index])
+                            .opacity(pencilToolsViewModel.isPencilActive ? 1 : 0)
+
                     }
                     .tag(index + 1)
                     
@@ -33,7 +40,9 @@ struct ScoreDisplayView : View {
                 }
             }
             .tabViewStyle(PageTabViewStyle())
-            
+            .onChange(of: pageControlViewModel.currentPage){ newValue in
+                pencilToolsViewModel.updateCurrentPage(newValue - 1 )
+            }
             PageIndicatorView(
                 currentPage: pageControlViewModel.displayPage ,
                 totalPages: pageControlViewModel.totalPages

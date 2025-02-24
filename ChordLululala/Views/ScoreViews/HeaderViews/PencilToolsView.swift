@@ -1,8 +1,13 @@
 import SwiftUI
 
-struct PencilToolsView: View {      
+struct PencilToolsView: View {
     @Binding  var isPencilActive: Bool
-    @StateObject  var pencilToolsViewModel = PencilToolsViewModel()
+    @ObservedObject  var pencilToolsViewModel : PencilToolsViewModel
+    
+    init(isPencilActive: Binding<Bool>, pencilToolsViewModel: PencilToolsViewModel ) {
+        self._isPencilActive = isPencilActive
+        self.pencilToolsViewModel = pencilToolsViewModel
+    }
     
     
     var body: some View {
@@ -13,41 +18,62 @@ struct PencilToolsView: View {
                 Spacer()
                 
                 Button(action:{
-                    pencilToolsViewModel.selectTool(.pencil)
+                    if pencilToolsViewModel.selectedTool == .pencil {
+                           
+                           pencilToolsViewModel.closeToolbar()
+                       } else {
+                           pencilToolsViewModel.selectTool(.pencil)
+                       }
+                    
                     print("펜 클릭 ")
                 }){
                     Image(systemName: "pencil")
-                        .foregroundColor(Color.white)
+                        .foregroundColor(pencilToolsViewModel.selectedTool == .pencil ? .blue : .white)
                 }
                 .padding(.trailing, 20)
                 
                 // 형광펜
                 Button(action:{
-                    pencilToolsViewModel.selectTool(.marker)
+                    if pencilToolsViewModel.selectedTool == .marker {
+                           
+                           pencilToolsViewModel.closeToolbar()
+                       } else {
+                           pencilToolsViewModel.selectTool(.marker)
+                       }
                     print("형광펜 클릭 ")
                 }){
-                    Image(systemName: "pencil")
-                        .foregroundColor(Color.white)
+                    Image(systemName: "highlighter")
+                        .foregroundColor(pencilToolsViewModel.selectedTool == .marker ? .blue : .white)
                 }
                 .padding(.trailing, 20)
                 
                 // 지우개
                 Button(action:{
-                    pencilToolsViewModel.selectTool(.eraser)
+                    if pencilToolsViewModel.selectedTool == .eraser {
+                           
+                           pencilToolsViewModel.closeToolbar()
+                       } else {
+                           pencilToolsViewModel.selectTool(.eraser)
+                       }
                     print("지우개 클릭 ")
                 }){
                     Image(systemName: "eraser")
-                        .foregroundColor(Color.white)
+                        .foregroundColor(pencilToolsViewModel.selectedTool == .eraser ? .blue : .white)
                 }
                 .padding(.trailing, 20)
                 
                 // 올가미
                 Button(action:{
-                    pencilToolsViewModel.selectTool(.lasso)
+                    if pencilToolsViewModel.selectedTool == .lasso {
+                           
+                           pencilToolsViewModel.closeToolbar()
+                       } else {
+                           pencilToolsViewModel.selectTool(.lasso)
+                       }
                     print("올가미 클릭 ")
                 }){
                     Image(systemName: "crop")
-                        .foregroundColor(Color.white)
+                        .foregroundColor(pencilToolsViewModel.selectedTool == .lasso ? .blue : .white)
                 }
                 .padding(.trailing, 20)
                 
@@ -75,6 +101,7 @@ struct PencilToolsView: View {
                 
                 // 취소 버튼
                 Button(action:{
+                    pencilToolsViewModel.closeToolbar()
                     isPencilActive.toggle()
                     print("취소 ")
                 }){

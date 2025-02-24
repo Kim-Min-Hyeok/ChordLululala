@@ -8,6 +8,15 @@ struct ScoreHeaderView: View {
     @Binding  var isMemoActive: Bool
     @Binding var isSettingActive: Bool
     @Binding var isTransPose : Bool
+    @ObservedObject var pencilToolsViewModel : PencilToolsViewModel
+    
+    init(isPencilActive: Binding<Bool>, isMemoActive: Binding<Bool>, isSettingActive: Binding<Bool>, isTransPose: Binding<Bool>, pencilToolsViewModel: PencilToolsViewModel) {
+        _isPencilActive = isPencilActive
+        _isMemoActive = isMemoActive
+        _isSettingActive = isSettingActive
+        _isTransPose = isTransPose
+        self.pencilToolsViewModel = pencilToolsViewModel
+    }
     
     var body: some View {
         
@@ -45,6 +54,7 @@ struct ScoreHeaderView: View {
             // 펜슬
             Button(action:{
                 isPencilActive.toggle()
+                
                 print("펜슬 기능 클릭") // 기능 추가해야함
             }){
                 Image(systemName: isPencilActive ? "pencil.circle.fill" : "pencil") // 이미지 바꿔야 함
@@ -88,6 +98,3 @@ struct ScoreHeaderView: View {
 }
 
 
-#Preview {
-    ScoreHeaderView(isPencilActive: .constant(false),isMemoActive: .constant(false),isSettingActive: .constant(false),isTransPose: .constant(false))
-}

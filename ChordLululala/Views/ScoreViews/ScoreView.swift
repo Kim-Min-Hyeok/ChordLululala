@@ -22,13 +22,15 @@ struct ScoreView : View {
     @State private var currentLayout: ScoreLayout = .single
     
     
-    @StateObject private var pageControlViewModel = PageControlViewModel(
-        images: ["pencil", "square.and.arrow.up.circle.fill", "figure.walk", "sun.min", "sunrise"]
-        // 더미 데이터
-    )
-    
-    
+    @StateObject  var pageControlViewModel : PageControlViewModel
     @StateObject private var gestureViewModel = MemoGestureViewModel()
+    @StateObject private var pencilToolsViewModel: PencilToolsViewModel
+    
+    init(){
+        let pageControlVM = PageControlViewModel(images: ["pencil", "square.and.arrow.up.circle.fill", "figure.walk", "sun.min", "sunrise"])
+        self._pageControlViewModel = StateObject(wrappedValue: pageControlVM)
+        self._pencilToolsViewModel = StateObject(wrappedValue: PencilToolsViewModel(pageCount: pageControlVM.images.count))
+    }
     
     var body: some View {
         ZStack{
@@ -36,23 +38,39 @@ struct ScoreView : View {
                 if isTransPose {
                     TransposeHeaderView(isTransPose: $isTransPose)
                 } else {
-                    ScoreHeaderView(isPencilActive: $isPencilActive, isMemoActive: $isMemoActive, isSettingActive: $isSettingActive, isTransPose: $isTransPose)
+                    ScoreHeaderView(
+                        isPencilActive: $isPencilActive,
+                        isMemoActive: $isMemoActive,
+                        isSettingActive: $isSettingActive,
+                        isTransPose: $isTransPose,
+                        
+                        pencilToolsViewModel: pencilToolsViewModel
+                    )
                 }
                 
                 Divider()
                 
                 if isPencilActive {
-                    PencilToolsView(isPencilActive: $isPencilActive)
-                        .padding(.top, -10)
-                        .transition(.opacity)
+                    PencilToolsView(
+                        isPencilActive: $isPencilActive,
+                        pencilToolsViewModel: pencilToolsViewModel
+                    )
+                    .padding(.top, -10)
+                    .transition(.opacity)
                 }
                 
                 //MARK: - 악보 이미지 뷰
                 switch currentLayout {
                 case .single:
-                    ScoreDisplayView(pageControlViewModel: pageControlViewModel)
+                    ScoreDisplayView(
+                        pageControlViewModel: pageControlViewModel,
+                        pencilToolsViewModel: pencilToolsViewModel
+                    )
                 case .double:
-                    ScoreDoubleDisplayView(pageControlViewModel: pageControlViewModel)
+                    ScoreDoubleDisplayView(
+                        pageControlViewModel: pageControlViewModel,
+                        pencilToolsViewModel: pencilToolsViewModel
+                    )
                 }
                 Spacer()
                 
