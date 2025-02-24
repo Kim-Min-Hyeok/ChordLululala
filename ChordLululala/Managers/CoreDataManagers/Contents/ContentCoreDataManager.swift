@@ -1,19 +1,19 @@
 //
-//  ContentManager.swift
+//  ContentCoreDataManager.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 2/21/25.
+//  Created by Minhyeok Kim on 2/19/25.
 //
 
 import Foundation
 import CoreData
 import Combine
 
-final class ContentManager {
-    static let shared = ContentManager()
+final class ContentCoreDataManager {
+    static let shared = ContentCoreDataManager()
     private let context = CoreDataManager.shared.context
+    private var cancellables = Set<AnyCancellable>()
     
-    // MARK: - Create
     func createContent(model: ContentModel) {
         let newEntity = Content(context: context)
         newEntity.update(from: model)
@@ -172,4 +172,71 @@ final class ContentManager {
                 print("Content 삭제 실패: \(error)")
             }
         }
+    
+    // MARK: - Read
+    func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
+        var predicate: NSPredicate
+
+        // 이미 특정 폴더(parent)가 주어졌다면 그 폴더의 자식들을 불러옴
+        if let parent = parent {
+            predicate = NSPredicate(format: "parent == %@", parent.cid as CVarArg)
+        } else {
+            // 최상위 컨텐츠 로드: dashboardContents에 따라 base 디렉토리로 분기
+            switch dashboardContents {
+            case .allDocuments:
+                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                    predicate = NSPredicate(format: "parent == %@", scoreBase.cid as CVarArg)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .recentDocuments:
+                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score"),
+                   let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
+                        NSPredicate(format: "parent == %@", scoreBase.cid as CVarArg),
+                        NSPredicate(format: "parent == %@", songListBase.cid as CVarArg)
+                    ])
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .songList:
+                if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    predicate = NSPredicate(format: "parent == %@", songListBase.cid as CVarArg)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .trashCan:
+                if let trashBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                    predicate = NSPredicate(format: "parent == %@", trashBase.cid as CVarArg)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            }
+        }
+        
+        // 최근 문서인 경우 최근 1일 내 접근한 콘텐츠 필터링
+        if dashboardContents == .recentDocuments {
+            let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
+            let recentPredicate = NSPredicate(format: "lastAccessedAt >= %@", oneDayAgo as NSDate)
+            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, recentPredicate])
+        }
+        
+        return ContentCoreDataManager.shared.fetchContentModelsPublisher(predicate: predicate)
+    }
+
+
+    // 2. 휴지통 이동
+    func moveContentToTrash(_ model: inout ContentModel) {
+        model.category = .trash
+        model.modifiedAt = Date()
+        model.lastAccessedAt = Date()
+        model.deletedAt = Date()
+        model.isTrash = true
+        
+        if let trashBase = fetchBaseDirectory(named: "Trash_Can") {
+            model.parent = trashBase.cid
+        }
+        
+        updateContent(model: model)
+    }
 }

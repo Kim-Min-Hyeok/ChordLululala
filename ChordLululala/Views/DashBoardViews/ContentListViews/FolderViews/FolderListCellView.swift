@@ -40,7 +40,12 @@ struct FolderListCellView: View {
                 if !viewModel.isSelectionViewVisible {
                     Button(action: {
                         viewModel.selectedContent = folder
-                        viewModel.isModifyModalVisible = true
+                        if viewModel.dashboardContents == .trashCan {
+                            viewModel.isDeletedModalVisible = true
+                        }
+                        else {
+                            viewModel.isModifyModalVisible = true
+                        }
                     }) {
                         Image(systemName: "ellipsis")
                             .foregroundColor(.gray)

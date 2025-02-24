@@ -79,8 +79,9 @@ final class DashBoardViewModel: ObservableObject {
     @Published var isPDFPickerVisible: Bool = false
     @Published var isCreateFolderModalVisible: Bool = false
     
-    // MARK: - 편집 모달 관련
+    // MARK: - 편집&삭제 모달 관련
     @Published var isModifyModalVisible: Bool = false
+    @Published var isDeletedModalVisible: Bool = false
     @Published var selectedContent: ContentModel? = nil
     @Published var cellFrame: CGRect = .zero
     
@@ -168,60 +169,152 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     // MARK: - Content 관련 비즈니스 로직 호출
+
     func loadContents() {
-        guard let parent = currentParent else { return }
-        ContentInteractor.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case let .failure(error) = completion {
-                    print("Error loading contents: \(error)")
+            guard let parent = currentParent else { return }
+        ContentManager2.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { completion in
+                    if case let .failure(error) = completion {
+                        print("Error loading contents: \(error)")
+                    }
+                }, receiveValue: { [weak self] models in
+                    self?.contents = models
+                })
+                .store(in: &cancellables)
+        }
+        
+        func uploadFile(with url: URL) {
+            guard let currentParent = currentParent else { return }
+            ContentManager2.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func createFolder(folderName: String) {
+            guard let currentParent = currentParent else { return }
+            ContentManager2.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func renameContent(_ content: ContentModel, newName: String) {
+            ContentManager2.shared.renameContent(content, newName: newName)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func duplicateContent(_ content: ContentModel) {
+            ContentManager2.shared.duplicateContent(content, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func duplicateSelectedContents() {
+            let publishers = selectedContents.map { content in
+                ContentManager2.shared.duplicateContent(content, dashboardContents: dashboardContents)
+            }
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.selectedContents.removeAll()
+                    self?.loadContents()
                 }
-            }, receiveValue: { [weak self] models in
-                self?.contents = models
-            })
-            .store(in: &cancellables)
-    }
-    
-    func uploadFile(with url: URL) {
-        guard let currentParent = currentParent else { return }
-        ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
-        loadContents()
-    }
-    
-    func createFolder(folderName: String) {
-        guard let currentParent = currentParent else { return }
-        ContentInteractor.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
-        loadContents()
-    }
-    
-    func renameContent(_ content: ContentModel, newName: String) {
-        ContentInteractor.shared.renameContent(content, newName: newName)
-        loadContents()
-    }
-    
-    func duplicateContent(_ content: ContentModel) {
-        ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
-        loadContents()
-    }
-    
-    func duplicateSelectedContents() {
-        for content in selectedContents {
-            ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
+                .store(in: &cancellables)
         }
-        selectedContents.removeAll()
-        loadContents()
-    }
-    
-    func moveContentToTrash(_ content: ContentModel) {
-        ContentInteractor.shared.moveContentToTrash(content)
-        loadContents()
-    }
-    
-    func moveSelectedContentsToTrash() {
-        for content in selectedContents {
-            ContentInteractor.shared.moveContentToTrash(content)
+        
+        func moveContentToTrash(_ content: ContentModel) {
+            ContentManager2.shared.moveContentToTrash(content)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
         }
-        selectedContents.removeAll()
-        loadContents()
-    }
+        
+        func moveSelectedContentsToTrash() {
+            let publishers = selectedContents.map { content in
+                ContentManager2.shared.moveContentToTrash(content)
+            }
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.selectedContents.removeAll()
+                    self?.loadContents()
+                }
+                .store(in: &cancellables)
+        }
+        
+        func deleteContent(_ content: ContentModel) {
+            ContentManager2.shared.deleteContent(content)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
 }
+
+//    func loadContents() {
+//        guard let parent = currentParent else { return }
+//        ContentInteractor.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
+//            .receive(on: DispatchQueue.main)
+//            .sink(receiveCompletion: { completion in
+//                if case let .failure(error) = completion {
+//                    print("Error loading contents: \(error)")
+//                }
+//            }, receiveValue: { [weak self] models in
+//                self?.contents = models
+//            })
+//            .store(in: &cancellables)
+//    }
+//
+//    func uploadFile(with url: URL) {
+//        guard let currentParent = currentParent else { return }
+//        ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+//        loadContents()
+//    }
+//
+//    func createFolder(folderName: String) {
+//        guard let currentParent = currentParent else { return }
+//        ContentInteractor.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
+//        loadContents()
+//    }
+//
+//    func renameContent(_ content: ContentModel, newName: String) {
+//        ContentInteractor.shared.renameContent(content, newName: newName)
+//        loadContents()
+//    }
+//
+//    func duplicateContent(_ content: ContentModel) {
+//        ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
+//        loadContents()
+//    }
+//
+//    func duplicateSelectedContents() {
+//        for content in selectedContents {
+//            ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
+//        }
+//        selectedContents.removeAll()
+//        loadContents()
+//    }
+//
+//    func moveContentToTrash(_ content: ContentModel) {
+//        ContentInteractor.shared.moveContentToTrash(content)
+//        loadContents()
+//    }
+//
+//    func moveSelectedContentsToTrash() {
+//        for content in selectedContents {
+//            ContentInteractor.shared.moveContentToTrash(content)
+//        }
+//        selectedContents.removeAll()
+//        loadContents()
+//    }
+//
+//    func deleteContent(_ content: ContentModel) {
+//        ContentInteractor.shared.deleteContent(content)
+//        loadContents()
+//    }

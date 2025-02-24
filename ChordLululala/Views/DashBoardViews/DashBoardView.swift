@@ -79,7 +79,7 @@ struct DashboardView: View {
                             
                             // TODO: 테스트용: 모든 데이터 삭제 버튼
                             Button("모든 데이터 삭제") {
-                                ContentManager.shared.deleteAllCoreDataObjects()
+                                CoreDataManager.shared.deleteAllCoreDataObjects()
                                 FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
                             }
                             .padding(.vertical, 50)
@@ -113,6 +113,29 @@ struct DashboardView: View {
                         : (viewModel.cellFrame.maxY - 20 + modalHeight/2)
                         
                         ModifyModalView(content: content)
+                            .frame(width: 273, height: modalHeight)
+                            .position(
+                                x: viewModel.cellFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
+                                y: desiredY
+                            )
+                            .transition(.opacity)
+                    }
+                    
+                    if viewModel.isDeletedModalVisible, let content = viewModel.selectedContent {
+                        Color.black.opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                viewModel.isDeletedModalVisible = false
+                            }
+                        
+                        // 셀 별 모달 뷰 위치 설정
+                        let modalHeight: CGFloat = 195
+                        let screenHeight = UIScreen.main.bounds.height
+                        let desiredY: CGFloat = (viewModel.cellFrame.maxY + modalHeight > screenHeight)
+                        ? (viewModel.cellFrame.minY - 30 - modalHeight/2)
+                        : (viewModel.cellFrame.maxY - 20 + modalHeight/2)
+                        
+                        DeleteModalView(content: content)
                             .frame(width: 273, height: modalHeight)
                             .position(
                                 x: viewModel.cellFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬

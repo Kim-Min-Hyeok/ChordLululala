@@ -38,8 +38,8 @@ final class ContentInteractor {
         
         let parentRelativePath = currentParent.path ?? ""
         let relativeFolderPath = parentRelativePath.isEmpty
-            ? folderName
-            : (parentRelativePath as NSString).appendingPathComponent(folderName)
+        ? folderName
+        : (parentRelativePath as NSString).appendingPathComponent(folderName)
         
         if let newFolderURL = FileManagerManager.shared.createSubfolderIfNeeded(for: relativeFolderPath, inBaseFolder: baseFolder),
            let newRelativePath = FileManagerManager.shared.relativePath(for: newFolderURL.path) {
@@ -123,7 +123,7 @@ final class ContentInteractor {
         updatedModel.lastAccessedAt = Date()
         updatedModel.deletedAt = Date()
         updatedModel.isTrash = true
-
+        
         guard let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
               let trashURL = FileManagerManager.shared.documentsURL?.appendingPathComponent("Trash_Can", isDirectory: true)
         else { return }
@@ -219,8 +219,8 @@ final class ContentInteractor {
         if model.type == .folder {
             let targetParent = newParent ?? model.parent
             let newFolderName = (newParent == nil)
-                ? generateDuplicateFolderName(for: model)
-                : model.name
+            ? generateDuplicateFolderName(for: model)
+            : model.name
             
             guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
                   let oldPath = model.path else { return }
@@ -307,8 +307,8 @@ final class ContentInteractor {
             }
         } else {
             let newName = (newParent == nil)
-                ? generateDuplicateFileName(for: model, dashboardContents: dashboardContents)
-                : model.name
+            ? generateDuplicateFileName(for: model, dashboardContents: dashboardContents)
+            : model.name
             
             guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
                   let relativePath = model.path else { return }
@@ -349,6 +349,36 @@ final class ContentInteractor {
                 print("파일 복제 실패: \(error)")
             }
         }
+    }
+    
+    // MARK: - Delete
+    func deleteContent(_ content: ContentModel) {
+        // 폴더인 경우 하위 콘텐츠들을 재귀적으로 삭제
+        if content.type == .folder {
+            let children = ContentManager.shared.fetchChildrenModels(for: content.cid)
+            for child in children {
+                deleteContent(child)
+            }
+        }
+        
+        // 파일 시스템에서 실제 파일/폴더 삭제
+        if let path = content.path,
+           let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let itemURL = docsURL.appendingPathComponent(path)
+            if FileManager.default.fileExists(atPath: itemURL.path) {
+                do {
+                    try FileManager.default.removeItem(at: itemURL)
+                    print("파일 시스템에서 삭제 성공: \(itemURL.path)")
+                } catch {
+                    print("파일 시스템 삭제 실패 (\(itemURL.path)): \(error)")
+                }
+            } else {
+                print("삭제할 파일/폴더가 존재하지 않습니다: \(itemURL.path)")
+            }
+        }
+        
+        // CoreData 상에서 해당 콘텐츠 삭제
+        ContentManager.shared.deleteContent(model: content)
     }
     
     // MARK: - Helper 함수들
