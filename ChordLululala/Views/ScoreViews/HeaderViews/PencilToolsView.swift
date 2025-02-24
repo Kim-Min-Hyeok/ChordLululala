@@ -2,6 +2,8 @@ import SwiftUI
 
 struct PencilToolsView: View {      
     @Binding  var isPencilActive: Bool
+    @StateObject  var pencilToolsViewModel = PencilToolsViewModel()
+    
     
     var body: some View {
         ZStack{
@@ -11,6 +13,7 @@ struct PencilToolsView: View {
                 Spacer()
                 
                 Button(action:{
+                    pencilToolsViewModel.selectTool(.pencil)
                     print("펜 클릭 ")
                 }){
                     Image(systemName: "pencil")
@@ -20,6 +23,7 @@ struct PencilToolsView: View {
                 
                 // 형광펜
                 Button(action:{
+                    pencilToolsViewModel.selectTool(.marker)
                     print("형광펜 클릭 ")
                 }){
                     Image(systemName: "pencil")
@@ -29,6 +33,7 @@ struct PencilToolsView: View {
                 
                 // 지우개
                 Button(action:{
+                    pencilToolsViewModel.selectTool(.eraser)
                     print("지우개 클릭 ")
                 }){
                     Image(systemName: "eraser")
@@ -38,6 +43,7 @@ struct PencilToolsView: View {
                 
                 // 올가미
                 Button(action:{
+                    pencilToolsViewModel.selectTool(.lasso)
                     print("올가미 클릭 ")
                 }){
                     Image(systemName: "crop")
@@ -47,6 +53,7 @@ struct PencilToolsView: View {
                 
                 // 뒤로 가기
                 Button(action:{
+                    pencilToolsViewModel.undo()
                     print("뒤 클릭 ")
                 }){
                     Image(systemName: "arrowshape.turn.up.backward.fill")
@@ -56,6 +63,7 @@ struct PencilToolsView: View {
                 
                 // 앞으로 가기
                 Button(action:{
+                    pencilToolsViewModel.redo()
                     print("앞 클릭 ")
                 }){
                     Image(systemName: "arrowshape.turn.up.forward.fill")

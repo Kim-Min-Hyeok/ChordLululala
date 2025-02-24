@@ -21,6 +21,7 @@ struct ScoreView : View {
     @State private var selectedMenu: SettingsMenu? = nil
     @State private var currentLayout: ScoreLayout = .single
     
+    
     @StateObject private var pageControlViewModel = PageControlViewModel(
         images: ["pencil", "square.and.arrow.up.circle.fill", "figure.walk", "sun.min", "sunrise"]
         // 더미 데이터
@@ -90,6 +91,8 @@ struct ScoreView : View {
         
     }
 }
+
+
 
 
 #Preview {
