@@ -30,16 +30,16 @@ struct FileListCellView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if viewModel.isSelectionMode {
+                    if viewModel.isSelectionViewVisible {
                         toggleSelection()
                     } else {
                         viewModel.selectedContent = file
                     }
                 }
-                if !viewModel.isSelectionMode {
+                if !viewModel.isSelectionViewVisible {
                     Button(action: {
                         viewModel.selectedContent = file
-                        viewModel.showModifyModal = true
+                        viewModel.isModifyModalVisible = true
                     }) {
                         Image(systemName: "ellipsis")
                             .foregroundColor(.gray)
@@ -61,7 +61,7 @@ struct FileListCellView: View {
                     }
                 }
             )
-            if viewModel.isSelectionMode {
+            if viewModel.isSelectionViewVisible {
                 HStack {
                     Spacer()
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")

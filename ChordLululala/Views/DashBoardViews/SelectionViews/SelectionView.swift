@@ -22,7 +22,7 @@ struct SelectionView: View {
                 .padding([.top, .leading], 30)
                 Spacer()
                 Button(action: {
-                    viewModel.isSelectionMode = false
+                    viewModel.isSelectionViewVisible = false
                 }) {
                     Text("완료")
                         .font(.headline)
@@ -33,17 +33,17 @@ struct SelectionView: View {
             
             HStack(spacing: 90) {
                 SelectionOptionButton(imageName: "paperplane.fill", title: "보내기", action: {
-                    viewModel.isSelectionMode = false
+                    viewModel.isSelectionViewVisible = false
                 })
                 SelectionOptionButton(imageName: "doc.on.doc", title: "복제", action: {
                     viewModel.duplicateSelectedContents()
-                    viewModel.isSelectionMode = false
+                    viewModel.isSelectionViewVisible = false
                 })
                 SelectionOptionButton(imageName: "arrow.turn.up.left", title: "이동", action: {
-                    viewModel.isSelectionMode = false
+                    viewModel.isSelectionViewVisible = false
                 })
                 SelectionOptionButton(imageName: "trash.fill", title: "휴지통", action: {
-                    viewModel.showTrashModal = true
+                    viewModel.isTrashModalVisible = true
                 })
             }
             

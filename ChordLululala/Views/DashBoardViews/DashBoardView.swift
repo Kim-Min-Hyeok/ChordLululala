@@ -20,7 +20,7 @@ struct DashboardView: View {
                 ZStack {
                     VStack(spacing: 0) {
                         // TODO: 테스트용 이전 폴더 되돌아가기
-                        if !viewModel.isSelectionMode {
+                        if !viewModel.isSelectionViewVisible {
                             if viewModel.currentParent != nil {
                                 HStack {
                                     Button(action: {
@@ -55,7 +55,7 @@ struct DashboardView: View {
                                 // MARK: 선택 버튼
                                 Button(action: {
                                     withAnimation {
-                                        viewModel.isSelectionMode = true
+                                        viewModel.isSelectionViewVisible = true
                                     }
                                 }) {
                                     Image(systemName: "checkmark.circle")
@@ -98,11 +98,11 @@ struct DashboardView: View {
                     }
                     
                     // MARK: 수정 모달 뷰
-                    if viewModel.showModifyModal, let content = viewModel.selectedContent {
+                    if viewModel.isModifyModalVisible, let content = viewModel.selectedContent {
                         Color.black.opacity(0.3)
                             .edgesIgnoringSafeArea(.all)
                             .onTapGesture {
-                                viewModel.showModifyModal = false
+                                viewModel.isModifyModalVisible = false
                             }
                         
                         // 셀 별 모달 뷰 위치 설정
@@ -160,13 +160,13 @@ struct DashboardView: View {
                                                 folderAction: {
                                                     withAnimation {
                                                         viewModel.isFloatingMenuVisible.toggle()
-                                                        viewModel.isShowingCreateFolderModal = true
+                                                        viewModel.isCreateFolderModalVisible = true
                                                     }
                                                 },
                                                 fileUploadAction: {
                                                     withAnimation {
                                                         viewModel.isFloatingMenuVisible.toggle()
-                                                        viewModel.isShowingPDFPicker = true
+                                                        viewModel.isPDFPickerVisible = true
                                                     }
                                                 }
                                             )
@@ -241,23 +241,23 @@ struct DashboardView: View {
                 )
                 
                 // MARK: 파일 생성 시트 (파일 Picker)
-                .sheet(isPresented: $viewModel.isShowingPDFPicker) {
+                .sheet(isPresented: $viewModel.isPDFPickerVisible) {
                     PDFPicker { selectedURL in
                         viewModel.uploadFile(with: selectedURL)
-                        viewModel.isShowingPDFPicker = false
+                        viewModel.isPDFPickerVisible = false
                     }
                 }
                 
                 // MARK: 폴더 생성 모달
-                if viewModel.isShowingCreateFolderModal {
+                if viewModel.isCreateFolderModalVisible {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            viewModel.isShowingCreateFolderModal = false
+                            viewModel.isCreateFolderModalVisible = false
                         }
                     CreateFolderModalView(currentParent: viewModel.currentParent) { folderName, _ in
                         viewModel.createFolder(folderName: folderName)
-                        viewModel.isShowingCreateFolderModal = false
+                        viewModel.isCreateFolderModalVisible = false
                     }
                     .transition(.opacity)
                 }
@@ -265,7 +265,7 @@ struct DashboardView: View {
             // MARK: 선택 모드 뷰
             .overlay(
                 Group {
-                    if viewModel.isSelectionMode {
+                    if viewModel.isSelectionViewVisible {
                         SelectionView()
                     }
                 },
@@ -273,12 +273,12 @@ struct DashboardView: View {
             )
             
             // MARK: 휴지통 이동 모달
-            if viewModel.showTrashModal {
+            if viewModel.isTrashModalVisible {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        viewModel.showTrashModal = false
-                        viewModel.isSelectionMode = false
+                        viewModel.isTrashModalVisible = false
+                        viewModel.isSelectionViewVisible = false
                     }
                 TrashModalView()
                     .transition(.opacity)

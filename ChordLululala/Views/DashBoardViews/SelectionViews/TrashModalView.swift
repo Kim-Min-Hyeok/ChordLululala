@@ -23,7 +23,7 @@ struct TrashModalView: View {
             
             HStack {
                 Button(action: {
-                    viewModel.showTrashModal = false
+                    viewModel.isTrashModalVisible = false
                 }) {
                     Text("취소")
                         .frame(maxWidth: .infinity)
@@ -34,8 +34,8 @@ struct TrashModalView: View {
                 
                 Button(action: {
                     viewModel.moveSelectedContentsToTrash()
-                    viewModel.showTrashModal = false
-                    viewModel.isSelectionMode = false
+                    viewModel.isTrashModalVisible = false
+                    viewModel.isSelectionViewVisible = false
                 }) {
                     Text("확인")
                         .frame(maxWidth: .infinity)

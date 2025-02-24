@@ -50,7 +50,7 @@ struct ModifyModalView: View {
                 VStack(spacing: 0) {
                     Button(action: {
                         viewModel.duplicateContent(content)
-                        viewModel.showModifyModal = false
+                        viewModel.isModifyModalVisible = false
                     }) {
                         HStack(spacing: 12) {
                             Image(systemName: "doc.on.doc")
@@ -65,7 +65,7 @@ struct ModifyModalView: View {
                     Divider()
                     Button(action: {
                         viewModel.moveContentToTrash(content)
-                        viewModel.showModifyModal = false
+                        viewModel.isModifyModalVisible = false
                     }) {
                         HStack(spacing: 12) {
                             Image(systemName: "trash")

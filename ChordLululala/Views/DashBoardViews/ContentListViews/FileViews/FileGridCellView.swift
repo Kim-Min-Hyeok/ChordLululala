@@ -37,7 +37,7 @@ struct FileGridCellView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if viewModel.isSelectionMode {
+                    if viewModel.isSelectionViewVisible {
                         toggleSelection()
                     } else {
                         // 일반 파일 탭 액션 구현
@@ -50,10 +50,10 @@ struct FileGridCellView: View {
                         .font(.caption)
                         .foregroundColor(.black)
                     Spacer()
-                    if !viewModel.isSelectionMode {
+                    if !viewModel.isSelectionViewVisible {
                         Button(action: {
                             viewModel.selectedContent = file
-                            viewModel.showModifyModal = true
+                            viewModel.isModifyModalVisible = true
                         }) {
                             Image(systemName: "ellipsis")
                                 .foregroundColor(.gray)
@@ -79,7 +79,7 @@ struct FileGridCellView: View {
             )
             
             // 선택 모드 오버레이: 체크 아이콘
-            if viewModel.isSelectionMode {
+            if viewModel.isSelectionViewVisible {
                 VStack {
                     Spacer()
                     HStack {

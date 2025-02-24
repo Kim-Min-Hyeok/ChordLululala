@@ -32,9 +32,18 @@ enum SortOption: String, CaseIterable, Identifiable {
 
 final class DashBoardViewModel: ObservableObject {
     
+    // MARK: 현재 폴더 위치
+    @Published var currentParent: Content? = nil
+    
+    // MARK: 현재 폴더 내 Contents (파일/폴더)
+    @Published var contents: [Content] = []
+    
     // MARK: 필터링 관련
+    // 1. 전체/파일/폴더
     @Published var currentFilter: ToggleFilter = .all
+    // 2. 날짜순, 이름순
     @Published var selectedSort: SortOption = .date
+    // 3. 최근/전체/송리스트/휴지통
     @Published var dashboardContents: DashboardContents = .allDocuments {
         didSet {
             currentFilter = .all
@@ -43,31 +52,31 @@ final class DashBoardViewModel: ObservableObject {
             loadContents()
         }
     }
+    // 4. 검색어
     @Published var searchText: String = ""
-    @Published var currentParent: Content? = nil
-    @Published var contents: [Content] = []
+    
     
     // MARK: 사이드바 관련
-    @Published var sidebarDragOffset: CGFloat = 0
     @Published var isSidebarVisible: Bool = false
+    @Published var sidebarDragOffset: CGFloat = 0
     
     // MARK: 리스트/그리드 관련
     @Published var isListView: Bool = true
     
     // MARK: 파일/폴더 생성 버튼 관련
     @Published var isFloatingMenuVisible: Bool = false
-    @Published var isShowingPDFPicker: Bool = false
-    @Published var isShowingCreateFolderModal: Bool = false
+    @Published var isPDFPickerVisible: Bool = false
+    @Published var isCreateFolderModalVisible: Bool = false
     
     // MARK: 편집 모달 관련
-    @Published var cellFrame: CGRect = .zero
-    @Published var showModifyModal: Bool = false
+    @Published var isModifyModalVisible: Bool = false
     @Published var selectedContent: Content? = nil
+    @Published var cellFrame: CGRect = .zero
     
     // MARK: 선택모드 관련
-    @Published var isSelectionMode: Bool = false
+    @Published var isSelectionViewVisible: Bool = false
+    @Published var isTrashModalVisible: Bool = false
     @Published var selectedContents: [Content] = []
-    @Published var showTrashModal: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     

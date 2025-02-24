@@ -13,12 +13,10 @@ final class ContentInteractor {
     static let shared = ContentInteractor()
     private var cancellables = Set<AnyCancellable>()
     
-    
-    
-    // MARK: Create
-    // 1. 파일 생성
-    func uploadFile(with url: URL, currentParent: Content?, dashboardContents: DashboardContents) {
-        let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents)
+    // MARK: - Create
+    // 파일 생성 (업로드)
+    func uploadFile(with url: URL, currentParent: ContentModel?, dashboardContents: DashboardContents) {
+        guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents) else { return }
         let relativeFolderPath = currentParent?.path
         if let destinationURL = FileManagerManager.shared.copyPDFToBaseFolder(from: url,
                                                                               relativeFolderPath: relativeFolderPath,
@@ -26,33 +24,33 @@ final class ContentInteractor {
            let relativePath = FileManagerManager.shared.relativePath(for: destinationURL.path) {
             ContentManager.shared.createContent(name: destinationURL.lastPathComponent,
                                                 path: relativePath,
-                                                type: 0,
-                                                category: 0,
-                                                parent: currentParent?.cid,
+                                                type: ContentType.score.rawValue,
+                                                category: ContentCategory.score.rawValue,
+                                                parent: currentParent?.id,
                                                 s_dids: nil)
         }
     }
     
-    // 2. 폴더 생성
-    func createFolder(folderName: String, currentParent: Content?, dashboardContents: DashboardContents) {
-        let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents)
+    // 폴더 생성
+    func createFolder(folderName: String, currentParent: ContentModel?, dashboardContents: DashboardContents) {
+        guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents) else { return }
         let parentRelativePath = currentParent?.path ?? ""
         let relativeFolderPath = parentRelativePath.isEmpty ? folderName : (parentRelativePath as NSString).appendingPathComponent(folderName)
         if let newFolderURL = FileManagerManager.shared.createSubfolderIfNeeded(for: relativeFolderPath, inBaseFolder: baseFolder),
            let newRelativePath = FileManagerManager.shared.relativePath(for: newFolderURL.path) {
             ContentManager.shared.createContent(name: folderName,
                                                 path: newRelativePath,
-                                                type: 2,
-                                                category: 0,
-                                                parent: currentParent?.cid,
+                                                type: ContentType.folder.rawValue,
+                                                category: ContentCategory.score.rawValue,
+                                                parent: currentParent?.id,
                                                 s_dids: nil)
         }
     }
     
-    // MARK: Read
-    func loadContents(forParent parent: Content?, dashboardContents: DashboardContents) -> AnyPublisher<[Content], Error> {
+    // MARK: - Read
+    func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
         var predicate: NSPredicate
-        if let parentID = parent?.cid {
+        if let parentID = parent?.id {
             predicate = NSPredicate(format: "parent == %@", parentID as CVarArg)
         } else {
             predicate = NSPredicate(format: "parent == nil")
@@ -62,8 +60,8 @@ final class ContentInteractor {
         case .allDocuments:
             let trashPredicate = NSPredicate(format: "isTrash == NO")
             let typePredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
-                NSPredicate(format: "type == %d", 0),
-                NSPredicate(format: "type == %d", 2)
+                NSPredicate(format: "type == %d", ContentType.score.rawValue),
+                NSPredicate(format: "type == %d", ContentType.folder.rawValue)
             ])
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate, typePredicate])
             
@@ -74,7 +72,7 @@ final class ContentInteractor {
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate, recentPredicate])
             
         case .songList:
-            let typePredicate = NSPredicate(format: "type == %d", 1)
+            let typePredicate = NSPredicate(format: "type == %d", ContentType.songList.rawValue)
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, typePredicate])
             
         case .trashCan:
@@ -82,54 +80,57 @@ final class ContentInteractor {
             predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate])
         }
         
-        return ContentManager.shared.fetchContentsPublisher(predicate: predicate)
+        return ContentManager.shared.fetchContentModelsPublisher(predicate: predicate)
     }
     
-    // MARK: Update
+    // MARK: - Update
     // 1. 이름 수정
-    func renameContent(_ content: Content, newName: String) {
-        let isFile = content.type != 2
+    func renameContent(_ model: ContentModel, newName: String) {
+        var updatedModel = model
+        let isFile = updatedModel.type != .folder
         let updatedName = isFile ? newName + ".pdf" : newName
-        content.name = updatedName
-        content.modifiedAt = Date()
-        content.lastAccessedAt = Date()
-        if isFile, let oldPath = content.path,
+        updatedModel.name = updatedName
+        updatedModel.modifiedAt = Date()
+        updatedModel.lastAccessedAt = Date()
+        
+        if isFile, let oldPath = updatedModel.path,
            let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
             let oldURL = docsURL.appendingPathComponent(oldPath)
             let newURL = oldURL.deletingLastPathComponent().appendingPathComponent(updatedName)
             do {
                 try FileManager.default.moveItem(at: oldURL, to: newURL)
                 if let newRelativePath = FileManagerManager.shared.relativePath(for: newURL.path) {
-                    content.path = newRelativePath
+                    updatedModel.path = newRelativePath
                 }
             } catch {
                 print("파일 이름 변경 실패: \(error)")
             }
         }
-        CoreDataManager.shared.saveContext()
+        
+        // ContentManager의 updateContent 메서드 호출 (NSFetchRequest 제거)
+        ContentManager.shared.updateContent(model: updatedModel)
     }
     
-    // 2. 경로 수정 (-> 휴지통)
-    func moveContentToTrash(_ content: Content) {
-        content.isTrash = true
-        content.modifiedAt = Date()
-        content.lastAccessedAt = Date()
+    // 2. 휴지통 이동
+    func moveContentToTrash(_ model: ContentModel) {
+        var updatedModel = model
+        updatedModel.isTrash = true
+        updatedModel.modifiedAt = Date()
+        updatedModel.lastAccessedAt = Date()
+        
         // 파일만 처리
-        guard content.type != 2,
-              let oldPath = content.path,
+        guard updatedModel.type != .folder,
+              let oldPath = updatedModel.path,
               let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
               let trashURL = FileManagerManager.shared.documentsURL?.appendingPathComponent("Trash_Can", isDirectory: true)
         else { return }
         
         let oldURL = docsURL.appendingPathComponent(oldPath)
-        
-        // 원본 파일 존재 여부 확인
         guard FileManager.default.fileExists(atPath: oldURL.path) else {
             print("원본 파일이 존재하지 않습니다: \(oldURL.path)")
             return
         }
         
-        // 대상 Trash_Can 폴더가 없으면 생성
         if !FileManager.default.fileExists(atPath: trashURL.path) {
             do {
                 try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true, attributes: nil)
@@ -143,31 +144,31 @@ final class ContentInteractor {
         do {
             try FileManager.default.moveItem(at: oldURL, to: newURL)
             if let newRelativePath = FileManagerManager.shared.relativePath(for: newURL.path) {
-                content.path = newRelativePath
+                updatedModel.path = newRelativePath
             }
         } catch {
             print("파일 휴지통 이동 실패: \(error)")
         }
-        CoreDataManager.shared.saveContext()
+        
+        // ContentManager의 업데이트 메서드 사용
+        ContentManager.shared.updateContent(model: updatedModel)
     }
     
-    // MARK: 복제 (파일이면 복제, 폴더이면 재귀 복제)
-    // - 최상위 호출(newParent == nil)일 경우, 새 이름을 생성하여 복제된 폴더는 원본 폴더와 같은 parent에 생성
-    func duplicateContent(_ content: Content, newParent: UUID? = nil, dashboardContents: DashboardContents) {
-        if content.type == 2 {  // 폴더 복제
-            let targetParent = newParent ?? content.parent
+    // MARK: - 복제 (파일은 복제, 폴더는 재귀 복제)
+    func duplicateContent(_ model: ContentModel, newParent: UUID? = nil, dashboardContents: DashboardContents) {
+        if model.type == .folder {
+            let targetParent = newParent ?? model.parentID
             let newFolderName = (newParent == nil)
-                ? generateDuplicateFolderName(for: content)
-                : (content.name ?? "Unnamed")
+                ? generateDuplicateFolderName(for: model)
+                : model.name
             
             guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
-                  let oldPath = content.path else { return }
+                  let oldPath = model.path else { return }
             
-            // 새 대상 폴더 URL 계산
             let newFolderURL: URL
             if let newParent = newParent,
-               let newParentContent = ContentManager.shared.fetchContent(with: newParent),
-               let parentRelativePath = newParentContent.path {
+               let parentModel = ContentManager.shared.fetchContentModel(with: newParent),
+               let parentRelativePath = parentModel.path {
                 let parentFolderURL = baseFolder.appendingPathComponent(parentRelativePath)
                 newFolderURL = parentFolderURL.appendingPathComponent(newFolderName)
             } else {
@@ -177,132 +178,129 @@ final class ContentInteractor {
             }
             
             do {
-                // 1. 새 폴더 생성
                 try FileManager.default.createDirectory(at: newFolderURL, withIntermediateDirectories: true, attributes: nil)
                 print("새 폴더 생성됨: \(newFolderURL.path)")
                 
-                var newFolder: Content?
-                if let newRelativePath = FileManagerManager.shared.relativePath(for: newFolderURL.path) {
-                    ContentManager.shared.createContent(name: newFolderName,
-                                                        path: newRelativePath,
-                                                        type: 2,
-                                                        category: content.category,
-                                                        parent: targetParent,
-                                                        s_dids: nil)
-                    CoreDataManager.shared.saveContext()
-                    
-                    // 동기적으로 새 폴더 객체를 가져옴 (폴더 검색은 unified fetchContent 사용)
-                    newFolder = ContentManager.shared.fetchContent(named: newFolderName, parent: targetParent)
-                    print("새 폴더 CoreData 생성됨: \(newFolderName)")
-                }
+                // 새 폴더 CoreData 모델 생성
+                let newFolderModel = ContentModel(id: UUID(),
+                                                  name: newFolderName,
+                                                  path: FileManagerManager.shared.relativePath(for: newFolderURL.path),
+                                                  type: .folder,
+                                                  category: model.category,
+                                                  parentID: targetParent,
+                                                  createdAt: Date(),
+                                                  modifiedAt: Date(),
+                                                  lastAccessedAt: Date(),
+                                                  deletedAt: nil,
+                                                  isTrash: false,
+                                                  originalParentId: nil,
+                                                  syncStatus: false,
+                                                  s_dids: nil)
+                ContentManager.shared.createContent(model: newFolderModel)
+                CoreDataManager.shared.saveContext()
                 
-                // 2. 하위 항목 복제 (자식은 fetchContentsSync 사용)
-                if let cid = content.cid {
-                    let children = ContentManager.shared.fetchContentsSync(predicate: NSPredicate(format: "parent == %@", cid as CVarArg))
-                    print("자식 항목 수: \(children.count)")
-                    
-                    for child in children {
-                        if child.type == 2 {  // 폴더인 경우 재귀 복제
-                            print("하위 폴더 복제 시작: \(child.name ?? "")")
-                            duplicateContent(child, newParent: newFolder?.cid, dashboardContents: dashboardContents)
-                        } else {  // 파일 복제
-                            guard let oldFilePath = child.path else { continue }
-                            let sourceFileURL = baseFolder.appendingPathComponent(oldFilePath)
-                            let newFileName = child.name ?? "Unnamed"
-                            let destinationFileURL = newFolderURL.appendingPathComponent(newFileName)
-                            
-                            print("파일 복사 시도: \(sourceFileURL.path) -> \(destinationFileURL.path)")
-                            
-                            do {
-                                guard FileManager.default.fileExists(atPath: sourceFileURL.path) else {
-                                    print("원본 파일이 존재하지 않습니다: \(sourceFileURL.path)")
-                                    continue
-                                }
-                                
-                                if FileManager.default.fileExists(atPath: destinationFileURL.path) {
-                                    try FileManager.default.removeItem(at: destinationFileURL)
-                                }
-                                
-                                try FileManager.default.copyItem(at: sourceFileURL, to: destinationFileURL)
-                                print("파일 복사 성공: \(newFileName)")
-                                
-                                if let newRelativePath = FileManagerManager.shared.relativePath(for: destinationFileURL.path) {
-                                    ContentManager.shared.createContent(name: newFileName,
-                                                                        path: newRelativePath,
-                                                                        type: 0,
-                                                                        category: child.category,
-                                                                        parent: newFolder?.cid,
-                                                                        s_dids: nil)
-                                    CoreDataManager.shared.saveContext()
-                                    print("파일 CoreData 생성 성공: \(newFileName)")
-                                }
-                            } catch {
-                                print("파일 복제 실패: \(error)")
+                let children = ContentManager.shared.fetchChildrenModels(for: model.id)
+                print("자식 항목 수: \(children.count)")
+                
+                for child in children {
+                    if child.type == .folder {
+                        print("하위 폴더 복제 시작: \(child.name)")
+                        duplicateContent(child, newParent: newFolderModel.id, dashboardContents: dashboardContents)
+                    } else {
+                        guard let oldFilePath = child.path else { continue }
+                        let sourceFileURL = baseFolder.appendingPathComponent(oldFilePath)
+                        let newFileName = child.name
+                        let destinationFileURL = newFolderURL.appendingPathComponent(newFileName)
+                        
+                        print("파일 복사 시도: \(sourceFileURL.path) -> \(destinationFileURL.path)")
+                        
+                        do {
+                            guard FileManager.default.fileExists(atPath: sourceFileURL.path) else {
+                                print("원본 파일이 존재하지 않습니다: \(sourceFileURL.path)")
+                                continue
                             }
+                            
+                            if FileManager.default.fileExists(atPath: destinationFileURL.path) {
+                                try FileManager.default.removeItem(at: destinationFileURL)
+                            }
+                            
+                            try FileManager.default.copyItem(at: sourceFileURL, to: destinationFileURL)
+                            print("파일 복사 성공: \(newFileName)")
+                            
+                            if let newRelativePath = FileManagerManager.shared.relativePath(for: destinationFileURL.path) {
+                                ContentManager.shared.createContent(name: newFileName,
+                                                                    path: newRelativePath,
+                                                                    type: ContentType.score.rawValue,
+                                                                    category: child.category.rawValue,
+                                                                    parent: newFolderModel.id,
+                                                                    s_dids: nil)
+                                CoreDataManager.shared.saveContext()
+                                print("파일 CoreData 생성 성공: \(newFileName)")
+                            }
+                        } catch {
+                            print("파일 복제 실패: \(error)")
                         }
                     }
                 }
-                
             } catch {
                 print("폴더 복제 실패: \(error)")
             }
-            
-        } else {  // 파일 복제
+        } else {
             let newName = (newParent == nil)
-                ? generateDuplicateFileName(for: content, dashboardContents: dashboardContents)
-                : (content.name ?? "Unnamed")
+                ? generateDuplicateFileName(for: model, dashboardContents: dashboardContents)
+                : model.name
             
-            if let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
-               let relativePath = content.path {
-                let destinationURL: URL
-                if let newParent = newParent,
-                   let newParentContent = ContentManager.shared.fetchContent(with: newParent),
-                   let parentRelativePath = newParentContent.path {
-                    let parentFolderURL = baseFolder.appendingPathComponent(parentRelativePath)
-                    destinationURL = parentFolderURL.appendingPathComponent(newName)
-                } else {
-                    let sourceURL = baseFolder.appendingPathComponent(relativePath)
-                    destinationURL = sourceURL.deletingLastPathComponent().appendingPathComponent(newName)
+            guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents),
+                  let relativePath = model.path else { return }
+            
+            let destinationURL: URL
+            if let newParent = newParent,
+               let parentModel = ContentManager.shared.fetchContentModel(with: newParent),
+               let parentRelativePath = parentModel.path {
+                let parentFolderURL = baseFolder.appendingPathComponent(parentRelativePath)
+                destinationURL = parentFolderURL.appendingPathComponent(newName)
+            } else {
+                let sourceURL = baseFolder.appendingPathComponent(relativePath)
+                destinationURL = sourceURL.deletingLastPathComponent().appendingPathComponent(newName)
+            }
+            
+            do {
+                let sourceURL = baseFolder.appendingPathComponent(relativePath)
+                guard FileManager.default.fileExists(atPath: sourceURL.path) else {
+                    print("원본 파일이 존재하지 않습니다: \(sourceURL.path)")
+                    return
                 }
                 
-                do {
-                    let sourceURL = baseFolder.appendingPathComponent(relativePath)
-                    guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-                        print("원본 파일이 존재하지 않습니다: \(sourceURL.path)")
-                        return
-                    }
-                    
-                    if FileManager.default.fileExists(atPath: destinationURL.path) {
-                        try FileManager.default.removeItem(at: destinationURL)
-                    }
-                    
-                    try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-                    if let newRelativePath = FileManagerManager.shared.relativePath(for: destinationURL.path) {
-                        ContentManager.shared.createContent(name: newName,
-                                                            path: newRelativePath,
-                                                            type: 0,
-                                                            category: content.category,
-                                                            parent: newParent ?? content.parent,
-                                                            s_dids: nil)
-                        CoreDataManager.shared.saveContext()
-                    }
-                } catch {
-                    print("파일 복제 실패: \(error)")
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    try FileManager.default.removeItem(at: destinationURL)
                 }
+                
+                try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
+                if let newRelativePath = FileManagerManager.shared.relativePath(for: destinationURL.path) {
+                    ContentManager.shared.createContent(name: newName,
+                                                        path: newRelativePath,
+                                                        type: ContentType.score.rawValue,
+                                                        category: model.category.rawValue,
+                                                        parent: newParent ?? model.parentID,
+                                                        s_dids: nil)
+                    CoreDataManager.shared.saveContext()
+                }
+            } catch {
+                print("파일 복제 실패: \(error)")
             }
         }
     }
     
-    // MARK: Helper 함수들
-    // 1. 복제 시 파일명
-    private func generateDuplicateFileName(for content: Content, dashboardContents: DashboardContents) -> String {
-        guard content.type != 2, let originalName = content.name else { return "Unnamed.pdf" }
+    // MARK: - Helper 함수들
+    // 1. 파일 복제 시 이름 생성
+    private func generateDuplicateFileName(for model: ContentModel, dashboardContents: DashboardContents) -> String {
+        guard model.type != .folder, let originalName = model.name as String? else { return "Unnamed.pdf" }
         let baseName = (originalName as NSString).deletingPathExtension
         let ext = (originalName as NSString).pathExtension
         var index = 1
         var newName = "\(baseName) (\(index)).\(ext)"
         if let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
-           let oldPath = content.path {
+           let oldPath = model.path {
             let originalFileURL = docsURL.appendingPathComponent(oldPath)
             let parentDirectory = originalFileURL.deletingLastPathComponent()
             while FileManager.default.fileExists(atPath: parentDirectory.appendingPathComponent(newName).path) {
@@ -313,12 +311,12 @@ final class ContentInteractor {
         return newName
     }
     
-    // 2. 복제시 폴더 명
-    private func generateDuplicateFolderName(for content: Content) -> String {
-        let baseName = content.name ?? "Unnamed"
+    // 2. 폴더 복제 시 이름 생성
+    private func generateDuplicateFolderName(for model: ContentModel) -> String {
+        let baseName = model.name
         var index = 1
         var newName = "\(baseName) (\(index))"
-        let siblings = ContentManager.shared.fetchContentsSync(predicate: NSPredicate(format: "parent == %@", (content.parent ?? UUID()) as CVarArg))
+        let siblings = ContentManager.shared.fetchChildrenModels(for: model.parentID)
         while siblings.contains(where: { $0.name == newName }) {
             index += 1
             newName = "\(baseName) (\(index))"

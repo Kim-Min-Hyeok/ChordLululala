@@ -31,17 +31,17 @@ struct FolderGridCellView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    if viewModel.isSelectionMode {
+                    if viewModel.isSelectionViewVisible {
                         toggleSelection()
                     } else {
                         viewModel.currentParent = folder
                         viewModel.loadContents()
                     }
                 }
-                if !viewModel.isSelectionMode {
+                if !viewModel.isSelectionViewVisible {
                     Button(action: {
                         viewModel.selectedContent = folder
-                        viewModel.showModifyModal = true
+                        viewModel.isModifyModalVisible = true
                     }) {
                         Image(systemName: "ellipsis")
                             .foregroundColor(.gray)
@@ -58,7 +58,7 @@ struct FolderGridCellView: View {
                     }
                 }
             )
-            if viewModel.isSelectionMode {
+            if viewModel.isSelectionViewVisible {
                 HStack {
                     Spacer()
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
