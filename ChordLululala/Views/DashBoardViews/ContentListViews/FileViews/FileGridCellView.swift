@@ -10,6 +10,7 @@ import QuickLookThumbnailing
 
 struct FileGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
+    @EnvironmentObject var router: NavigationRouter
     @State private var thumbnail: UIImage? = nil
     
     let file: ContentModel
@@ -40,7 +41,8 @@ struct FileGridCellView: View {
                     if viewModel.isSelectionViewVisible {
                         toggleSelection()
                     } else {
-                        // 일반 파일 탭 액션 구현
+                        // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
+                        router.toNamed("/score", arguments: [file])
                     }
                 }
                 

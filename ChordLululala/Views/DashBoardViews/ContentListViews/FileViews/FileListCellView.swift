@@ -9,6 +9,7 @@ import SwiftUI
 
 struct FileListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
+    @EnvironmentObject var router: NavigationRouter
     let file: ContentModel
     
     private var isSelected: Bool {
@@ -33,7 +34,8 @@ struct FileListCellView: View {
                     if viewModel.isSelectionViewVisible {
                         toggleSelection()
                     } else {
-                        viewModel.selectedContent = file
+                        // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
+                        router.toNamed("/score", arguments: [file])
                     }
                 }
                 if !viewModel.isSelectionViewVisible {

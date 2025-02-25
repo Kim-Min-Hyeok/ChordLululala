@@ -33,7 +33,6 @@
     <entity name="ScoreDetail" representedClassName="ScoreDetail" syncable="YES" codeGenerationType="class">
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="s_did" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="s_pids" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="t_key" optional="YES" attributeType="String"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="scoreDetails" inverseEntity="Content"/>
         <relationship name="scorePages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScorePage" inverseName="scoreDetail" inverseEntity="ScorePage"/>
@@ -49,9 +48,6 @@
     </entity>
     <entity name="ScorePage" representedClassName="ScorePage" syncable="YES" codeGenerationType="class">
         <attribute name="rotation" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="s_aids" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
-        <attribute name="s_cids" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
-        <attribute name="s_mids" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
         <attribute name="s_pid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="scoreAnnotations" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreAnnotation" inverseName="scorePage" inverseEntity="ScoreAnnotation"/>
         <relationship name="scoreChords" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreChord" inverseName="scorePage" inverseEntity="ScoreChord"/>
@@ -64,9 +60,7 @@
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="setting" inverseEntity="User"/>
     </entity>
     <entity name="User" representedClassName="User" syncable="YES" codeGenerationType="class">
-        <attribute name="cids" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName"/>
         <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="sid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="contents" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="user" inverseEntity="Content"/>
         <relationship name="setting" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Setting" inverseName="user" inverseEntity="Setting"/>

@@ -29,6 +29,17 @@ enum ContentType: Int16 {
     case folder = 2
 }
 
+// Navigation Routing에서 argument 로 사용하기 위함 (Hashable 처리)
+extension ContentModel: Hashable {
+    static func == (lhs: ContentModel, rhs: ContentModel) -> Bool {
+        return lhs.cid == rhs.cid
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(cid)
+    }
+}
+
 // CoreData Entity(Content) -> 도메인 모델(ContentModel) Mapping
 extension ContentModel {
     init(entity: Content) {
