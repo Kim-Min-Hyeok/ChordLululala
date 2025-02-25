@@ -13,7 +13,6 @@ final class ScoreDetailManager {
     static let shared = ScoreDetailManager()
     private let context = CoreDataManager.shared.context
     
-    
     func createScoreDetail(for content: ContentModel, with scoreDetail: ScoreDetailModel) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
             // .score 타입인지 확인
@@ -33,8 +32,8 @@ final class ScoreDetailManager {
                     let newScoreDetail = ScoreDetail(context: self.context)
                     newScoreDetail.update(from: scoreDetail)
                     
-                    // Content 엔티티의 scoreDetails 관계에 추가
-                    contentEntity.addToScoreDetails(newScoreDetail)
+                    // 단일 관계이므로 기존에 addToScoreDetails가 아닌 scoreDetail에 할당
+                    contentEntity.scoreDetail = newScoreDetail
                     
                     CoreDataManager.shared.saveContext()
                     print("ScoreDetail 추가 성공: \(contentEntity.name ?? "Unnamed")")
