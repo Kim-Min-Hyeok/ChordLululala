@@ -43,26 +43,26 @@ final class DashBoardViewModel: ObservableObject {
     @Published var selectedSort: SortOption = .date
     @Published var dashboardContents: DashboardContents = .allDocuments {
         didSet {
-                    currentFilter = .all
-                    selectedSort = .date
-                    searchText = ""
-                    // 대시보드 종류에 따라 기본 폴더를 지정
-                    switch dashboardContents {
-                    case .allDocuments, .recentDocuments:
-                        if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
-                            currentParent = scoreBase
-                        }
-                    case .songList:
-                        if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                            currentParent = songListBase
-                        }
-                    case .trashCan:
-                        if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                            currentParent = trashCanBase
-                        }
-                    }
-                    loadContents()
+            currentFilter = .all
+            selectedSort = .date
+            searchText = ""
+            // 대시보드 종류에 따라 기본 폴더를 지정
+            switch dashboardContents {
+            case .allDocuments, .recentDocuments:
+                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                    currentParent = scoreBase
                 }
+            case .songList:
+                if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    currentParent = songListBase
+                }
+            case .trashCan:
+                if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                    currentParent = trashCanBase
+                }
+            }
+            loadContents()
+        }
     }
     @Published var searchText: String = ""
     
@@ -94,22 +94,22 @@ final class DashBoardViewModel: ObservableObject {
     init() {
         // 앱 시작 시 기본 디렉토리 초기화
         ContentManager.shared.initializeBaseDirectories()
-                // 초기 대시보드에 따른 기본 폴더 지정
-                switch dashboardContents {
-                case .allDocuments, .recentDocuments:
-                    if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
-                        currentParent = scoreBase
-                    }
-                case .songList:
-                    if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
-                        currentParent = songListBase
-                    }
-                case .trashCan:
-                    if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                        currentParent = trashCanBase
-                    }
-                }
-                loadContents()
+        // 초기 대시보드에 따른 기본 폴더 지정
+        switch dashboardContents {
+        case .allDocuments, .recentDocuments:
+            if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
+                currentParent = scoreBase
+            }
+        case .songList:
+            if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
+                currentParent = songListBase
+            }
+        case .trashCan:
+            if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                currentParent = trashCanBase
+            }
+        }
+        loadContents()
     }
     
     // MARK: - 폴더 및 파일 정렬
@@ -167,90 +167,97 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     // MARK: - Content 관련 비즈니스 로직 호출
-
+    
     func loadContents() {
-            guard let parent = currentParent else { return }
+        guard let parent = currentParent else { return }
         ContentManager.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
-                .receive(on: DispatchQueue.main)
-                .sink(receiveCompletion: { completion in
-                    if case let .failure(error) = completion {
-                        print("Error loading contents: \(error)")
-                    }
-                }, receiveValue: { [weak self] models in
-                    self?.contents = models
-                })
-                .store(in: &cancellables)
-        }
-        
-        func uploadFile(with url: URL) {
-            guard let currentParent = currentParent else { return }
-            ContentManager.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
-        }
-        
-        func createFolder(folderName: String) {
-            guard let currentParent = currentParent else { return }
-            ContentManager.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
-        }
-        
-        func renameContent(_ content: ContentModel, newName: String) {
-            ContentManager.shared.renameContent(content, newName: newName)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
-        }
-        
-        func duplicateContent(_ content: ContentModel) {
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { completion in
+                if case let .failure(error) = completion {
+                    print("Error loading contents: \(error)")
+                }
+            }, receiveValue: { [weak self] models in
+                self?.contents = models
+            })
+            .store(in: &cancellables)
+    }
+    
+    func uploadFile(with url: URL) {
+        guard let currentParent = currentParent else { return }
+        ContentManager.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func createFolder(folderName: String) {
+        guard let currentParent = currentParent else { return }
+        ContentManager.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func renameContent(_ content: ContentModel, newName: String) {
+        ContentManager.shared.renameContent(content, newName: newName)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func duplicateContent(_ content: ContentModel) {
+        ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func duplicateSelectedContents() {
+        let publishers = selectedContents.map { content in
             ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
         }
-        
-        func duplicateSelectedContents() {
-            let publishers = selectedContents.map { content in
-                ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+        Publishers.MergeMany(publishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.selectedContents.removeAll()
+                self?.loadContents()
             }
-            Publishers.MergeMany(publishers)
-                .collect()
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.selectedContents.removeAll()
-                    self?.loadContents()
-                }
-                .store(in: &cancellables)
-        }
-        
-        func moveContentToTrash(_ content: ContentModel) {
+            .store(in: &cancellables)
+    }
+    
+    func moveContentToTrash(_ content: ContentModel) {
+        ContentManager.shared.moveContentToTrash(content)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func restoreContent(_ content: ContentModel) {
+        ContentManager.shared.restoreContent(content)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func moveSelectedContentsToTrash() {
+        let publishers = selectedContents.map { content in
             ContentManager.shared.moveContentToTrash(content)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
         }
-        
-        func moveSelectedContentsToTrash() {
-            let publishers = selectedContents.map { content in
-                ContentManager.shared.moveContentToTrash(content)
+        Publishers.MergeMany(publishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.selectedContents.removeAll()
+                self?.loadContents()
             }
-            Publishers.MergeMany(publishers)
-                .collect()
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.selectedContents.removeAll()
-                    self?.loadContents()
-                }
-                .store(in: &cancellables)
-        }
-        
-        func deleteContent(_ content: ContentModel) {
-            ContentManager.shared.deleteContent(content)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in self?.loadContents() }
-                .store(in: &cancellables)
-        }
+            .store(in: &cancellables)
+    }
+    
+    func deleteContent(_ content: ContentModel) {
+        ContentManager.shared.deleteContent(content)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
 }

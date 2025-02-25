@@ -48,21 +48,24 @@ struct DeleteModalView: View {
                 
                 // 옵션 버튼 영역
                 VStack(spacing: 0) {
-                    Button(action: {
-                        //                            viewModel.duplicateContent(content)
-                        viewModel.isDeletedModalVisible = false
-                    }) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "doc.on.doc")
-                                .foregroundColor(.black)
-                            Text("복구하기")
-                                .foregroundColor(.black)
-                            Spacer()
+                    // 하위 항목은 복구 위치가 없기 때문에 복구 불가
+                    if viewModel.currentParent?.parentContent == nil {
+                        Button(action: {
+                            viewModel.restoreContent(content)
+                            viewModel.isDeletedModalVisible = false
+                        }) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "doc.on.doc")
+                                    .foregroundColor(.black)
+                                Text("복구하기")
+                                    .foregroundColor(.black)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .frame(height: 44)
                         }
-                        .padding(.horizontal, 16)
-                        .frame(height: 44)
+                        Divider()
                     }
-                    Divider()
                     Button(action: {
                         viewModel.deleteContent(content)
                         viewModel.isDeletedModalVisible = false

@@ -191,6 +191,57 @@ struct ContentManager {
         .eraseToAnyPublisher()
     }
     
+    // 복구
+    func restoreContent(_ content: ContentModel) -> AnyPublisher<Void, Never> {
+        Future<Void, Never> { promise in
+            // 1. 복구를 위해 originalParentId가 필요함
+            guard let originalParentId = content.originalParentId,
+                  let originalParentContent = ContentCoreDataManager.shared.fetchContentModel(with: originalParentId),
+                  let parentFolderRelativePath = originalParentContent.path,
+                  !parentFolderRelativePath.isEmpty else {
+                print("복구할 원본 부모 정보 또는 경로가 없습니다.")
+                promise(.success(()))
+                return
+            }
+            
+            // 2. 현재 Content의 파일 경로(휴지통 내 상대경로)가 필요함
+            guard let currentRelativePath = content.path, !currentRelativePath.isEmpty,
+                  let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                print("현재 Content의 파일 경로가 없습니다.")
+                promise(.success(()))
+                return
+            }
+            
+            // 3. 현재 파일의 절대 URL (휴지통 내 위치)
+            let sourceURL = docsURL.appendingPathComponent(currentRelativePath)
+            
+            // 4. 복구 대상 폴더(원래 부모 폴더)의 절대 URL 계산
+            let destinationFolderURL = docsURL.appendingPathComponent(parentFolderRelativePath)
+            let fileName = (currentRelativePath as NSString).lastPathComponent
+            let destinationURL = destinationFolderURL.appendingPathComponent(fileName)
+            
+            // 5. ContentFileManagerManager의 moveItem을 통해 파일 이동 (복구)
+            ContentFileManagerManager.shared.moveItem(from: sourceURL, to: destinationURL) { result in
+                switch result {
+                case .success(let newRelativePath):
+                    // 6. 이동에 성공하면, CoreData의 Content를 업데이트하여 복구 완료 처리
+                    var updatedContent = content
+                    updatedContent.parentContent = originalParentContent.cid
+                    updatedContent.deletedAt = nil
+                    updatedContent.path = newRelativePath
+                    
+                    ContentCoreDataManager.shared.updateContent(model: updatedContent)
+                    print("복구 성공: \(content.name)")
+                    promise(.success(()))
+                case .failure(let error):
+                    print("복구 실패: \(error)")
+                    promise(.success(()))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
     // 복제 – 작업 완료 시 Void 발행
     func duplicateContent(_ model: ContentModel, newParent: UUID? = nil, dashboardContents: DashboardContents) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
@@ -198,8 +249,7 @@ struct ContentManager {
                 let targetParent = newParent ?? model.parentContent
                 let newFolderName = (newParent == nil) ? ContentNamer.shared.generateDuplicateFolderName(for: model) : model.name
                 
-                guard let baseFolder = ContentFileManagerManager.shared.baseFolderURL(for: dashboardContents),
-                      let oldPath = model.path else { promise(.success(())); return }
+                guard let oldPath = model.path else { promise(.success(())); return }
                 
                 let newParentRelativePath: String?
                 if let newParent = newParent,
@@ -236,8 +286,7 @@ struct ContentManager {
                 }
             } else {
                 let newName = (newParent == nil) ? ContentNamer.shared.generateDuplicateFileName(for: model, dashboardContents: dashboardContents) : model.name
-                guard let baseFolder = ContentFileManagerManager.shared.baseFolderURL(for: dashboardContents),
-                      let relativePath = model.path else { promise(.success(())); return }
+                guard let relativePath = model.path else { promise(.success(())); return }
                 
                 let newParentRelativePath: String?
                 if let newParent = newParent,
