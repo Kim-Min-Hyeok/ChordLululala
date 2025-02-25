@@ -44,7 +44,7 @@ struct ContentManager {
                                                                 path: relativePath,
                                                                 type: ContentType.score.rawValue,
                                                                 parent: currentParent?.cid,
-                                                                s_dids: nil)
+                                                                scoreDetail: nil)
                 case .failure(let error):
                     print("파일 업로드 실패: \(error)")
                 }
@@ -75,7 +75,7 @@ struct ContentManager {
                                                                 path: newRelativePath,
                                                                 type: ContentType.folder.rawValue,
                                                                 parent: currentParent.cid,
-                                                                s_dids: nil)
+                                                                scoreDetail: nil)
                 case .failure(let error):
                     print("폴더 생성 실패: \(error)")
                 }
@@ -223,7 +223,7 @@ struct ContentManager {
                                                       deletedAt: nil,
                                                       originalParentId: targetParent,
                                                       syncStatus: false,
-                                                      scoreDetails: nil)
+                                                      scoreDetail: nil)
                     ContentCoreDataManager.shared.createContent(model: newFolderModel)
                     
                     let children = ContentCoreDataManager.shared.fetchChildrenModels(for: model.cid)
@@ -261,7 +261,7 @@ struct ContentManager {
                                                     deletedAt: nil,
                                                     originalParentId: newParent ?? model.parentContent,
                                                     syncStatus: false,
-                                                    scoreDetails: nil)
+                                                    scoreDetail: nil)
                     ContentCoreDataManager.shared.createContent(model: newFileModel)
                 case .failure(let error):
                     print("파일 복제 실패: \(error)")

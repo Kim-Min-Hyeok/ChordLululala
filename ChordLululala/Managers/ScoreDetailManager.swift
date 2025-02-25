@@ -13,6 +13,7 @@ final class ScoreDetailManager {
     static let shared = ScoreDetailManager()
     private let context = CoreDataManager.shared.context
     
+    // MARK: Create
     func createScoreDetail(for content: ContentModel, with scoreDetail: ScoreDetailModel) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
             // .score 타입인지 확인
