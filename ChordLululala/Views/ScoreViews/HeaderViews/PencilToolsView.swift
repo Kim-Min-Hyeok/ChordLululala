@@ -62,7 +62,7 @@ struct PencilToolsView: View {
                 }
                 .padding(.trailing, 20)
                 
-                // 올가미
+                // 올가미=
                 Button(action:{
                     if pencilToolsViewModel.selectedTool == .lasso {
                            

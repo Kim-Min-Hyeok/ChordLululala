@@ -56,9 +56,9 @@ class PencilToolsViewModel: ObservableObject {
     func closeToolbar(){
         selectedTool = nil
         isPencilActive = false
-        for canvasView in canvasViews {
-            canvasView.drawingPolicy = .pencilOnly
-        }
+//        for canvasView in canvasViews {
+//            canvasView.drawingPolicy = .pencilOnly
+//        }
     }
     
     
