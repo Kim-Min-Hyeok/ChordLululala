@@ -46,7 +46,7 @@ struct FileGridCellView: View {
                 
                 // 텍스트 + 버튼 영역
                 HStack {
-                    Text(file.name ?? "Unnamed")
+                    Text(file.name)
                         .font(.caption)
                         .foregroundColor(.black)
                     Spacer()

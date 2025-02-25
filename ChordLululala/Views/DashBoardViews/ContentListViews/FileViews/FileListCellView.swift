@@ -23,7 +23,7 @@ struct FileListCellView: View {
                         .resizable()
                         .frame(width: 53, height: 53)
                         .foregroundColor(.black)
-                    Text(file.name ?? "Unnamed")
+                    Text(file.name)
                         .font(.body)
                         .foregroundColor(.black)
                     Spacer()

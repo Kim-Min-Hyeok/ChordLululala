@@ -14,17 +14,18 @@ final class ContentCoreDataManager {
     private let context = CoreDataManager.shared.context
     private var cancellables = Set<AnyCancellable>()
     
+    // TODO: Create
+    // 모델로 Content 직접 Content 생성
     func createContent(model: ContentModel) {
         let newEntity = Content(context: context)
         newEntity.update(from: model)
         CoreDataManager.shared.saveContext()
     }
     
-    // 편의용 Create 메서드
+    // default Content 생성
     func createContent(name: String,
                        path: String? = nil,
                        type: Int16,
-                       category: Int16,
                        parent: UUID? = nil,
                        s_dids: [UUID]? = nil) {
         let now = Date()
@@ -32,31 +33,28 @@ final class ContentCoreDataManager {
                                  name: name,
                                  path: path,
                                  type: ContentType(rawValue: type) ?? .score,
-                                 category: ContentCategory(rawValue: category) ?? .score,
                                  parent: parent,
                                  createdAt: now,
                                  modifiedAt: now,
                                  lastAccessedAt: now,
                                  deletedAt: nil,
-                                 isTrash: false,
                                  originalParentId: parent,
                                  syncStatus: false,
                                  s_dids: s_dids)
         createContent(model: model)
     }
     
-    // 기본 디렉토리 초기화: Score, Song_List, Trash_Can
+    // 기본 디렉토리 초기화: Score, Song_List, Trash_Can 생성
     func initializeBaseDirectories() {
-        let baseDirectories = [("Score", ContentCategory.score.rawValue),
-                               ("Song_List", ContentCategory.songList.rawValue),
-                               ("Trash_Can", ContentCategory.trash.rawValue)]
-        for (name, category) in baseDirectories {
+        let baseDirectories = ["Score",
+                               "Song_List",
+                               "Trash_Can"]
+        for name in baseDirectories {
             let predicate = NSPredicate(format: "name == %@ AND parent == nil", name)
             if fetchContentModelsSync(predicate: predicate).isEmpty {
                 createContent(name: name,
                               path: name,
                               type: ContentType.folder.rawValue,
-                              category: category,
                               parent: nil,
                               s_dids: nil)
                 print("\(name) base directory created.")
@@ -142,41 +140,9 @@ final class ContentCoreDataManager {
         return fetchContentModel(predicate: predicate)
     }
     
-    // MARK: Update
-    func updateContent(model: ContentModel) {
-        let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
-        do {
-            if let coreEntity = try context.fetch(fetchRequest).first {
-                coreEntity.update(from: model)
-                CoreDataManager.shared.saveContext()
-            }
-        } catch {
-            print("Failed to update content: \(error)")
-        }
-    }
-    
-    // MARK: Delete
-    func deleteContent(model: ContentModel) {
-            let request: NSFetchRequest<Content> = Content.fetchRequest()
-            request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
-            do {
-                if let entityToDelete = try context.fetch(request).first {
-                    context.delete(entityToDelete)
-                    CoreDataManager.shared.saveContext()
-                    print("Content 삭제 성공: \(model.name)")
-                } else {
-                    print("삭제할 Content를 찾을 수 없음: \(model.name)")
-                }
-            } catch {
-                print("Content 삭제 실패: \(error)")
-            }
-        }
-    
-    // MARK: - Read
     func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
         var predicate: NSPredicate
-
+        
         // 이미 특정 폴더(parent)가 주어졌다면 그 폴더의 자식들을 불러옴
         if let parent = parent {
             predicate = NSPredicate(format: "parent == %@", parent.cid as CVarArg)
@@ -223,20 +189,49 @@ final class ContentCoreDataManager {
         
         return ContentCoreDataManager.shared.fetchContentModelsPublisher(predicate: predicate)
     }
-
-
-    // 2. 휴지통 이동
+    
+    // MARK: Update
+    // 현재 변경 사항 저장
+    func updateContent(model: ContentModel) {
+        let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
+        do {
+            if let coreEntity = try context.fetch(fetchRequest).first {
+                coreEntity.update(from: model)
+                CoreDataManager.shared.saveContext()
+            }
+        } catch {
+            print("Failed to update content: \(error)")
+        }
+    }
+    
+    // 휴지통 이동
     func moveContentToTrash(_ model: inout ContentModel) {
-        model.category = .trash
         model.modifiedAt = Date()
         model.lastAccessedAt = Date()
         model.deletedAt = Date()
-        model.isTrash = true
         
         if let trashBase = fetchBaseDirectory(named: "Trash_Can") {
             model.parent = trashBase.cid
         }
         
         updateContent(model: model)
+    }
+    
+    // MARK: Delete
+    func deleteContent(model: ContentModel) {
+        let request: NSFetchRequest<Content> = Content.fetchRequest()
+        request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
+        do {
+            if let entityToDelete = try context.fetch(request).first {
+                context.delete(entityToDelete)
+                CoreDataManager.shared.saveContext()
+                print("Content 삭제 성공: \(model.name)")
+            } else {
+                print("삭제할 Content를 찾을 수 없음: \(model.name)")
+            }
+        } catch {
+            print("Content 삭제 실패: \(error)")
+        }
     }
 }

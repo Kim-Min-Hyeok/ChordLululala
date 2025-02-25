@@ -43,27 +43,26 @@ final class DashBoardViewModel: ObservableObject {
     @Published var selectedSort: SortOption = .date
     @Published var dashboardContents: DashboardContents = .allDocuments {
         didSet {
-            currentFilter = .all
-            selectedSort = .date
-            searchText = ""
-            
-            switch dashboardContents {
-            case .allDocuments, .recentDocuments:
-                if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
-                    currentParent = scoreBase
+                    currentFilter = .all
+                    selectedSort = .date
+                    searchText = ""
+                    // 대시보드 종류에 따라 기본 폴더를 지정
+                    switch dashboardContents {
+                    case .allDocuments, .recentDocuments:
+                        if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                            currentParent = scoreBase
+                        }
+                    case .songList:
+                        if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                            currentParent = songListBase
+                        }
+                    case .trashCan:
+                        if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                            currentParent = trashCanBase
+                        }
+                    }
+                    loadContents()
                 }
-            case .songList:
-                if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    currentParent = songListBase
-                }
-            case .trashCan:
-                if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                    currentParent = trashCanBase
-                }
-            }
-            
-            loadContents()
-        }
     }
     @Published var searchText: String = ""
     
@@ -93,25 +92,24 @@ final class DashBoardViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        // 앱 시작 시 기본 디렉토리 Content 객체들을 초기화합니다.
+        // 앱 시작 시 기본 디렉토리 초기화
         ContentManager.shared.initializeBaseDirectories()
-        
-        // 선택된 DashboardContent에 따라 기본 디렉토리를 currentParent로 지정합니다.
-        switch dashboardContents {
-        case .allDocuments, .recentDocuments:
-            if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
-                currentParent = scoreBase
-            }
-        case .songList:
-            if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
-                currentParent = songListBase
-            }
-        case .trashCan:
-            if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                currentParent = trashCanBase
-            }
-        }
-        loadContents()
+                // 초기 대시보드에 따른 기본 폴더 지정
+                switch dashboardContents {
+                case .allDocuments, .recentDocuments:
+                    if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
+                        currentParent = scoreBase
+                    }
+                case .songList:
+                    if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
+                        currentParent = songListBase
+                    }
+                case .trashCan:
+                    if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                        currentParent = trashCanBase
+                    }
+                }
+                loadContents()
     }
     
     // MARK: - 폴더 및 파일 정렬
@@ -172,7 +170,7 @@ final class DashBoardViewModel: ObservableObject {
 
     func loadContents() {
             guard let parent = currentParent else { return }
-        ContentManager2.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
+        ContentManager.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
                 .receive(on: DispatchQueue.main)
                 .sink(receiveCompletion: { completion in
                     if case let .failure(error) = completion {
@@ -186,7 +184,7 @@ final class DashBoardViewModel: ObservableObject {
         
         func uploadFile(with url: URL) {
             guard let currentParent = currentParent else { return }
-            ContentManager2.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+            ContentManager.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
@@ -194,21 +192,21 @@ final class DashBoardViewModel: ObservableObject {
         
         func createFolder(folderName: String) {
             guard let currentParent = currentParent else { return }
-            ContentManager2.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
+            ContentManager.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
         }
         
         func renameContent(_ content: ContentModel, newName: String) {
-            ContentManager2.shared.renameContent(content, newName: newName)
+            ContentManager.shared.renameContent(content, newName: newName)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
         }
         
         func duplicateContent(_ content: ContentModel) {
-            ContentManager2.shared.duplicateContent(content, dashboardContents: dashboardContents)
+            ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
@@ -216,7 +214,7 @@ final class DashBoardViewModel: ObservableObject {
         
         func duplicateSelectedContents() {
             let publishers = selectedContents.map { content in
-                ContentManager2.shared.duplicateContent(content, dashboardContents: dashboardContents)
+                ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
             }
             Publishers.MergeMany(publishers)
                 .collect()
@@ -229,7 +227,7 @@ final class DashBoardViewModel: ObservableObject {
         }
         
         func moveContentToTrash(_ content: ContentModel) {
-            ContentManager2.shared.moveContentToTrash(content)
+            ContentManager.shared.moveContentToTrash(content)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
@@ -237,7 +235,7 @@ final class DashBoardViewModel: ObservableObject {
         
         func moveSelectedContentsToTrash() {
             let publishers = selectedContents.map { content in
-                ContentManager2.shared.moveContentToTrash(content)
+                ContentManager.shared.moveContentToTrash(content)
             }
             Publishers.MergeMany(publishers)
                 .collect()
@@ -250,71 +248,9 @@ final class DashBoardViewModel: ObservableObject {
         }
         
         func deleteContent(_ content: ContentModel) {
-            ContentManager2.shared.deleteContent(content)
+            ContentManager.shared.deleteContent(content)
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] in self?.loadContents() }
                 .store(in: &cancellables)
         }
 }
-
-//    func loadContents() {
-//        guard let parent = currentParent else { return }
-//        ContentInteractor.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
-//            .receive(on: DispatchQueue.main)
-//            .sink(receiveCompletion: { completion in
-//                if case let .failure(error) = completion {
-//                    print("Error loading contents: \(error)")
-//                }
-//            }, receiveValue: { [weak self] models in
-//                self?.contents = models
-//            })
-//            .store(in: &cancellables)
-//    }
-//
-//    func uploadFile(with url: URL) {
-//        guard let currentParent = currentParent else { return }
-//        ContentInteractor.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
-//        loadContents()
-//    }
-//
-//    func createFolder(folderName: String) {
-//        guard let currentParent = currentParent else { return }
-//        ContentInteractor.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
-//        loadContents()
-//    }
-//
-//    func renameContent(_ content: ContentModel, newName: String) {
-//        ContentInteractor.shared.renameContent(content, newName: newName)
-//        loadContents()
-//    }
-//
-//    func duplicateContent(_ content: ContentModel) {
-//        ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
-//        loadContents()
-//    }
-//
-//    func duplicateSelectedContents() {
-//        for content in selectedContents {
-//            ContentInteractor.shared.duplicateContent(content, dashboardContents: dashboardContents)
-//        }
-//        selectedContents.removeAll()
-//        loadContents()
-//    }
-//
-//    func moveContentToTrash(_ content: ContentModel) {
-//        ContentInteractor.shared.moveContentToTrash(content)
-//        loadContents()
-//    }
-//
-//    func moveSelectedContentsToTrash() {
-//        for content in selectedContents {
-//            ContentInteractor.shared.moveContentToTrash(content)
-//        }
-//        selectedContents.removeAll()
-//        loadContents()
-//    }
-//
-//    func deleteContent(_ content: ContentModel) {
-//        ContentInteractor.shared.deleteContent(content)
-//        loadContents()
-//    }
