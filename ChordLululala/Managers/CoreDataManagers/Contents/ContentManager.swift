@@ -196,7 +196,7 @@ struct ContentManager {
         Future<Void, Never> { promise in
             if model.type == .folder {
                 let targetParent = newParent ?? model.parentContent
-                let newFolderName = (newParent == nil) ? self.generateDuplicateFolderName(for: model) : model.name
+                let newFolderName = (newParent == nil) ? ContentNamer.shared.generateDuplicateFolderName(for: model) : model.name
                 
                 guard let baseFolder = ContentFileManagerManager.shared.baseFolderURL(for: dashboardContents),
                       let oldPath = model.path else { promise(.success(())); return }
@@ -235,7 +235,7 @@ struct ContentManager {
                     print("폴더 복제 실패: \(error)")
                 }
             } else {
-                let newName = (newParent == nil) ? self.generateDuplicateFileName(for: model, dashboardContents: dashboardContents) : model.name
+                let newName = (newParent == nil) ? ContentNamer.shared.generateDuplicateFileName(for: model, dashboardContents: dashboardContents) : model.name
                 guard let baseFolder = ContentFileManagerManager.shared.baseFolderURL(for: dashboardContents),
                       let relativePath = model.path else { promise(.success(())); return }
                 
@@ -295,36 +295,5 @@ struct ContentManager {
             promise(.success(()))
         }
         .eraseToAnyPublisher()
-    }
-    
-    // MARK: - Helper 함수들
-    private func generateDuplicateFileName(for model: ContentModel, dashboardContents: DashboardContents) -> String {
-        guard model.type != .folder, let originalName = model.name as String? else { return "Unnamed.pdf" }
-        let baseName = (originalName as NSString).deletingPathExtension
-        let ext = (originalName as NSString).pathExtension
-        var index = 1
-        var newName = "\(baseName) (\(index)).\(ext)"
-        if let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
-           let oldPath = model.path {
-            let originalFileURL = docsURL.appendingPathComponent(oldPath)
-            let parentDirectory = originalFileURL.deletingLastPathComponent()
-            while FileManager.default.fileExists(atPath: parentDirectory.appendingPathComponent(newName).path) {
-                index += 1
-                newName = "\(baseName) (\(index)).\(ext)"
-            }
-        }
-        return newName
-    }
-    
-    private func generateDuplicateFolderName(for model: ContentModel) -> String {
-        let baseName = model.name
-        var index = 1
-        var newName = "\(baseName) (\(index))"
-        let siblings = ContentCoreDataManager.shared.fetchChildrenModels(for: model.parentContent)
-        while siblings.contains(where: { $0.name == newName }) {
-            index += 1
-            newName = "\(baseName) (\(index))"
-        }
-        return newName
     }
 }
