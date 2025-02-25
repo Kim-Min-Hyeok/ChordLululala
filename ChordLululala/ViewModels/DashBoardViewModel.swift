@@ -1,5 +1,5 @@
 //
-//  DocumentViewModel.swift
+//  DashBoardViewModel.swift
 //  ChordLululala
 //
 //  Created by Minhyeok Kim on 2/19/25.
@@ -8,7 +8,7 @@
 import Combine
 import SwiftUI
 
-enum DashboardContent {
+enum DashboardContents {
     case allDocuments
     case recentDocuments
     case songList
@@ -31,148 +31,226 @@ enum SortOption: String, CaseIterable, Identifiable {
 }
 
 final class DashBoardViewModel: ObservableObject {
-    @Published var isSidebarVisible: Bool = false
+    
+    // MARK: - 현재 폴더 위치 (도메인 모델 사용)
+    @Published var currentParent: ContentModel? = nil
+    
+    // MARK: - 현재 폴더 내 Contents (파일/폴더, 도메인 모델)
+    @Published var contents: [ContentModel] = []
+    
+    // MARK: - 필터링 관련
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
-    @Published var selectedContent: DashboardContent = .allDocuments {
+    @Published var dashboardContents: DashboardContents = .allDocuments {
         didSet {
-            // 콘텐츠 변경 시 필터, 정렬, 검색어 기본값으로 초기화
-            currentFilter = .all
-            selectedSort = .date
-            searchText = ""
-            loadContents()
-        }
+                    currentFilter = .all
+                    selectedSort = .date
+                    searchText = ""
+                    // 대시보드 종류에 따라 기본 폴더를 지정
+                    switch dashboardContents {
+                    case .allDocuments, .recentDocuments:
+                        if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                            currentParent = scoreBase
+                        }
+                    case .songList:
+                        if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                            currentParent = songListBase
+                        }
+                    case .trashCan:
+                        if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                            currentParent = trashCanBase
+                        }
+                    }
+                    loadContents()
+                }
     }
     @Published var searchText: String = ""
     
-    @Published var currentParent: Content? = nil
+    // MARK: - 사이드바 관련
+    @Published var isSidebarVisible: Bool = false
+    @Published var sidebarDragOffset: CGFloat = 0
     
-    @Published var contents: [Content] = []
+    // MARK: - 리스트/그리드 관련
+    @Published var isListView: Bool = true
+    
+    // MARK: - 파일/폴더 생성 버튼 관련
+    @Published var isFloatingMenuVisible: Bool = false
+    @Published var isPDFPickerVisible: Bool = false
+    @Published var isCreateFolderModalVisible: Bool = false
+    
+    // MARK: - 편집&삭제 모달 관련
+    @Published var isModifyModalVisible: Bool = false
+    @Published var isDeletedModalVisible: Bool = false
+    @Published var selectedContent: ContentModel? = nil
+    @Published var cellFrame: CGRect = .zero
+    
+    // MARK: - 선택모드 관련
+    @Published var isSelectionViewVisible: Bool = false
+    @Published var isTrashModalVisible: Bool = false
+    @Published var selectedContents: [ContentModel] = []
     
     private var cancellables = Set<AnyCancellable>()
     
-    // 초기 load
     init() {
-        loadContents()
-    }
-    
-    func loadContents() {
-        var predicate: NSPredicate
-        
-        // 현재 폴더가 있다면, 해당 폴더의 cid와 일치하는 parent를 가진 항목만 불러옴
-        if let parentID = currentParent?.cid {
-            predicate = NSPredicate(format: "parent == %@", parentID as CVarArg)
-        } else {
-            predicate = NSPredicate(format: "parent == nil")
-        }
-        
-        // 선택된 DashboardContent에 따른 추가 필터링
-        switch selectedContent {
-        case .trashCan:
-            let trashPredicate = NSPredicate(format: "isTrash == YES")
-            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, trashPredicate])
-        case .recentDocuments:
-            let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-            let recentPredicate = NSPredicate(format: "modifiedAt >= %@", oneDayAgo as NSDate)
-            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, recentPredicate])
-        default:
-            break
-        }
-        
-        ContentManager.shared.fetchContents(predicate: predicate)
-            .receive(on: DispatchQueue.main)
-            .sink { completion in
-                if case let .failure(error) = completion {
-                    print("Fetch contents error: \(error)")
+        // 앱 시작 시 기본 디렉토리 초기화
+        ContentManager.shared.initializeBaseDirectories()
+                // 초기 대시보드에 따른 기본 폴더 지정
+                switch dashboardContents {
+                case .allDocuments, .recentDocuments:
+                    if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
+                        currentParent = scoreBase
+                    }
+                case .songList:
+                    if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
+                        currentParent = songListBase
+                    }
+                case .trashCan:
+                    if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                        currentParent = trashCanBase
+                    }
                 }
-            } receiveValue: { [weak self] contents in
-                self?.contents = contents
-            }
-            .store(in: &cancellables)
+                loadContents()
     }
     
-    // 폴더 셀 탭 시 호출. 해당 폴더로 들어가기 위해 currentParent를 업데이트
-    func didTapFolder(_ folder: Content) {
+    // MARK: - 폴더 및 파일 정렬
+    var sortedFolders: [ContentModel] {
+        let folders = contents.filter { $0.type == .folder }
+        switch selectedSort {
+        case .date:
+            return folders.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+        case .name:
+            return folders.sorted { $0.name < $1.name }
+        }
+    }
+    
+    var sortedFiles: [ContentModel] {
+        let files = contents.filter { $0.type != .folder }
+        switch selectedSort {
+        case .date:
+            return files.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+        case .name:
+            return files.sorted { $0.name < $1.name }
+        }
+    }
+    
+    // MARK: - 폴더 간 이동
+    func didTapFolder(_ folder: ContentModel) {
         currentParent = folder
         loadContents()
     }
     
     func goBack() {
-        if let parentID = currentParent?.parent {
-            ContentManager.shared.fetchContent(with: parentID) { [weak self] parentFolder in
-                DispatchQueue.main.async {
-                    self?.currentParent = parentFolder
-                    self?.loadContents()
+        guard let current = currentParent, let parent = current.parentContent else {
+            print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
+            return
+        }
+        if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
+            currentParent = parentFolder
+        } else {
+            print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
+            switch dashboardContents {
+            case .allDocuments, .recentDocuments:
+                if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
+                    currentParent = scoreBase
+                }
+            case .songList:
+                if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    currentParent = songListBase
+                }
+            case .trashCan:
+                if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                    currentParent = trashCanBase
                 }
             }
-        } else {
-            // 상위 폴더가 없으면 루트로 돌아감.
-            currentParent = nil
-            loadContents()
         }
-    }
-    
-    // 폴더 정렬: lastAccessedAt이 nil인 경우 Date.distantPast로 비교
-    var sortedFolders: [Content] {
-        let folders = contents.filter { $0.type == 2 }
-        switch selectedSort {
-        case .date:
-            return folders.sorted {
-                ($0.lastAccessedAt ?? Date.distantPast) < ($1.lastAccessedAt ?? Date.distantPast)
-            }
-        case .name:
-            return folders.sorted {
-                ($0.name ?? "") < ($1.name ?? "")
-            }
-        }
-    }
-    
-    // 파일 정렬: 동일한 방식 사용
-    var sortedFiles: [Content] {
-        let files = contents.filter { $0.type != 2 }
-        switch selectedSort {
-        case .date:
-            return files.sorted {
-                ($0.lastAccessedAt ?? Date.distantPast) < ($1.lastAccessedAt ?? Date.distantPast)
-            }
-        case .name:
-            return files.sorted {
-                ($0.name ?? "") < ($1.name ?? "")
-            }
-        }
-    }
-    
-    // 파일 업로드
-    func uploadFile(with selectedURL: URL) {
-        if let destinationURL = FileManagerManager.shared.copyPDFToScoreFolder(from: selectedURL) {
-            // 절대 경로를 Documents 기준의 상대 경로로 변환
-            if let relativePath = FileManagerManager.shared.relativePath(for: destinationURL.path) {
-                ContentManager.shared.createContent(
-                    name: destinationURL.lastPathComponent,
-                    path: relativePath, // 상대 경로 저장
-                    type: 0,       // score
-                    category: 0,   // score
-                    parent: nil,   // 현재 폴더가 없으면 root
-                    s_dids: nil
-                )
-                loadContents()
-            } else {
-                print("상대 경로 계산 실패")
-            }
-        }
-    }
-    
-    // 폴더 생성 (FileManager로 실제 폴더 생성하지 않고 Core Data에 폴더 Content 생성)
-    func createFolder(folderName: String) {
-        // 폴더는 실제 파일 시스템의 경로가 필요 없으므로 빈 문자열("") 혹은 적절한 값으로 지정
-        ContentManager.shared.createContent(
-            name: folderName,
-            path: nil,      // 실제 디렉토리 생성 없이 Core Data 상 폴더 정보만 관리
-            type: 2,       // folder
-            category: 0,   // score (또는 원하는 카테고리)
-            parent: currentParent?.cid,  // 루트이면 nil, 아니면 현재 폴더의 cid
-            s_dids: nil
-        )
         loadContents()
     }
+    
+    // MARK: - Content 관련 비즈니스 로직 호출
+
+    func loadContents() {
+            guard let parent = currentParent else { return }
+        ContentManager.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { completion in
+                    if case let .failure(error) = completion {
+                        print("Error loading contents: \(error)")
+                    }
+                }, receiveValue: { [weak self] models in
+                    self?.contents = models
+                })
+                .store(in: &cancellables)
+        }
+        
+        func uploadFile(with url: URL) {
+            guard let currentParent = currentParent else { return }
+            ContentManager.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func createFolder(folderName: String) {
+            guard let currentParent = currentParent else { return }
+            ContentManager.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func renameContent(_ content: ContentModel, newName: String) {
+            ContentManager.shared.renameContent(content, newName: newName)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func duplicateContent(_ content: ContentModel) {
+            ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func duplicateSelectedContents() {
+            let publishers = selectedContents.map { content in
+                ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+            }
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.selectedContents.removeAll()
+                    self?.loadContents()
+                }
+                .store(in: &cancellables)
+        }
+        
+        func moveContentToTrash(_ content: ContentModel) {
+            ContentManager.shared.moveContentToTrash(content)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
+        
+        func moveSelectedContentsToTrash() {
+            let publishers = selectedContents.map { content in
+                ContentManager.shared.moveContentToTrash(content)
+            }
+            Publishers.MergeMany(publishers)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.selectedContents.removeAll()
+                    self?.loadContents()
+                }
+                .store(in: &cancellables)
+        }
+        
+        func deleteContent(_ content: ContentModel) {
+            ContentManager.shared.deleteContent(content)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] in self?.loadContents() }
+                .store(in: &cancellables)
+        }
 }

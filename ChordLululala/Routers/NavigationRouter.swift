@@ -14,7 +14,7 @@ final class NavigationRouter: ObservableObject {
     @Published var path: [Route] = []
     
     /// 해당 경로로 이동 (push)
-    func toNamed(_ route: String, arguments: [String: String]? = nil) {
+    func toNamed(_ route: String, arguments: AnyHashable? = nil) {
         let newRoute = Route(name: route, arguments: arguments)
         path.append(newRoute)
     }
@@ -25,7 +25,7 @@ final class NavigationRouter: ObservableObject {
     }
     
     /// 현재 화면을 제거하고 해당 경로로 이동 (replace)
-    func offNamed(_ route: String, arguments: [String: String]? = nil) {
+    func offNamed(_ route: String, arguments: AnyHashable? = nil) {
         if !path.isEmpty {
             _ = path.popLast()
         }
@@ -33,7 +33,7 @@ final class NavigationRouter: ObservableObject {
     }
     
     /// 전체 스택을 비우고 해당 경로를 새 루트로 설정
-    func offAll(_ route: String, arguments: [String: String]? = nil) {
+    func offAll(_ route: String, arguments: AnyHashable? = nil) {
         path.removeAll()
         toNamed(route, arguments: arguments)
     }
