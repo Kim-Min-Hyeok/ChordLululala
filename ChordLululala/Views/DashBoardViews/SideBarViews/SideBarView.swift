@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftUI
 
 struct SidebarView: View {
-    var onSelect: (DashboardContent) -> Void
+    var onSelect: (DashboardContents) -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

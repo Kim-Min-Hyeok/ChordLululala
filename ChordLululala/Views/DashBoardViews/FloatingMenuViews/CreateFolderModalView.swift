@@ -12,9 +12,9 @@ struct CreateFolderModalView: View {
     @State private var folderName: String = ""
     
     // 현재 부모 폴더 (nil이면 루트)
-    var currentParent: Content?
+    var currentParent: ContentModel?
     // 폴더 생성 후 호출되는 콜백: 폴더 이름과 현재 부모 전달
-    var onCreate: (String, Content?) -> Void
+    var onCreate: (String, ContentModel?) -> Void
     
     var body: some View {
         VStack(spacing: 0) {

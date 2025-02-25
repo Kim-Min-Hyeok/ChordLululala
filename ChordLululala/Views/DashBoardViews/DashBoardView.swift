@@ -9,247 +9,304 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
-    @State private var sidebarDragOffset: CGFloat = 0
-    @State private var isFloatingMenuVisible: Bool = false
-    @State private var isShowingPDFPicker: Bool = false
-    @State private var isShowingCreateFolderModal: Bool = false
     private let sidebarWidth: CGFloat = 257
     
-    // 리스트 모드 여부 (true: List, false: Grid)
-    @State private var isListView: Bool = true
-    
     var body: some View {
+        // MARK: 휴지통 이동 모달 구현을 위한 ZStack
         ZStack {
+            // MARK: 파일 생성 시트 (파일 Picker) & 폴더 생성 모달 구현을 위한 ZStack
             ZStack {
-                VStack(spacing: 0) {
-                    // TODO: 테스트용
-                    if viewModel.currentParent != nil {
-                        HStack {
-                            Button(action: {
-                                viewModel.goBack()
-                            }) {
+                // MARK: 사이드바 & 파일/폴더 생성/수정 메뉴 구현을 위한 ZStack
+                ZStack {
+                    VStack(spacing: 0) {
+                        // TODO: 테스트용 이전 폴더 되돌아가기
+                        if !viewModel.isSelectionViewVisible {
+                            if viewModel.currentParent != nil {
                                 HStack {
-                                    Image(systemName: "chevron.left")
-                                    Text("상위 폴더")
-                                }
-                            }
-                            .padding()
-                            Spacer()
-                        }
-                    }
-                    
-                    HeaderView()
-                        .environmentObject(viewModel)
-                        .padding(.top, 30)
-                        .padding(.horizontal, 30)
-                    
-                    FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
-                        .padding(.horizontal, 416)
-                        .padding(.top, 33)
-                    
-                    HStack {
-                        SortToggleView(selectedSort: $viewModel.selectedSort)
-                        Spacer()
-                        Button(action: {
-                            // 선택 이미지 버튼 액션 (추후 구현)
-                        }) {
-                            Image(systemName: "checkmark.circle")
-                                .resizable()
-                                .frame(width: 21, height: 21)
-                        }
-                        .padding(.trailing, 8)
-                        
-                        // 리스트/그리드 토글 버튼
-                        Button(action: {
-                            isListView.toggle()
-                        }) {
-                            Image(systemName: "list.bullet")
-                                .resizable()
-                                .frame(width: 21, height: 21)
-                                .foregroundColor(isListView ? .blue : .gray)
-                        }
-                    }
-                    .padding(.horizontal, 168)
-                    .padding(.top, 10)
-                    
-                    // TODO: 테스트 후 지우기
-                    Button("모든 데이터 삭제") {
-                        ContentManager.shared.deleteAllCoreDataObjects()
-                        FileManagerManager.shared.deleteAllFilesInScoreFolder()
-                        // 필요 시, 다른 폴더의 파일들도 삭제합니다.
-                    }
-                    .padding(.vertical, 50)
-                    
-                    // 내부 콘텐츠 영역: 폴더와 파일 ContentView 분리하여 표시
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: CGFloat(isListView ? 8 : 80)) {
-                            // 파일 영역
-                            if viewModel.currentFilter == .all || viewModel.currentFilter == .file {
-                                if isListView {
-                                    FileListView(files: viewModel.sortedFiles)
-                                } else {
-                                    FileGridView(files: viewModel.sortedFiles)
-                                }
-                            }
-                            // 폴더 영역
-                            if viewModel.currentFilter == .all || viewModel.currentFilter == .folder {
-                                if isListView {
-                                    FolderListView(folders: viewModel.sortedFolders) { folder in
-                                        viewModel.didTapFolder(folder)
+                                    Button(action: {
+                                        viewModel.goBack()
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "chevron.left")
+                                            Text("상위 폴더")
+                                        }
                                     }
-                                } else {
-                                    FolderGridView(folders: viewModel.sortedFolders) { folder in
-                                        viewModel.didTapFolder(folder)
-                                    }
+                                    .padding()
+                                    Spacer()
                                 }
                             }
                             
-                        }
-                        .padding(.horizontal, 168)
-                    }
-                    
-                    Spacer()
-                }
-                
-                ZStack {
-                    // 메뉴가 열렸을 때 다른 영역 터치하면 닫히도록
-                    if isFloatingMenuVisible {
-                        Color.clear
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation {
-                                    isFloatingMenuVisible = false
-                                }
-                            }
-                    }
-                    
-                    VStack {
-                        Spacer()
-                        HStack {
-                            Spacer()
-                            ZStack(alignment: .bottomTrailing) {
+                            // MARK: HEADER
+                            HeaderView()
+                                .environmentObject(viewModel)
+                                .padding(.top, 30)
+                                .padding(.horizontal, 30)
+                            
+                            // MARK: 전체/파일/폴더
+                            FileFolderFilterToggleView(selectedFilter: $viewModel.currentFilter)
+                                .padding(.horizontal, 416)
+                                .padding(.top, 33)
+                            
+                            HStack {
+                                // MARK: 날짜순/이름순
+                                SortToggleView(selectedSort: $viewModel.selectedSort)
+                                Spacer()
+                                
+                                // MARK: 선택 버튼
                                 Button(action: {
                                     withAnimation {
-                                        isFloatingMenuVisible.toggle()
+                                        viewModel.isSelectionViewVisible = true
                                     }
                                 }) {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 24, weight: .bold))
-                                        .foregroundColor(.black)
-                                        .padding()
-                                        .background(Color.gray)
-                                        .clipShape(Circle())
+                                    Image(systemName: "checkmark.circle")
+                                        .resizable()
+                                        .frame(width: 21, height: 21)
                                 }
-                                .padding(.trailing, 29)
-                                .padding(.bottom, 40)
+                                .padding(.trailing, 8)
                                 
-                                // 메뉴 뷰: 플로팅 버튼 위에 (trailing: 29, bottom: 76)에 위치
-                                if isFloatingMenuVisible {
-                                    VStack(spacing: 10) {
-                                        FloatingMenuView(
-                                            folderAction: {
-                                                withAnimation {
-                                                    isFloatingMenuVisible.toggle()
-                                                    isShowingCreateFolderModal = true
-                                                }
-                                            },
-                                            fileUploadAction: {
-                                                withAnimation {
-                                                    isFloatingMenuVisible.toggle()
-                                                    isShowingPDFPicker = true
-                                                }
-                                            }
-                                        )
+                                // MARK: 리스트/그리드 토글 버튼
+                                Button(action: {
+                                    viewModel.isListView.toggle()
+                                }) {
+                                    Image(systemName: "list.bullet")
+                                        .resizable()
+                                        .frame(width: 21, height: 21)
+                                        .foregroundColor(viewModel.isListView ? .blue : .gray)
+                                }
+                            }
+                            .padding(.horizontal, 168)
+                            .padding(.top, 10)
+                            
+                            // TODO: 테스트용: 모든 데이터 삭제 버튼
+                            Button("모든 데이터 삭제") {
+                                CoreDataManager.shared.deleteAllCoreDataObjects()
+                                FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
+                            }
+                            .padding(.vertical, 50)
+                        }
+                        else {
+                            Rectangle()
+                                .frame(height: 168)
+                        }
+                        
+                        // MARK: 파일/폴더 리스트/그리드 뷰
+                        ScrollView {
+                            ContentListView(isListView: viewModel.isListView)
+                        }
+                        .padding(.top, 70)
+                        Spacer()
+                    }
+                    
+                    // MARK: 수정 모달 뷰
+                    if viewModel.isModifyModalVisible, let content = viewModel.selectedContent {
+                        Color.black.opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                viewModel.isModifyModalVisible = false
+                            }
+                        
+                        // 셀 별 모달 뷰 위치 설정
+                        let modalHeight: CGFloat = 195
+                        let screenHeight = UIScreen.main.bounds.height
+                        let desiredY: CGFloat = (viewModel.cellFrame.maxY + modalHeight > screenHeight)
+                        ? (viewModel.cellFrame.minY - 30 - modalHeight/2)
+                        : (viewModel.cellFrame.maxY - 20 + modalHeight/2)
+                        
+                        ModifyModalView(content: content)
+                            .frame(width: 273, height: modalHeight)
+                            .position(
+                                x: viewModel.cellFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
+                                y: desiredY
+                            )
+                            .transition(.opacity)
+                    }
+                    
+                    if viewModel.isDeletedModalVisible, let content = viewModel.selectedContent {
+                        Color.black.opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                viewModel.isDeletedModalVisible = false
+                            }
+                        
+                        // 셀 별 모달 뷰 위치 설정
+                        let modalHeight: CGFloat = 195
+                        let screenHeight = UIScreen.main.bounds.height
+                        let desiredY: CGFloat = (viewModel.cellFrame.maxY + modalHeight > screenHeight)
+                        ? (viewModel.cellFrame.minY - 30 - modalHeight/2)
+                        : (viewModel.cellFrame.maxY - 20 + modalHeight/2)
+                        
+                        DeleteModalView(content: content)
+                            .frame(width: 273, height: modalHeight)
+                            .position(
+                                x: viewModel.cellFrame.maxX - 273/2, // 모달 width가 250이므로, 오른쪽 정렬
+                                y: desiredY
+                            )
+                            .transition(.opacity)
+                    }
+                    
+                    // MARK: 파일 생성 모달 뷰
+                    ZStack {
+                        if viewModel.isFloatingMenuVisible {
+                            Color.clear
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation {
+                                        viewModel.isFloatingMenuVisible = false
+                                    }
+                                }
+                        }
+                        
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Spacer()
+                                ZStack(alignment: .bottomTrailing) {
+                                    Button(action: {
+                                        withAnimation {
+                                            viewModel.isFloatingMenuVisible.toggle()
+                                        }
+                                    }) {
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 24, weight: .bold))
+                                            .foregroundColor(.black)
+                                            .padding()
+                                            .background(Color.gray)
+                                            .clipShape(Circle())
                                     }
                                     .padding(.trailing, 29)
-                                    .padding(.bottom, 76)
-                                    .transition(.opacity)
+                                    .padding(.bottom, 40)
+                                    
+                                    if viewModel.isFloatingMenuVisible {
+                                        VStack(spacing: 10) {
+                                            FloatingMenuView(
+                                                folderAction: {
+                                                    withAnimation {
+                                                        viewModel.isFloatingMenuVisible.toggle()
+                                                        viewModel.isCreateFolderModalVisible = true
+                                                    }
+                                                },
+                                                fileUploadAction: {
+                                                    withAnimation {
+                                                        viewModel.isFloatingMenuVisible.toggle()
+                                                        viewModel.isPDFPickerVisible = true
+                                                    }
+                                                }
+                                            )
+                                        }
+                                        .padding(.trailing, 29)
+                                        .padding(.bottom, 76)
+                                        .transition(.opacity)
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                
-                // 사이드바 오버레이 배경
-                if viewModel.isSidebarVisible {
-                    Color.black.opacity(0.3)
-                        .edgesIgnoringSafeArea(.all)
-                        .onTapGesture {
+                    
+                    // MARK: 사이드바 오버레이 배경
+                    if viewModel.isSidebarVisible {
+                        Color.black.opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                withAnimation(.easeInOut) {
+                                    viewModel.isSidebarVisible = false
+                                }
+                            }
+                    }
+                    
+                    // MARK: 사이드바
+                    HStack(spacing: 0) {
+                        SidebarView(onSelect: { newContent in
                             withAnimation(.easeInOut) {
                                 viewModel.isSidebarVisible = false
                             }
-                        }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                viewModel.dashboardContents = newContent
+                            }
+                        })
+                        .environmentObject(viewModel)
+                        .frame(width: sidebarWidth)
+                        .offset(x: (viewModel.isSidebarVisible ? 0 : -sidebarWidth) + viewModel.sidebarDragOffset)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    viewModel.sidebarDragOffset = value.translation.width
+                                }
+                                .onEnded { value in
+                                    let threshold = sidebarWidth / 2
+                                    if viewModel.isSidebarVisible {
+                                        if value.translation.width < -threshold {
+                                            withAnimation(.easeInOut) {
+                                                viewModel.isSidebarVisible = false
+                                            }
+                                        }
+                                    } else {
+                                        if value.translation.width > threshold {
+                                            withAnimation(.easeInOut) {
+                                                viewModel.isSidebarVisible = true
+                                            }
+                                        }
+                                    }
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        viewModel.sidebarDragOffset = 0
+                                    }
+                                }
+                        )
+                        Spacer()
+                    }
+                    .ignoresSafeArea(edges: .leading)
+                }
+                .contentShape(Rectangle())
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        self.hideKeyboard()
+                    }
+                )
+                
+                // MARK: 파일 생성 시트 (파일 Picker)
+                .sheet(isPresented: $viewModel.isPDFPickerVisible) {
+                    PDFPicker { selectedURL in
+                        viewModel.uploadFile(with: selectedURL)
+                        viewModel.isPDFPickerVisible = false
+                    }
                 }
                 
-                // 사이드바 (드래그 제스처 포함)
-                HStack(spacing: 0) {
-                    SidebarView(onSelect: { newContent in
-                        withAnimation(.easeInOut) {
-                            viewModel.isSidebarVisible = false
+                // MARK: 폴더 생성 모달
+                if viewModel.isCreateFolderModalVisible {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isCreateFolderModalVisible = false
                         }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                            viewModel.selectedContent = newContent
-                        }
-                    })
-                    .environmentObject(viewModel)
-                    .frame(width: sidebarWidth)
-                    .offset(x: (viewModel.isSidebarVisible ? 0 : -sidebarWidth) + sidebarDragOffset)
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                sidebarDragOffset = value.translation.width
-                            }
-                            .onEnded { value in
-                                let threshold = sidebarWidth / 2
-                                if viewModel.isSidebarVisible {
-                                    if value.translation.width < -threshold {
-                                        withAnimation(.easeInOut) {
-                                            viewModel.isSidebarVisible = false
-                                        }
-                                    }
-                                } else {
-                                    if value.translation.width > threshold {
-                                        withAnimation(.easeInOut) {
-                                            viewModel.isSidebarVisible = true
-                                        }
-                                    }
-                                }
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    sidebarDragOffset = 0
-                                }
-                            }
-                    )
-                    Spacer()
+                    CreateFolderModalView(currentParent: viewModel.currentParent) { folderName, _ in
+                        viewModel.createFolder(folderName: folderName)
+                        viewModel.isCreateFolderModalVisible = false
+                    }
+                    .transition(.opacity)
                 }
-                .ignoresSafeArea(edges: .leading)
             }
-            .contentShape(Rectangle())
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    self.hideKeyboard()
-                }
+            // MARK: 선택 모드 뷰
+            .overlay(
+                Group {
+                    if viewModel.isSelectionViewVisible {
+                        SelectionView()
+                    }
+                },
+                alignment: .top
             )
-            .environmentObject(viewModel)
-            .sheet(isPresented: $isShowingPDFPicker) {
-                PDFPicker { selectedURL in
-                    viewModel.uploadFile(with: selectedURL)
-                    isShowingPDFPicker = false
-                }
-            }
-            if isShowingCreateFolderModal {
-                // 전체 배경을 흐리게 처리하고, 모달 뷰를 중앙에 오버레이
+            
+            // MARK: 휴지통 이동 모달
+            if viewModel.isTrashModalVisible {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture {
-                        isShowingCreateFolderModal = false
+                        viewModel.isTrashModalVisible = false
+                        viewModel.isSelectionViewVisible = false
                     }
-                CreateFolderModalView(currentParent: viewModel.currentParent) { folderName, _ in
-                    viewModel.createFolder(folderName: folderName)
-                    isShowingCreateFolderModal = false
-                }
-                .transition(.opacity)
+                TrashModalView()
+                    .transition(.opacity)
             }
         }
+        .environmentObject(viewModel)
     }
 }
