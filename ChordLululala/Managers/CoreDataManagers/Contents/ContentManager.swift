@@ -195,7 +195,7 @@ struct ContentManager {
     func duplicateContent(_ model: ContentModel, newParent: UUID? = nil, dashboardContents: DashboardContents) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
             if model.type == .folder {
-                let targetParent = newParent ?? model.parent
+                let targetParent = newParent ?? model.parentContent
                 let newFolderName = (newParent == nil) ? self.generateDuplicateFolderName(for: model) : model.name
                 
                 guard let baseFolder = ContentFileManagerManager.shared.baseFolderURL(for: dashboardContents),
@@ -216,14 +216,14 @@ struct ContentManager {
                                                       name: newFolderName,
                                                       path: newRelativePath,
                                                       type: .folder,
-                                                      parent: targetParent,
+                                                      parentContent: targetParent,
                                                       createdAt: Date(),
                                                       modifiedAt: Date(),
                                                       lastAccessedAt: Date(),
                                                       deletedAt: nil,
                                                       originalParentId: targetParent,
                                                       syncStatus: false,
-                                                      s_dids: nil)
+                                                      scoreDetails: nil)
                     ContentCoreDataManager.shared.createContent(model: newFolderModel)
                     
                     let children = ContentCoreDataManager.shared.fetchChildrenModels(for: model.cid)
@@ -254,14 +254,14 @@ struct ContentManager {
                                                     name: newName,
                                                     path: newRelativePath,
                                                     type: model.type,
-                                                    parent: newParent ?? model.parent,
+                                                    parentContent: newParent ?? model.parentContent,
                                                     createdAt: Date(),
                                                     modifiedAt: Date(),
                                                     lastAccessedAt: Date(),
                                                     deletedAt: nil,
-                                                    originalParentId: newParent ?? model.parent,
+                                                    originalParentId: newParent ?? model.parentContent,
                                                     syncStatus: false,
-                                                    s_dids: nil)
+                                                    scoreDetails: nil)
                     ContentCoreDataManager.shared.createContent(model: newFileModel)
                 case .failure(let error):
                     print("파일 복제 실패: \(error)")
@@ -275,13 +275,7 @@ struct ContentManager {
     // 삭제 – 작업 완료 시 Void 발행
     func deleteContent(_ content: ContentModel) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            if content.type == .folder {
-                let children = ContentCoreDataManager.shared.fetchChildrenModels(for: content.cid)
-                for child in children {
-                    _ = self.deleteContent(child)
-                        .sink { }
-                }
-            }
+            // 파일 시스템 삭제 (폴더 삭제 시 하위 파일/폴더도 함께 삭제됨)
             if let path = content.path,
                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
                 let itemURL = docsURL.appendingPathComponent(path)
@@ -296,6 +290,7 @@ struct ContentManager {
                     print("삭제할 파일/폴더가 존재하지 않습니다: \(itemURL.path)")
                 }
             }
+            // CoreData에서 삭제 (Cascade Delete가 설정되어 있으므로 자식은 자동 삭제)
             ContentCoreDataManager.shared.deleteContent(model: content)
             promise(.success(()))
         }
@@ -325,7 +320,7 @@ struct ContentManager {
         let baseName = model.name
         var index = 1
         var newName = "\(baseName) (\(index))"
-        let siblings = ContentCoreDataManager.shared.fetchChildrenModels(for: model.parent)
+        let siblings = ContentCoreDataManager.shared.fetchChildrenModels(for: model.parentContent)
         while siblings.contains(where: { $0.name == newName }) {
             index += 1
             newName = "\(baseName) (\(index))"

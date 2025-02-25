@@ -14,15 +14,30 @@ final class ContentCoreDataManager {
     private let context = CoreDataManager.shared.context
     private var cancellables = Set<AnyCancellable>()
     
-    // TODO: Create
-    // 모델로 Content 직접 Content 생성
+    // MARK: - Create
+    
+    // 모델로 Content 직접 생성 (부모 관계를 실제 엔티티로 연결)
     func createContent(model: ContentModel) {
         let newEntity = Content(context: context)
         newEntity.update(from: model)
+        
+        // 부모 UUID가 있다면, 해당하는 Content 엔티티를 찾아서 관계 설정
+        if let parentID = model.parentContent {
+            let parentRequest: NSFetchRequest<Content> = Content.fetchRequest()
+            parentRequest.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
+            if let parentEntity = try? context.fetch(parentRequest).first {
+                newEntity.parentContent = parentEntity
+            } else {
+                newEntity.parentContent = nil
+            }
+        } else {
+            newEntity.parentContent = nil
+        }
+        
         CoreDataManager.shared.saveContext()
     }
     
-    // default Content 생성
+    // 기본 Content 생성 (UUID를 부모로 전달)
     func createContent(name: String,
                        path: String? = nil,
                        type: Int16,
@@ -33,14 +48,14 @@ final class ContentCoreDataManager {
                                  name: name,
                                  path: path,
                                  type: ContentType(rawValue: type) ?? .score,
-                                 parent: parent,
+                                 parentContent: parent,
                                  createdAt: now,
                                  modifiedAt: now,
                                  lastAccessedAt: now,
                                  deletedAt: nil,
                                  originalParentId: parent,
                                  syncStatus: false,
-                                 s_dids: s_dids)
+                                 scoreDetails: s_dids)
         createContent(model: model)
     }
     
@@ -50,7 +65,7 @@ final class ContentCoreDataManager {
                                "Song_List",
                                "Trash_Can"]
         for name in baseDirectories {
-            let predicate = NSPredicate(format: "name == %@ AND parent == nil", name)
+            let predicate = NSPredicate(format: "name == %@ AND parentContent == nil", name)
             if fetchContentModelsSync(predicate: predicate).isEmpty {
                 createContent(name: name,
                               path: name,
@@ -62,7 +77,7 @@ final class ContentCoreDataManager {
         }
     }
     
-    // MARK: Read
+    // MARK: - Read
     // Fetch (비동기: 도메인 모델 반환)
     func fetchContentModelsPublisher(predicate: NSPredicate? = nil) -> AnyPublisher<[ContentModel], Error> {
         Future { promise in
@@ -113,30 +128,30 @@ final class ContentCoreDataManager {
     }
     
     // Content 도메인 모델 가져오기 (by name, parent)
-    func fetchContentModel(named name: String, parent: UUID?) -> ContentModel? {
+    func fetchContentModel(named name: String, parentId: UUID?) -> ContentModel? {
         let predicate: NSPredicate
-        if let parent = parent {
-            predicate = NSPredicate(format: "name == %@ AND parent == %@", name, parent as CVarArg)
+        if let parentId = parentId {
+            predicate = NSPredicate(format: "name == %@ AND parentContent.cid == %@", name, parentId as CVarArg)
         } else {
-            predicate = NSPredicate(format: "name == %@ AND parent == nil", name)
+            predicate = NSPredicate(format: "name == %@ AND parentContent.cid == nil", name)
         }
         return fetchContentModel(predicate: predicate)
     }
     
-    // 자식 Content 도메인 모델들 가져오기 (by parent)
-    func fetchChildrenModels(for parent: UUID?) -> [ContentModel] {
+    // 자식 Content 도메인 모델들 가져오기 (by parentId(cid))
+    func fetchChildrenModels(for parentId: UUID?) -> [ContentModel] {
         let predicate: NSPredicate
-        if let parent = parent {
-            predicate = NSPredicate(format: "parent == %@", parent as CVarArg)
+        if let parentId = parentId {
+            predicate = NSPredicate(format: "parentContent.cid == %@", parentId as CVarArg)
         } else {
-            predicate = NSPredicate(format: "parent == nil")
+            predicate = NSPredicate(format: "parentContent.cid == nil")
         }
         return fetchContentModelsSync(predicate: predicate)
     }
     
     // 기본 디렉토리 Content(Score, Song_List, Trash_Can) 가져오기
     func fetchBaseDirectory(named name: String) -> ContentModel? {
-        let predicate = NSPredicate(format: "name == %@ AND parent == nil", name)
+        let predicate = NSPredicate(format: "name == %@ AND parentContent == nil", name)
         return fetchContentModel(predicate: predicate)
     }
     
@@ -145,13 +160,13 @@ final class ContentCoreDataManager {
         
         // 이미 특정 폴더(parent)가 주어졌다면 그 폴더의 자식들을 불러옴
         if let parent = parent {
-            predicate = NSPredicate(format: "parent == %@", parent.cid as CVarArg)
+            predicate = NSPredicate(format: "parentContent.cid == %@", parent.cid as CVarArg)
         } else {
             // 최상위 컨텐츠 로드: dashboardContents에 따라 base 디렉토리로 분기
             switch dashboardContents {
             case .allDocuments:
                 if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
-                    predicate = NSPredicate(format: "parent == %@", scoreBase.cid as CVarArg)
+                    predicate = NSPredicate(format: "parentContent.cid == %@", scoreBase.cid as CVarArg)
                 } else {
                     predicate = NSPredicate(value: false)
                 }
@@ -159,21 +174,21 @@ final class ContentCoreDataManager {
                 if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score"),
                    let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
                     predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
-                        NSPredicate(format: "parent == %@", scoreBase.cid as CVarArg),
-                        NSPredicate(format: "parent == %@", songListBase.cid as CVarArg)
+                        NSPredicate(format: "parentContent.cid == %@", scoreBase.cid as CVarArg),
+                        NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
                     ])
                 } else {
                     predicate = NSPredicate(value: false)
                 }
             case .songList:
                 if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    predicate = NSPredicate(format: "parent == %@", songListBase.cid as CVarArg)
+                    predicate = NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
                 } else {
                     predicate = NSPredicate(value: false)
                 }
             case .trashCan:
                 if let trashBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                    predicate = NSPredicate(format: "parent == %@", trashBase.cid as CVarArg)
+                    predicate = NSPredicate(format: "parentContent.cid == %@", trashBase.cid as CVarArg)
                 } else {
                     predicate = NSPredicate(value: false)
                 }
@@ -190,14 +205,28 @@ final class ContentCoreDataManager {
         return ContentCoreDataManager.shared.fetchContentModelsPublisher(predicate: predicate)
     }
     
-    // MARK: Update
-    // 현재 변경 사항 저장
+    // MARK: - Update
+    // 현재 변경 사항 저장 (부모 관계도 업데이트)
     func updateContent(model: ContentModel) {
         let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
         do {
             if let coreEntity = try context.fetch(fetchRequest).first {
                 coreEntity.update(from: model)
+                
+                // 부모 관계 업데이트
+                if let parentID = model.parentContent {
+                    let parentRequest: NSFetchRequest<Content> = Content.fetchRequest()
+                    parentRequest.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
+                    if let parentEntity = try? context.fetch(parentRequest).first {
+                        coreEntity.parentContent = parentEntity
+                    } else {
+                        coreEntity.parentContent = nil
+                    }
+                } else {
+                    coreEntity.parentContent = nil
+                }
+                
                 CoreDataManager.shared.saveContext()
             }
         } catch {
@@ -212,13 +241,13 @@ final class ContentCoreDataManager {
         model.deletedAt = Date()
         
         if let trashBase = fetchBaseDirectory(named: "Trash_Can") {
-            model.parent = trashBase.cid
+            model.parentContent = trashBase.cid
         }
         
         updateContent(model: model)
     }
     
-    // MARK: Delete
+    // MARK: - Delete
     func deleteContent(model: ContentModel) {
         let request: NSFetchRequest<Content> = Content.fetchRequest()
         request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)

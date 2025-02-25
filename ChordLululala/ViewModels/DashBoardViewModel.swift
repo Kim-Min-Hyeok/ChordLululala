@@ -140,7 +140,7 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func goBack() {
-        guard let current = currentParent, let parent = current.parent else {
+        guard let current = currentParent, let parent = current.parentContent else {
             print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
             return
         }
