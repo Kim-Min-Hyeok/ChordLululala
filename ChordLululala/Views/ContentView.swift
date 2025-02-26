@@ -23,7 +23,10 @@ struct ContentView: View {
                     case "/": // initial Root(HomeView): "/"
                         DashboardView()
                     case "/score":
-                        ScoreView()
+                        if let files = route.arguments as? [ContentModel] {
+                            ScoreView(file: files)
+                        }
+                        
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }

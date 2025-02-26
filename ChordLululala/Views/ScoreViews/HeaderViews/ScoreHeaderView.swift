@@ -10,12 +10,15 @@ struct ScoreHeaderView: View {
     @Binding var isTransPose : Bool
     @ObservedObject var pencilToolsViewModel : PencilToolsViewModel
     
-    init(isPencilActive: Binding<Bool>, isMemoActive: Binding<Bool>, isSettingActive: Binding<Bool>, isTransPose: Binding<Bool>, pencilToolsViewModel: PencilToolsViewModel) {
+    let file : [ContentModel]
+    
+    init(isPencilActive: Binding<Bool>, isMemoActive: Binding<Bool>, isSettingActive: Binding<Bool>, isTransPose: Binding<Bool>, pencilToolsViewModel: PencilToolsViewModel, file: [ContentModel]) {
         _isPencilActive = isPencilActive
         _isMemoActive = isMemoActive
         _isSettingActive = isSettingActive
         _isTransPose = isTransPose
         self.pencilToolsViewModel = pencilToolsViewModel
+        self.file = file
     }
     
     var body: some View {
@@ -46,7 +49,7 @@ struct ScoreHeaderView: View {
             Spacer()
             
             // 제목
-            Text(scoreTitle)
+            Text(file[0].name)
                 .fontWeight(.semibold)
             
             Spacer()

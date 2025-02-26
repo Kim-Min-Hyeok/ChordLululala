@@ -7,7 +7,7 @@ struct PencilKitView: UIViewRepresentable {
     let canvasView: PKCanvasView
     
     func makeUIView(context: Context) -> PKCanvasView {
-        canvasView.drawingPolicy = .anyInput
+        canvasView.drawingPolicy = .pencilOnly
         canvasView.backgroundColor = .clear
         return canvasView
     }

@@ -26,7 +26,7 @@ final class ContentFileManagerManager {
     
     // MARK: - Create
     // 파일 생성 (업로드)
-    func uploadFile(from url: URL,
+    func uploadFile(from url:  URL,
                     to dashboardContents: DashboardContents,
                     relativeFolderPath: String?,
                     completion: @escaping (Result<(destinationURL: URL, relativePath: String), FileServiceError>) -> Void) {

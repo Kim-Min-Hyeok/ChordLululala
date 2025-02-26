@@ -21,12 +21,15 @@ struct ScoreView : View {
     @State private var selectedMenu: SettingsMenu? = nil
     @State private var currentLayout: ScoreLayout = .single
     
-    
     @StateObject  var pageControlViewModel : PageControlViewModel
     @StateObject private var gestureViewModel = MemoGestureViewModel()
     @StateObject private var pencilToolsViewModel: PencilToolsViewModel
     
-    init(){
+    let file: [ContentModel]
+
+    init(file: [ContentModel]){
+        self.file = file
+        
         let pageControlVM = PageControlViewModel(images: ["pencil", "square.and.arrow.up.circle.fill", "figure.walk", "sun.min", "sunrise"])
         self._pageControlViewModel = StateObject(wrappedValue: pageControlVM)
         self._pencilToolsViewModel = StateObject(wrappedValue: PencilToolsViewModel(pageCount: pageControlVM.images.count))
@@ -44,7 +47,8 @@ struct ScoreView : View {
                         isSettingActive: $isSettingActive,
                         isTransPose: $isTransPose,
                         
-                        pencilToolsViewModel: pencilToolsViewModel
+                        pencilToolsViewModel: pencilToolsViewModel,
+                        file: file
                     )
                 }
                 
@@ -113,9 +117,9 @@ struct ScoreView : View {
 
 
 
-#Preview {
-    ScoreView()
-}
+//#Preview {
+//    ScoreView()
+//}
 
 
 
