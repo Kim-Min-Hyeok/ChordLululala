@@ -16,12 +16,20 @@ final class FileManagerManager {
         fileManager.urls(for: .documentDirectory, in: .userDomainMask).first
     }
     
-    func baseFolderURL(for category: DashboardContents) -> URL? {
-        return documentsURL // 항상 Documents 폴더 기준
+    
+    /// Documents 폴더 기준 절대 경로에서 상대 경로를 추출
+    func relativePath(for absolutePath: String) -> String? {
+        guard let docsURL = documentsURL else { return nil }
+        let docsPath = docsURL.path
+        if absolutePath.hasPrefix(docsPath) {
+            let startIndex = absolutePath.index(absolutePath.startIndex, offsetBy: docsPath.count + 1)
+            return String(absolutePath[startIndex...])
+        }
+        return nil
     }
     
-    func createSubfolderIfNeeded(for relativeFolderPath: String, inBaseFolder baseFolder: URL?) -> URL? {
-        guard let baseFolder = baseFolder else { return nil }
+    func createSubfolderIfNeeded(for relativeFolderPath: String) -> URL? {
+        guard let baseFolder = documentsURL else { return nil }
         let targetFolder = baseFolder.appendingPathComponent(relativeFolderPath, isDirectory: true)
         if !fileManager.fileExists(atPath: targetFolder.path) {
             do {
@@ -35,11 +43,11 @@ final class FileManagerManager {
     }
     
     /// 파일 복사: Documents 폴더 기준으로 상대 폴더 경로를 덧붙여 복사
-    func copyPDFToBaseFolder(from sourceURL: URL, relativeFolderPath: String? = nil, baseFolder: URL?) -> URL? {
-        guard let baseFolder = baseFolder else { return nil }
+    func copyFile(from sourceURL: URL, relativeFolderPath: String? = nil) -> URL? {
+        guard let baseFolder = documentsURL else { return nil }
         var destinationFolder = baseFolder
         if let folderPath = relativeFolderPath, !folderPath.isEmpty {
-            if let subFolder = createSubfolderIfNeeded(for: folderPath, inBaseFolder: baseFolder) {
+            if let subFolder = createSubfolderIfNeeded(for: folderPath) {
                 destinationFolder = subFolder
             }
         }
@@ -59,17 +67,6 @@ final class FileManagerManager {
             print("파일 복사 실패: \(error)")
             return nil
         }
-    }
-    
-    /// Documents 폴더 기준 절대 경로에서 상대 경로를 추출
-    func relativePath(for absolutePath: String) -> String? {
-        guard let docsURL = documentsURL else { return nil }
-        let docsPath = docsURL.path
-        if absolutePath.hasPrefix(docsPath) {
-            let startIndex = absolutePath.index(absolutePath.startIndex, offsetBy: docsPath.count + 1)
-            return String(absolutePath[startIndex...])
-        }
-        return nil
     }
     
     func deleteAllFilesInDocumentsFolder() {

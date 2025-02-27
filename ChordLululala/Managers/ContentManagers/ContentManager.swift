@@ -126,7 +126,7 @@ struct ContentManager {
             ContentCoreDataManager.shared.moveContentToTrash(&updatedModel)
             
             guard let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
-                  let trashURL = ContentFileManagerManager.shared.documentsURL?.appendingPathComponent("Trash_Can", isDirectory: true)
+                  let trashURL = ContentFileManagerManager.shared.trashURL()
             else { promise(.success(())); return }
             
             if performPhysicalMove {
