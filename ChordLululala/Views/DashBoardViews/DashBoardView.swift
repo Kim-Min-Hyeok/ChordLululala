@@ -162,20 +162,22 @@ struct DashboardView: View {
                             HStack {
                                 Spacer()
                                 ZStack(alignment: .bottomTrailing) {
-                                    Button(action: {
-                                        withAnimation {
-                                            viewModel.isFloatingMenuVisible.toggle()
+                                    if viewModel.dashboardContents != .trashCan {
+                                        Button(action: {
+                                            withAnimation {
+                                                viewModel.isFloatingMenuVisible.toggle()
+                                            }
+                                        }) {
+                                            Image(systemName: "plus")
+                                                .font(.system(size: 24, weight: .bold))
+                                                .foregroundColor(.black)
+                                                .padding()
+                                                .background(Color.gray)
+                                                .clipShape(Circle())
                                         }
-                                    }) {
-                                        Image(systemName: "plus")
-                                            .font(.system(size: 24, weight: .bold))
-                                            .foregroundColor(.black)
-                                            .padding()
-                                            .background(Color.gray)
-                                            .clipShape(Circle())
+                                        .padding(.trailing, 29)
+                                        .padding(.bottom, 40)
                                     }
-                                    .padding(.trailing, 29)
-                                    .padding(.bottom, 40)
                                     
                                     if viewModel.isFloatingMenuVisible {
                                         VStack(spacing: 10) {

@@ -42,7 +42,7 @@ final class ContentCoreDataManager {
                        path: String? = nil,
                        type: Int16,
                        parent: UUID? = nil,
-                       s_dids: [UUID]? = nil) {
+                       scoreDetail: UUID? = nil) {
         let now = Date()
         let model = ContentModel(cid: UUID(),
                                  name: name,
@@ -55,7 +55,7 @@ final class ContentCoreDataManager {
                                  deletedAt: nil,
                                  originalParentId: parent,
                                  syncStatus: false,
-                                 scoreDetails: s_dids)
+                                 scoreDetail: scoreDetail)
         createContent(model: model)
     }
     
@@ -71,7 +71,7 @@ final class ContentCoreDataManager {
                               path: name,
                               type: ContentType.folder.rawValue,
                               parent: nil,
-                              s_dids: nil)
+                              scoreDetail: nil)
                 print("\(name) base directory created.")
             }
         }

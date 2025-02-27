@@ -13,7 +13,7 @@
         <attribute name="type" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="childContent" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="parentContent" inverseEntity="Content"/>
         <relationship name="parentContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="childContent" inverseEntity="Content"/>
-        <relationship name="scoreDetails" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreDetail" inverseName="content" inverseEntity="ScoreDetail"/>
+        <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ScoreDetail" inverseName="content" inverseEntity="ScoreDetail"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="contents" inverseEntity="User"/>
     </entity>
     <entity name="ScoreAnnotation" representedClassName="ScoreAnnotation" syncable="YES" codeGenerationType="class">
@@ -34,7 +34,7 @@
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="s_did" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="t_key" optional="YES" attributeType="String"/>
-        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="scoreDetails" inverseEntity="Content"/>
+        <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="scoreDetail" inverseEntity="Content"/>
         <relationship name="scorePages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScorePage" inverseName="scoreDetail" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreMemo" representedClassName="ScoreMemo" syncable="YES" codeGenerationType="class">
