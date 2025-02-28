@@ -9,6 +9,7 @@ struct ScoreHeaderView: View {
     @Binding var isSettingActive: Bool
     @Binding var isTransPose : Bool
     @ObservedObject var pencilToolsViewModel : PencilToolsViewModel
+    @EnvironmentObject var router : NavigationRouter
     
     let file : [ContentModel]
     
@@ -27,6 +28,7 @@ struct ScoreHeaderView: View {
             // 뒤로가기
             Button(action:{
                 print("뒤로 가기 클릭") // 기능 추가해야 함
+                router.back()
             }){
                 Image(systemName: "chevron.backward")
                     .foregroundColor(Color.black)

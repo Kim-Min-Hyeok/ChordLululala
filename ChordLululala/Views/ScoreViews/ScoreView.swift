@@ -68,7 +68,8 @@ struct ScoreView : View {
                 case .single:
                     ScoreDisplayView(
                         pageControlViewModel: pageControlViewModel,
-                        pencilToolsViewModel: pencilToolsViewModel
+                        pencilToolsViewModel: pencilToolsViewModel,
+                        file: file
                     )
                 case .double:
                     ScoreDoubleDisplayView(
@@ -107,6 +108,7 @@ struct ScoreView : View {
         .onChange(of: currentLayout) { newLayout in
             pageControlViewModel.layout = newLayout
         }
+        .navigationBarHidden(true)
         .animation(.easeInOut, value: isMemoActive)
         .animation(.easeInOut, value: isSettingActive)
         .animation(.easeInOut, value: isPencilActive)
