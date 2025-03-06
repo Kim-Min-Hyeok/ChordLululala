@@ -267,7 +267,7 @@ struct DashboardView: View {
                 
                 // MARK: 파일 생성 시트 (파일 Picker)
                 .sheet(isPresented: $viewModel.isPDFPickerVisible) {
-                    PDFPicker { selectedURL in
+                    FilePicker { selectedURL in
                         viewModel.uploadFile(with: selectedURL)
                         viewModel.isPDFPickerVisible = false
                     }
