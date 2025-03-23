@@ -40,8 +40,7 @@ struct SidebarView: View {
             
             Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: 257, maxHeight: .infinity, alignment: .leading)
         .background(Color.white)
-        .shadow(radius: 5)
     }
 }

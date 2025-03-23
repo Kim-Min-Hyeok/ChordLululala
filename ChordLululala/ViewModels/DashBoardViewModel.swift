@@ -67,8 +67,6 @@ final class DashBoardViewModel: ObservableObject {
     @Published var searchText: String = ""
     
     // MARK: - 사이드바 관련
-    @Published var isSidebarVisible: Bool = false
-    @Published var sidebarDragOffset: CGFloat = 0
     
     // MARK: - 리스트/그리드 관련
     @Published var isListView: Bool = true

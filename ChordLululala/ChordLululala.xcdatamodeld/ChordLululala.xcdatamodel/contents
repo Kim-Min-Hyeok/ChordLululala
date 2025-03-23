@@ -61,7 +61,7 @@
     </entity>
     <entity name="User" representedClassName="User" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="uid" optional="YES" attributeType="String"/>
         <relationship name="contents" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="user" inverseEntity="Content"/>
         <relationship name="setting" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Setting" inverseName="user" inverseEntity="Setting"/>
     </entity>

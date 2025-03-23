@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DBC0BDDE2D8E95CE00302F84 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DBC0BDDD2D8E95CE00302F84 /* GoogleSignIn */; };
+		DBC0BDE02D8E95CE00302F84 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DBC0BDDF2D8E95CE00302F84 /* GoogleSignInSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		DB32EED42D4CC83B008C113B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +70,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DBC0BDDE2D8E95CE00302F84 /* GoogleSignIn in Frameworks */,
+				DBC0BDE02D8E95CE00302F84 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +132,8 @@
 			);
 			name = ChordLululala;
 			packageProductDependencies = (
+				DBC0BDDD2D8E95CE00302F84 /* GoogleSignIn */,
+				DBC0BDDF2D8E95CE00302F84 /* GoogleSignInSwift */,
 			);
 			productName = ChordLululala;
 			productReference = DB32EEBC2D4CC838008C113B /* ChordLululala.app */;
@@ -208,6 +217,9 @@
 			);
 			mainGroup = DB32EEB32D4CC838008C113B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DBC0BD202D8E901F00302F84 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DB32EEBD2D4CC838008C113B /* Products */;
 			projectDirPath = "";
@@ -581,6 +593,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DBC0BD202D8E901F00302F84 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DBC0BDDD2D8E95CE00302F84 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBC0BD202D8E901F00302F84 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		DBC0BDDF2D8E95CE00302F84 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DBC0BD202D8E901F00302F84 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DB32EEB42D4CC838008C113B /* Project object */;
 }
