@@ -261,5 +261,6 @@ struct DashboardView: View {
             }
         }
         .environmentObject(viewModel)
+        .navigationBarHidden(true)
     }
 }
