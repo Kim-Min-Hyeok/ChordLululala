@@ -11,6 +11,7 @@ import SwiftUI
 
 struct SidebarView: View {
     var onSelect: (DashboardContents) -> Void
+    @EnvironmentObject var router: NavigationRouter
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -36,9 +37,20 @@ struct SidebarView: View {
                 onSelect(.trashCan)
             }
             
+            SidebarButtonView(imageName: "arrow.backward.square", title: "로그아웃") {
+                logout()
+            }
+            
             Spacer()
         }
         .frame(maxWidth: 257, maxHeight: .infinity, alignment: .leading)
         .background(Color.white)
     }
+    
+    private func logout() {
+            // lastLoggedInUserID 삭제
+            UserDefaults.standard.removeObject(forKey: "lastLoggedInUserID")
+            // /login 경로로 라우팅
+            router.toNamed("/login")
+        }
 }

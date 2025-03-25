@@ -2,22 +2,34 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Pretendard-Black.otf</string>
+		<string>Pretendard-Bold.otf</string>
+		<string>Pretendard-ExtraBold.otf</string>
+		<string>Pretendard-ExtraLight.otf</string>
+		<string>Pretendard-Light.otf</string>
+		<string>Pretendard-Medium.otf</string>
+		<string>Pretendard-Regular.otf</string>
+		<string>Pretendard-SemiBold.otf</string>
+		<string>Pretendard-Thin.otf</string>
+	</array>
 	<key>UISupportsDocumentBrowser</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>
 	</array>
-    <key>GIDClientID</key>
-    <string>550403410377-521r9ton3t3n3ghln98h1s1tfmcghss7.apps.googleusercontent.com</string>
-    <key>CFBundleURLTypes</key>
-    <array>
-      <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
-          <string>com.googleusercontent.apps.550403410377-521r9ton3t3n3ghln98h1s1tfmcghss7</string>
-        </array>
-      </dict>
-    </array>
+	<key>GIDClientID</key>
+	<string>550403410377-521r9ton3t3n3ghln98h1s1tfmcghss7.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.550403410377-521r9ton3t3n3ghln98h1s1tfmcghss7</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

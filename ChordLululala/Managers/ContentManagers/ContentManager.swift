@@ -273,6 +273,7 @@ struct ContentManager {
                                                       deletedAt: nil,
                                                       originalParentId: targetParent,
                                                       syncStatus: false,
+                                                      isStared: false,
                                                       scoreDetail: nil)
                     ContentCoreDataManager.shared.createContent(model: newFolderModel)
                     
@@ -310,6 +311,7 @@ struct ContentManager {
                                                     deletedAt: nil,
                                                     originalParentId: newParent ?? model.parentContent,
                                                     syncStatus: false,
+                                                    isStared: false,
                                                     scoreDetail: nil)
                     ContentCoreDataManager.shared.createContent(model: newFileModel)
                 case .failure(let error):

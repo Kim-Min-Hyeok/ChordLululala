@@ -16,8 +16,7 @@ enum DashboardContents {
 
 enum ToggleFilter: String, CaseIterable, Identifiable {
     case all = "전체"
-    case file = "파일"
-    case folder = "폴더"
+    case star = "즐겨찾기"
     
     var id: String { rawValue }
 }

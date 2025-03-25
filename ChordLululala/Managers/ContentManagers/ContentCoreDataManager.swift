@@ -55,6 +55,7 @@ final class ContentCoreDataManager {
                                  deletedAt: nil,
                                  originalParentId: parent,
                                  syncStatus: false,
+                                 isStared: false,
                                  scoreDetail: scoreDetail)
         createContent(model: model)
     }

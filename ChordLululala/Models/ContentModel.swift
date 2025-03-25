@@ -20,6 +20,7 @@ struct ContentModel {
     var deletedAt: Date?          // 삭제 시각
     var originalParentId: UUID?   // 복구 폴더(원본 상위 폴더)
     var syncStatus: Bool          // 서버 동기화 여부
+    var isStared: Bool
     var scoreDetail: UUID?
 }
 
@@ -51,6 +52,7 @@ extension ContentModel {
         self.deletedAt = entity.deletedAt
         self.originalParentId = entity.originalParentId
         self.syncStatus = entity.syncStatus
+        self.isStared = entity.isStared
         if let scoreDetailEntity = entity.scoreDetail {
             self.scoreDetail = scoreDetailEntity.s_did
         } else {
@@ -71,6 +73,7 @@ extension Content {
         self.deletedAt = model.deletedAt
         self.originalParentId = model.originalParentId
         self.syncStatus = model.syncStatus
+        self.isStared = model.isStared
         // ScoreDetail 관계 업데이트는 별도 로직으로 관리합니다.
     }
 }

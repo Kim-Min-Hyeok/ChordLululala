@@ -4,6 +4,7 @@
         <attribute name="cid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="isStared" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="lastAccessedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
