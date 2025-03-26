@@ -15,7 +15,7 @@ struct SidebarButtonView: View {
     var body: some View {
         Button(action: action) {
             HStack() {
-                Image(systemName: imageName)
+                Image(imageName)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 46, height: 46)

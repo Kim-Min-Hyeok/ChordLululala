@@ -42,7 +42,7 @@ final class ContentCoreDataManager {
                        path: String? = nil,
                        type: Int16,
                        parent: UUID? = nil,
-                       s_dids: [UUID]? = nil) {
+                       scoreDetail: UUID? = nil) {
         let now = Date()
         let model = ContentModel(cid: UUID(),
                                  name: name,
@@ -55,7 +55,8 @@ final class ContentCoreDataManager {
                                  deletedAt: nil,
                                  originalParentId: parent,
                                  syncStatus: false,
-                                 scoreDetails: s_dids)
+                                 isStared: false,
+                                 scoreDetail: scoreDetail)
         createContent(model: model)
     }
     
@@ -71,7 +72,7 @@ final class ContentCoreDataManager {
                               path: name,
                               type: ContentType.folder.rawValue,
                               parent: nil,
-                              s_dids: nil)
+                              scoreDetail: nil)
                 print("\(name) base directory created.")
             }
         }
@@ -170,16 +171,6 @@ final class ContentCoreDataManager {
                 } else {
                     predicate = NSPredicate(value: false)
                 }
-            case .recentDocuments:
-                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score"),
-                   let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [
-                        NSPredicate(format: "parentContent.cid == %@", scoreBase.cid as CVarArg),
-                        NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
-                    ])
-                } else {
-                    predicate = NSPredicate(value: false)
-                }
             case .songList:
                 if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
                     predicate = NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
@@ -193,13 +184,6 @@ final class ContentCoreDataManager {
                     predicate = NSPredicate(value: false)
                 }
             }
-        }
-        
-        // 최근 문서인 경우 최근 1일 내 접근한 콘텐츠 필터링
-        if dashboardContents == .recentDocuments {
-            let oneDayAgo = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
-            let recentPredicate = NSPredicate(format: "lastAccessedAt >= %@", oneDayAgo as NSDate)
-            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, recentPredicate])
         }
         
         return ContentCoreDataManager.shared.fetchContentModelsPublisher(predicate: predicate)
