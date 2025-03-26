@@ -26,7 +26,7 @@ struct ScoreView : View {
     @StateObject private var pencilToolsViewModel: PencilToolsViewModel
     
     let file: [ContentModel]
-
+    
     init(file: [ContentModel]){
         self.file = file
         

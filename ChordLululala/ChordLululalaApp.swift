@@ -15,12 +15,11 @@ struct ChordLululalaApp: App {
         WindowGroup {
         
             
-//            ContentView()
-            LoadingView()
+            ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .preferredColorScheme(.light)
-                        ChordSticker()
-                            .preferredColorScheme(.light)
+                        
+                        
         }
     }
 }
