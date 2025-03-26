@@ -22,6 +22,10 @@ struct ContentView: View {
                     switch route.name {
                     case "/": // initial Root(HomeView): "/"
                         DashboardView()
+                    case "/login":
+                        LoginView()
+                    case "/termsofservice":
+                        TermsOfServiceView()
                     case "/score":
                         if let files = route.arguments as? [ContentModel] {
                             ScoreView(file: files)
@@ -33,5 +37,12 @@ struct ContentView: View {
                 }
         }
         .environmentObject(router)
+        .onAppear {
+            if let _ = UserDefaults.standard.string(forKey: "lastLoggedInUserID") {
+                router.toNamed("/")
+            } else {
+                router.toNamed("/login")
+            }
+        }
     }
 }

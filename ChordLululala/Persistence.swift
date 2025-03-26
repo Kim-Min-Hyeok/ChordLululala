@@ -18,8 +18,8 @@ struct PersistenceController {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
         container.loadPersistentStores { storeDescription, error in
-            if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+            if (error as NSError?) != nil {
+
             }
         }
         container.viewContext.automaticallyMergesChangesFromParent = true

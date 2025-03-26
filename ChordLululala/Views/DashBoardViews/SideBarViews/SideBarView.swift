@@ -11,37 +11,46 @@ import SwiftUI
 
 struct SidebarView: View {
     var onSelect: (DashboardContents) -> Void
+    @EnvironmentObject var router: NavigationRouter
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("서비스명")
-                .font(.headline)
-                .padding(.top, 23.03)
-                .padding(.leading, 25)
-                .padding(.bottom, 18.02)
+            Text("Noteflow")
+                .font(.system(size: 18))
+                .fontWeight(.bold)
+                .foregroundStyle(.blue)
+                .padding(EdgeInsets(top: 20.1, leading: 25, bottom: 17.9, trailing: 0))
             
-            Divider()
-            
-            SidebarButtonView(imageName: "house.fill", title: "최근 열어본 문서") {
-                onSelect(.recentDocuments)
-            }
-            
-            SidebarButtonView(imageName: "doc.text", title: "전체 문서") {
+            SidebarButtonView(imageName: "score", title: "악보") {
                 onSelect(.allDocuments)
             }
             
-            SidebarButtonView(imageName: "music.note", title: "송리스트") {
+            SidebarButtonView(imageName: "setlist", title: "셋리스트") {
                 onSelect(.songList)
             }
             
-            SidebarButtonView(imageName: "trash", title: "휴지통") {
+            SidebarButtonView(imageName: "mypage", title: "마이페이지") {
+                // 마이페이지 액션
+            }
+            
+            SidebarButtonView(imageName: "mypage", title: "휴지통") {
                 onSelect(.trashCan)
+            }
+            
+            SidebarButtonView(imageName: "arrow.backward.square", title: "로그아웃") {
+                logout()
             }
             
             Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: 257, maxHeight: .infinity, alignment: .leading)
         .background(Color.white)
-        .shadow(radius: 5)
     }
+    
+    private func logout() {
+            // lastLoggedInUserID 삭제
+            UserDefaults.standard.removeObject(forKey: "lastLoggedInUserID")
+            // /login 경로로 라우팅
+            router.toNamed("/login")
+        }
 }

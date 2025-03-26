@@ -9,15 +9,16 @@ import Foundation
 
 // MARK: - 도메인 모델
 struct UserModel {
-    let uid: UUID
+    let uid: String         // 이제 uid는 외부 제공자의 고유 ID(문자열)로 사용합니다.
     var name: String
-    var contents: [UUID]   // 관계: 여러 Content 엔티티의 식별자 배열
-    var setting: UUID?     // 관계: 단일 Setting 엔티티의 식별자
+    var contents: [UUID]     // 관계: 여러 Content 엔티티의 식별자 배열
+    var setting: UUID?       // 관계: 단일 Setting 엔티티의 식별자
 }
 
 extension UserModel {
     init(entity: User) {
-        self.uid = entity.uid ?? UUID()
+        // User 엔티티의 uid 속성도 String 타입으로 관리합니다.
+        self.uid = entity.uid ?? ""
         self.name = entity.name ?? "Unnamed"
         if let contentsSet = entity.contents as? Set<Content> {
             self.contents = contentsSet.compactMap { $0.cid }
@@ -33,7 +34,5 @@ extension User {
         self.uid = model.uid
         self.name = model.name
         // NOTE: contents와 setting 관계는 별도 로직으로 관리해야 합니다.
-        // 예를 들어, contents는 기존 관계를 모두 제거한 후, model.contents의 UUID에 해당하는 Content 엔티티들을 fetch해서 추가하는 식으로 업데이트해야 합니다.
-        // setting도 마찬가지로, model.setting에 해당하는 Setting 엔티티를 찾아서 할당하는 로직을 별도로 구현해야 합니다.
     }
 }

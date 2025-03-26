@@ -18,12 +18,6 @@ enum FileServiceError: Error {
 final class ContentFileManagerManager {
     static let shared = ContentFileManagerManager()
     
-    
-    
-    var documentsURL: URL? {
-        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
-    }
-    
     // MARK: - Create
     // 파일 생성 (업로드)
     func uploadFile(from url:  URL,
@@ -31,17 +25,10 @@ final class ContentFileManagerManager {
                     relativeFolderPath: String?,
                     completion: @escaping (Result<(destinationURL: URL, relativePath: String), FileServiceError>) -> Void) {
         
-        // baseFolder URL을 FileManagerManager에서 가져옵니다.
-        guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents) else {
-            completion(.failure(.baseFolderNotFound))
-            return
-        }
-        
         // 파일 복사: FileManagerManager에 해당 로직을 위임합니다.
         DispatchQueue.global(qos: .userInitiated).async {
-            if let destinationURL = FileManagerManager.shared.copyPDFToBaseFolder(from: url,
-                                                                                  relativeFolderPath: relativeFolderPath,
-                                                                                  baseFolder: baseFolder),
+            if let destinationURL = FileManagerManager.shared.copyFile(from: url,
+                                                                                  relativeFolderPath: relativeFolderPath),
                let relativePath = FileManagerManager.shared.relativePath(for: destinationURL.path) {
                 completion(.success((destinationURL, relativePath)))
             } else {
@@ -55,11 +42,6 @@ final class ContentFileManagerManager {
                       relativeTo currentParent: ContentModel?,
                       dashboardContents: DashboardContents,
                       completion: @escaping (Result<(folderURL: URL, relativePath: String), FileServiceError>) -> Void) {
-        // base folder 가져오기
-        guard let baseFolder = FileManagerManager.shared.baseFolderURL(for: dashboardContents) else {
-            completion(.failure(.baseFolderNotFound))
-            return
-        }
         
         let parentRelativePath = currentParent?.path ?? ""
         let relativeFolderPath = parentRelativePath.isEmpty
@@ -68,7 +50,7 @@ final class ContentFileManagerManager {
         
         // 서브폴더 생성
         DispatchQueue.global(qos: .userInitiated).async {
-            if let newFolderURL = FileManagerManager.shared.createSubfolderIfNeeded(for: relativeFolderPath, inBaseFolder: baseFolder),
+            if let newFolderURL = FileManagerManager.shared.createSubfolderIfNeeded(for: relativeFolderPath),
                let newRelativePath = self.relativePath(for: newFolderURL.path) {
                 completion(.success((folderURL: newFolderURL, relativePath: newRelativePath)))
             } else {
