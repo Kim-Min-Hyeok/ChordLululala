@@ -11,6 +11,7 @@ struct SidebarButtonView: View {
     var imageName: String
     var title: String
     var action: () -> Void
+    var isSelected: Bool = false
 
     var body: some View {
         Button(action: action) {
@@ -22,14 +23,14 @@ struct SidebarButtonView: View {
                     .padding(.leading, 14)
                 
                 Text(title)
-                    .font(.body)
-                    .foregroundColor(.black)
+                    .textStyle(.headingSmMedium)
+                    .foregroundColor(Color.primaryBaseBlack)
                     .padding(.leading, 4)
                 
                 Spacer()
             }
             .frame(maxWidth: .infinity, minHeight: 46.06, maxHeight: 46.06)
-            .background(Color.clear)
+            .background(isSelected ? Color.primaryGray100 : Color.clear)
         }
     }
 }

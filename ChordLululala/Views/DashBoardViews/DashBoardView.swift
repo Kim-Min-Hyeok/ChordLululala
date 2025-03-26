@@ -24,7 +24,7 @@ struct DashboardView: View {
                             viewModel.dashboardContents = newContent
                         })
                         
-                        VStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 0) {
                             // TODO: 테스트용 이전 폴더 되돌아가기
                             if !viewModel.isSelectionViewVisible {
                                 if viewModel.currentParent != nil {
@@ -45,40 +45,13 @@ struct DashboardView: View {
                                 // MARK: HEADER
                                 HeaderView()
                                     .environmentObject(viewModel)
-                                    .padding(.top, 30)
-                                    .padding(.horizontal, 30)
+                                    .padding(.top, 33)
                                 
                                 
                                 
-                                HStack {
-                                    // MARK: 날짜순/이름순
+                                    // MARK: 최신순/이름순
                                     SortToggleView(selectedSort: $viewModel.selectedSort)
-                                    Spacer()
-                                    
-                                    // MARK: 선택 버튼
-                                    Button(action: {
-                                        withAnimation {
-                                            viewModel.isSelectionViewVisible = true
-                                        }
-                                    }) {
-                                        Image(systemName: "checkmark.circle")
-                                            .resizable()
-                                            .frame(width: 21, height: 21)
-                                    }
-                                    .padding(.trailing, 8)
-                                    
-                                    // MARK: 리스트/그리드 토글 버튼
-                                    Button(action: {
-                                        viewModel.isListView.toggle()
-                                    }) {
-                                        Image(systemName: "list.bullet")
-                                            .resizable()
-                                            .frame(width: 21, height: 21)
-                                            .foregroundColor(viewModel.isListView ? .blue : .gray)
-                                    }
-                                }
-                                .padding(.horizontal, 168)
-                                .padding(.top, 10)
+                                .padding(.top, 29)
                                 
                                 // TODO: 테스트용: 모든 데이터 삭제 버튼
                                 Button("모든 데이터 삭제") {
@@ -99,9 +72,11 @@ struct DashboardView: View {
                             .padding(.top, 70)
                             Spacer()
                         }
+                        .padding(.horizontal, 44)
                     }
                     
                     // MARK: 수정 모달 뷰
+                    // TODO: 디자인 시스템 입혀야함
                     if viewModel.isModifyModalVisible, let content = viewModel.selectedContent {
                         Color.black.opacity(0.3)
                             .edgesIgnoringSafeArea(.all)
@@ -172,15 +147,16 @@ struct DashboardView: View {
                                                 viewModel.isFloatingMenuVisible.toggle()
                                             }
                                         }) {
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 24, weight: .bold))
-                                                .foregroundColor(.black)
-                                                .padding()
-                                                .background(Color.gray)
+                                            Image("plus")
+                                                .resizable()
+                                                .frame(width: 18, height: 18)
+                                                .padding(18)
+                                                .background(Color.primaryGray800)
                                                 .clipShape(Circle())
                                         }
-                                        .padding(.trailing, 29)
-                                        .padding(.bottom, 40)
+                                        .shadow(color: Color.black.opacity(0.40), radius: 30, x: 0, y: 0)
+                                        .padding(.trailing, 41)
+                                        .padding(.bottom, 7)
                                     }
                                     
                                     if viewModel.isFloatingMenuVisible {
@@ -231,9 +207,12 @@ struct DashboardView: View {
                         .onTapGesture {
                             viewModel.isCreateFolderModalVisible = false
                         }
-                    CreateFolderModalView(currentParent: viewModel.currentParent) { folderName, _ in
+                    CreateFolderModalView(isPresented: $viewModel.isCreateFolderModalVisible,
+                                          currentParent: viewModel.currentParent) { folderName, _ in
+                        print("parent: \(String(describing: viewModel.currentParent)), dashboardContent: \(viewModel.dashboardContents)")
                         viewModel.createFolder(folderName: folderName)
-                        viewModel.isCreateFolderModalVisible = false
+                        // 여기서는 모달이 자동으로 바인딩에 의해 닫힙니다.
+                        print("parent: \(String(describing: viewModel.currentParent)), dashboardContent: \(viewModel.dashboardContents)")
                     }
                     .transition(.opacity)
                 }

@@ -1,5 +1,5 @@
 //
-//  Text.swift
+//  TextField.swift
 //  ChordLululala
 //
 //  Created by Minhyeok Kim on 3/25/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-extension Text {
+extension TextField {
     func textStyle(_ style: TextStyle) -> some View {
         self
             .font(style.font)
@@ -15,7 +15,3 @@ extension Text {
             .kerning(style.letterSpacing)
     }
 }
-
-// MARK: 사용법:
-//Text("NoteFlow")
-//    .textStyle(.headingXLBold)

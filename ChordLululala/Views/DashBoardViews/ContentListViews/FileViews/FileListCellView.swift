@@ -6,61 +6,95 @@
 //
 
 import SwiftUI
+import QuickLookThumbnailing
 
 struct FileListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @EnvironmentObject var router: NavigationRouter
-    let file: ContentModel
+    @State private var thumbnail: UIImage? = nil
     
+    let file: ContentModel
     private var isSelected: Bool {
         viewModel.selectedContents.contains { $0.cid == file.cid }
     }
     
     var body: some View {
         ZStack {
-            HStack {
-                HStack(spacing: 12) {
-                    Image(systemName: "doc.richtext")
-                        .resizable()
-                        .frame(width: 53, height: 53)
-                        .foregroundColor(.black)
-                    Text(file.name)
-                        .font(.body)
-                        .foregroundColor(.black)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if viewModel.isSelectionViewVisible {
-                        toggleSelection()
+            HStack(alignment: .top, spacing: 18) {
+                Group {
+                    if let thumbnail = thumbnail {
+                        Image(uiImage: thumbnail)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 78, height: 57)
+                            .clipped()
                     } else {
-                        // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
-                        router.toNamed("/score", arguments: [file])
+                        Rectangle()
+                            .fill(Color.primaryGray200)
+                            .frame(width: 78, height: 57)
+                            .overlay(
+                                Text("preview")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(Color.primaryGray400)
+                            )
                     }
                 }
-                if !viewModel.isSelectionViewVisible {
-                    Button(action: {
-                        viewModel.selectedContent = file
-                        if viewModel.dashboardContents == .trashCan {
-                            viewModel.isDeletedModalVisible = true
+                .cornerRadius(6)
+                VStack(spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(file.name)
+                                .textStyle(.bodyTextXLSemiBold)
+                                .foregroundStyle(Color.primaryGray800)
+                            Text(file.modifiedAt.dateFormatForList())
+                                .textStyle(.bodyTextLgRegular)
+                                .foregroundStyle(Color.primaryGray600)
+                                .padding(.top, 3)
                         }
-                        else {
-                            viewModel.isModifyModalVisible = true
+                        .padding(.top, 8)
+                        Spacer()
+                        if !viewModel.isSelectionViewVisible {
+                            Button(action: {
+                                
+                            }) {
+                                Image("star")
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                            }
+                            .padding(.top, 11)
+                            Button(action: {
+                                viewModel.selectedContent = file
+                                if viewModel.dashboardContents == .trashCan {
+                                    viewModel.isDeletedModalVisible = true
+                                }
+                                else {
+                                    viewModel.isModifyModalVisible = true
+                                }
+                            }) {
+                                Image("more")
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                            }
+                            .padding(.top, 11)
                         }
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
                     }
-                    .frame(width: 44, height: 44)
+                    Divider()
+                        .frame(height: 1)
+                        .background(Color.primaryGray200)
                 }
             }
-            .frame(height: 54)
-            .overlay(
-                Divider()
-                    .frame(height: 1)
-                    .background(Color.gray),
-                alignment: .bottom
-            )
+            .frame(height: 61)
+            .onTapGesture {
+                if viewModel.isSelectionViewVisible {
+                    toggleSelection()
+                } else {
+                    // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
+                    router.toNamed("/score", arguments: [file])
+                }
+            }
+            .onAppear {
+                loadThumbnail()
+            }
             .background(
                 GeometryReader { geo in
                     Color.clear.onAppear {
@@ -80,6 +114,30 @@ struct FileListCellView: View {
                 .onTapGesture {
                     toggleSelection()
                 }
+            }
+        }
+    }
+    
+    private func loadThumbnail() {
+        guard let relativePath = file.path, !relativePath.isEmpty,
+              let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            print("파일 경로 없음")
+            return
+        }
+        let fileURL = docsURL.appendingPathComponent(relativePath)
+        let request = QLThumbnailGenerator.Request(
+            fileAt: fileURL,
+            size: CGSize(width: 201, height: 114),
+            scale: UIScreen.main.scale,
+            representationTypes: .thumbnail
+        )
+        QLThumbnailGenerator.shared.generateBestRepresentation(for: request) { thumbnailRep, error in
+            if let thumbnailRep = thumbnailRep {
+                DispatchQueue.main.async {
+                    self.thumbnail = thumbnailRep.uiImage
+                }
+            } else {
+                print("썸네일 생성 실패: \(String(describing: error))")
             }
         }
     }

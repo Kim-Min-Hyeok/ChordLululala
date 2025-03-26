@@ -17,49 +17,64 @@ struct FolderListCellView: View {
     
     var body: some View {
         ZStack {
-            HStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Image(systemName: "folder.fill")
-                        .resizable()
-                        .frame(width: 53, height: 53)
-                        .foregroundColor(.blue)
-                    Text(folder.name)
-                        .font(.body)
-                        .foregroundColor(.black)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if viewModel.isSelectionViewVisible {
-                        toggleSelection()
-                    } else {
-                        viewModel.currentParent = folder
-                        viewModel.loadContents()
-                    }
-                }
-                if !viewModel.isSelectionViewVisible {
-                    Button(action: {
-                        viewModel.selectedContent = folder
-                        if viewModel.dashboardContents == .trashCan {
-                            viewModel.isDeletedModalVisible = true
+            HStack(alignment: .top, spacing: 18) {
+                Image("folder")
+                    .resizable()
+                    .frame(width: 61.63, height: 48.44)
+                    .padding(.top, 4)
+                    .padding(.leading, 8)
+                VStack(spacing: 12) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(folder.name)
+                                .textStyle(.bodyTextXLSemiBold)
+                                .foregroundStyle(Color.primaryGray800)
+                            Text(folder.modifiedAt.dateFormatForList())
+                                .textStyle(.bodyTextLgRegular)
+                                .foregroundStyle(Color.primaryGray600)
+                                .padding(.top, 3)
                         }
-                        else {
-                            viewModel.isModifyModalVisible = true
+                        .padding(.top, 8)
+                        Spacer()
+                        if !viewModel.isSelectionViewVisible {
+                            Button(action: {
+                                
+                            }) {
+                                Image("star")
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                            }
+                            .padding(.top, 11)
+                            Button(action: {
+                                viewModel.selectedContent = folder
+                                if viewModel.dashboardContents == .trashCan {
+                                    viewModel.isDeletedModalVisible = true
+                                }
+                                else {
+                                    viewModel.isModifyModalVisible = true
+                                }
+                            }) {
+                                Image("more")
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                            }
+                            .padding(.top, 11)
                         }
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
                     }
-                    .frame(width: 44, height: 44)
+                    Divider()
+                        .frame(height: 1)
+                        .background(Color.primaryGray200)
                 }
             }
-            .frame(height: 54)
-            .overlay(
-                Divider()
-                    .frame(height: 1)
-                    .background(Color.gray),
-                alignment: .bottom
-            )
+            .frame(height: 61)
+            .onTapGesture {
+                if viewModel.isSelectionViewVisible {
+                    toggleSelection()
+                } else {
+                    viewModel.currentParent = folder
+                    viewModel.loadContents()
+                }
+            }
             .background(
                 GeometryReader { geo in
                     Color.clear.onAppear {
@@ -81,6 +96,7 @@ struct FolderListCellView: View {
                 }
             }
         }
+        .padding(.bottom, 11)
     }
     
     private func toggleSelection() {

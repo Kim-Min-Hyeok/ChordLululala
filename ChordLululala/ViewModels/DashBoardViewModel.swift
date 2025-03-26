@@ -22,7 +22,7 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "날짜순"
+    case date = "최신순"
     case name = "이름순"
     
     var id: String { rawValue }
@@ -109,23 +109,21 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     // MARK: - 폴더 및 파일 정렬
-    var sortedFolders: [ContentModel] {
-        let folders = contents.filter { $0.type == .folder }
-        switch selectedSort {
-        case .date:
-            return folders.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
-        case .name:
-            return folders.sorted { $0.name < $1.name }
+    var sortedContents: [ContentModel] {
+        let filtered = contents.filter { content in
+            switch currentFilter {
+            case .all:
+                return true
+            case .star:
+                return content.isStared
+            }
         }
-    }
-    
-    var sortedFiles: [ContentModel] {
-        let files = contents.filter { $0.type != .folder }
+        
         switch selectedSort {
         case .date:
-            return files.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+            return filtered.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
         case .name:
-            return files.sorted { $0.name < $1.name }
+            return filtered.sorted { $0.name < $1.name }
         }
     }
     
@@ -136,8 +134,12 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func goBack() {
-        guard let current = currentParent, let parent = current.parentContent else {
+        guard let current = currentParent else {
             print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
+            return
+        }
+        guard let parent = current.parentContent else {
+            print("현재 폴더 \(current.name)에는 부모 폴더가 없습니다. 뒤로 갈 수 없습니다.")
             return
         }
         if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
@@ -166,13 +168,17 @@ final class DashBoardViewModel: ObservableObject {
     
     func loadContents() {
         guard let parent = currentParent else { return }
+        
+        print("🔍 Loading contents - Parent: \(parent), Dashboard: \(dashboardContents)")
+        
         ContentManager.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case let .failure(error) = completion {
-                    print("Error loading contents: \(error)")
+                    print("❌ Error loading contents: \(error)")
                 }
             }, receiveValue: { [weak self] models in
+                print("✅ Loaded contents: \(models.count)")
                 self?.contents = models
             })
             .store(in: &cancellables)
