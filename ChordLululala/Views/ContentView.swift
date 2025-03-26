@@ -22,6 +22,10 @@ struct ContentView: View {
                     switch route.name {
                     case "/": // initial Root(HomeView): "/"
                         DashboardView()
+                    case "/login":
+                        LoginView()
+                    case "/termsofservice":
+                        TermsOfServiceView()
                     case "/score":
                         ScoreView()
                     default:
@@ -30,5 +34,12 @@ struct ContentView: View {
                 }
         }
         .environmentObject(router)
+        .onAppear {
+            if let _ = UserDefaults.standard.string(forKey: "lastLoggedInUserID") {
+                router.toNamed("/")
+            } else {
+                router.toNamed("/login")
+            }
+        }
     }
 }

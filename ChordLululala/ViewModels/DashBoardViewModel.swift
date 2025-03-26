@@ -10,15 +10,13 @@ import SwiftUI
 
 enum DashboardContents {
     case allDocuments
-    case recentDocuments
     case songList
     case trashCan
 }
 
 enum ToggleFilter: String, CaseIterable, Identifiable {
     case all = "전체"
-    case file = "파일"
-    case folder = "폴더"
+    case star = "즐겨찾기"
     
     var id: String { rawValue }
 }
@@ -48,7 +46,7 @@ final class DashBoardViewModel: ObservableObject {
             searchText = ""
             // 대시보드 종류에 따라 기본 폴더를 지정
             switch dashboardContents {
-            case .allDocuments, .recentDocuments:
+            case .allDocuments:
                 if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
                     currentParent = scoreBase
                 }
@@ -67,8 +65,6 @@ final class DashBoardViewModel: ObservableObject {
     @Published var searchText: String = ""
     
     // MARK: - 사이드바 관련
-    @Published var isSidebarVisible: Bool = false
-    @Published var sidebarDragOffset: CGFloat = 0
     
     // MARK: - 리스트/그리드 관련
     @Published var isListView: Bool = true
@@ -96,7 +92,7 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.initializeBaseDirectories()
         // 초기 대시보드에 따른 기본 폴더 지정
         switch dashboardContents {
-        case .allDocuments, .recentDocuments:
+        case .allDocuments:
             if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                 currentParent = scoreBase
             }
@@ -149,7 +145,7 @@ final class DashBoardViewModel: ObservableObject {
         } else {
             print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
             switch dashboardContents {
-            case .allDocuments, .recentDocuments:
+            case .allDocuments:
                 if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                     currentParent = scoreBase
                 }
