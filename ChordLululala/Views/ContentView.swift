@@ -36,9 +36,9 @@ struct ContentView: View {
         .environmentObject(router)
         .onAppear {
             if let _ = UserDefaults.standard.string(forKey: "lastLoggedInUserID") {
-                router.toNamed("/")
+                router.offAll("/")
             } else {
-                router.toNamed("/login")
+                router.offAll("/login")
             }
         }
     }

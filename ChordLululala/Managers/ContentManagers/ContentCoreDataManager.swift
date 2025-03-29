@@ -183,6 +183,8 @@ final class ContentCoreDataManager {
                 } else {
                     predicate = NSPredicate(value: false)
                 }
+            case .myPage:
+                predicate = NSPredicate(value: false)
             }
         }
         
@@ -245,6 +247,25 @@ final class ContentCoreDataManager {
             }
         } catch {
             print("Content 삭제 실패: \(error)")
+        }
+    }
+    
+    // MARK: 즐겨찾기 토글
+    func toggleContentStared(model: ContentModel) {
+        let request: NSFetchRequest<Content> = Content.fetchRequest()
+        request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
+        
+        do {
+            if let entityToUpdate = try context.fetch(request).first {
+                entityToUpdate.isStared.toggle()
+                entityToUpdate.modifiedAt = Date() // 수정 시각 업데이트
+                CoreDataManager.shared.saveContext()
+                print("즐겨찾기 토글 완료: \(entityToUpdate.name ?? "Unnamed") → \(entityToUpdate.isStared ? "★" : "☆")")
+            } else {
+                print("즐겨찾기 토글 실패: 해당 콘텐츠를 찾을 수 없음 (\(model.name))")
+            }
+        } catch {
+            print("즐겨찾기 토글 중 오류 발생: \(error)")
         }
     }
 }

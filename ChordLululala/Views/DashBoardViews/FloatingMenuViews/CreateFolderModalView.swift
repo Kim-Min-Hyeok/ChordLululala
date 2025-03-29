@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CreateFolderModalView: View {
-    @Environment(\.presentationMode) var presentationMode
+    @Binding var isPresented: Bool
     @State private var folderName: String = ""
     
     // 현재 부모 폴더 (nil이면 루트)
@@ -21,7 +21,7 @@ struct CreateFolderModalView: View {
             // 상단 헤더 영역
             HStack {
                 Button("취소") {
-                    presentationMode.wrappedValue.dismiss()
+                    isPresented = false
                 }
                 .padding(.leading, 10)
                 
@@ -35,7 +35,7 @@ struct CreateFolderModalView: View {
                 Button("만들기") {
                     if !folderName.isEmpty {
                         onCreate(folderName, currentParent)
-                        presentationMode.wrappedValue.dismiss()
+                        isPresented = false
                     }
                 }
                 .padding(.trailing, 10)

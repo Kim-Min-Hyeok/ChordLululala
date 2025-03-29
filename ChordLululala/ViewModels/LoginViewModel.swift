@@ -15,26 +15,18 @@ class LoginViewModel: NSObject, ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    func loginWithApple(result: Result<ASAuthorization, Error>, onSuccess: @escaping () -> Void) {
-        switch result {
-        case .success(let authResults):
-            if let appleCredential = authResults.credential as? ASAuthorizationAppleIDCredential {
-                let providerId = appleCredential.user
-                let fullName = appleCredential.fullName?.givenName ?? "User"
-                print("Apple 로그인 성공: \(providerId), \(fullName)")
-                
-                UserManager.shared.createOrUpdateUser(with: providerId, name: fullName)
-                
-                UserDefaults.standard.set(providerId, forKey: "lastLoggedInUserID")
-                UserDefaults.standard.set(fullName, forKey: "lastLoggedInUserName")
-                
-                DispatchQueue.main.async {
-                    onSuccess()
-                }
-            }
-        case .failure(let error):
-            print("Apple 로그인 실패: \(error.localizedDescription)")
-        }
+    var appleSignInCompletion: (() -> Void)?
+    func customLoginWithApple(onSuccess: @escaping () -> Void) {
+        self.appleSignInCompletion = onSuccess
+        
+        let provider = ASAuthorizationAppleIDProvider()
+        let request = provider.createRequest()
+        request.requestedScopes = [.fullName, .email]
+        
+        let controller = ASAuthorizationController(authorizationRequests: [request])
+        controller.delegate = self
+        controller.presentationContextProvider = self
+        controller.performRequests()
     }
     
     func loginWithGoogle(onSuccess: @escaping () -> Void) {
@@ -80,5 +72,37 @@ class LoginViewModel: NSObject, ObservableObject {
             }
         }
         .store(in: &cancellables)
+    }
+}
+
+extension LoginViewModel: ASAuthorizationControllerDelegate {
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
+            let providerId = appleIDCredential.user
+            let fullName = appleIDCredential.fullName?.givenName ?? "User"
+            print("커스텀 Apple 로그인 성공: \(providerId), \(fullName)")
+            
+            UserManager.shared.createOrUpdateUser(with: providerId, name: fullName)
+            
+            UserDefaults.standard.set(providerId, forKey: "lastLoggedInUserID")
+            UserDefaults.standard.set(fullName, forKey: "lastLoggedInUserName")
+            
+            DispatchQueue.main.async {
+                self.appleSignInCompletion?()
+            }
+        }
+    }
+    
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        print("커스텀 Apple 로그인 실패: \(error.localizedDescription)")
+    }
+}
+
+extension LoginViewModel: ASAuthorizationControllerPresentationContextProviding {
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        return UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow } ?? UIWindow()
     }
 }

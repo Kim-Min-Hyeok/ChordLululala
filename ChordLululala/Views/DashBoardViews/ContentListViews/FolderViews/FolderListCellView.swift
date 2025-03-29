@@ -17,49 +17,52 @@ struct FolderListCellView: View {
     
     var body: some View {
         ZStack {
-            HStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Image(systemName: "folder.fill")
+            HStack(alignment: .top, spacing: 18) {
+                VStack {
+                    Image("folder")
                         .resizable()
-                        .frame(width: 53, height: 53)
-                        .foregroundColor(.blue)
-                    Text(folder.name)
-                        .font(.body)
-                        .foregroundColor(.black)
-                    Spacer()
+                        .frame(width: 61.63, height: 48.44)
+                        .padding(.top, 4)
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if viewModel.isSelectionViewVisible {
-                        toggleSelection()
-                    } else {
-                        viewModel.currentParent = folder
-                        viewModel.loadContents()
-                    }
-                }
-                if !viewModel.isSelectionViewVisible {
-                    Button(action: {
-                        viewModel.selectedContent = folder
-                        if viewModel.dashboardContents == .trashCan {
-                            viewModel.isDeletedModalVisible = true
+                .frame(width: 78, height: 57)
+                VStack(spacing: 12) {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(folder.name)
+                                .textStyle(.bodyTextXLSemiBold)
+                                .foregroundStyle(Color.primaryGray800)
+                            Text(folder.modifiedAt.dateFormatForList())
+                                .textStyle(.bodyTextLgRegular)
+                                .foregroundStyle(Color.primaryGray600)
+                                .padding(.top, 3)
                         }
-                        else {
-                            viewModel.isModifyModalVisible = true
+                        .padding(.top, 8)
+                        Spacer()
+                        if !viewModel.isSelectionViewVisible {
+                            Button(action: {
+                                viewModel.toggleContentStared(folder)
+                            }) {
+                                Image(folder.isStared ? "star_fill" : "star")
+                                    .resizable()
+                                    .frame(width: 36, height: 36)
+                            }
+                            .padding(.top, 11)
                         }
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
                     }
-                    .frame(width: 44, height: 44)
+                    Divider()
+                        .frame(height: 1)
+                        .background(Color.primaryGray200)
                 }
             }
-            .frame(height: 54)
-            .overlay(
-                Divider()
-                    .frame(height: 1)
-                    .background(Color.gray),
-                alignment: .bottom
-            )
+            .frame(height: 61)
+            .onTapGesture {
+                if viewModel.isSelectionViewVisible {
+                    toggleSelection()
+                } else {
+                    viewModel.currentParent = folder
+                    viewModel.loadContents()
+                }
+            }
             .background(
                 GeometryReader { geo in
                     Color.clear.onAppear {
@@ -67,6 +70,13 @@ struct FolderListCellView: View {
                     }
                 }
             )
+            .contextMenu {
+                if viewModel.dashboardContents == .trashCan {
+                    DeleteModalView(content: folder)
+                } else {
+                    ModifyModalView(content: folder)
+                }
+            }
             if viewModel.isSelectionViewVisible {
                 HStack {
                     Spacer()
@@ -81,6 +91,7 @@ struct FolderListCellView: View {
                 }
             }
         }
+        .padding(.bottom, 11)
     }
     
     private func toggleSelection() {

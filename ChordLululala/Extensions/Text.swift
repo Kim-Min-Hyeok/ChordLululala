@@ -18,4 +18,4 @@ extension Text {
 
 // MARK: 사용법:
 //Text("NoteFlow")
-//    .designTextStyle(.headingXLBold)
+//    .textStyle(.headingXLBold)

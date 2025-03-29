@@ -30,9 +30,11 @@ enum ContentType: Int16 {
     case folder = 2
 }
 
-extension ContentModel: Hashable {
+extension ContentModel: Hashable, Equatable {
     static func == (lhs: ContentModel, rhs: ContentModel) -> Bool {
-        return lhs.cid == rhs.cid
+        return lhs.cid == rhs.cid &&
+        lhs.name == rhs.name &&
+        lhs.isStared == rhs.isStared
     }
     
     func hash(into hasher: inout Hasher) {

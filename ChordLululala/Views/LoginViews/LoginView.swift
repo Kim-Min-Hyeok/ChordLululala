@@ -17,24 +17,28 @@ struct LoginView: View {
             Text("Noteflow")
                 .font(.system(size: 37.06))
                 .fontWeight(.bold)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.primaryBlue600)
             
             Group {
                 // 애플 로그인 버튼
-                SignInWithAppleButton(
-                    .signIn,
-                    onRequest: { request in
-                        request.requestedScopes = [.fullName, .email]
-                    },
-                    onCompletion: { result in
-                        viewModel.loginWithApple(result: result) {
-                            router.toNamed("/termsofservice")
-                        }
+                Button(action: {
+                    viewModel.customLoginWithApple {
+                        router.toNamed("/termsofservice")
                     }
-                )
-                .signInWithAppleButtonStyle(.black)
-                .frame(width: 346, height: 49)
-                .cornerRadius(5)
+                }) {
+                    HStack(spacing: 4) {
+                        Image("apple_logo")
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                        Text("Apple로 계속하기")
+                            .font(.system(size: 16))
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color.primaryBaseWhite)
+                    }
+                    .frame(width: 346, height: 49)
+                    .background(Color.primaryBaseBlack)
+                    .cornerRadius(5)
+                }
                 .padding(.top, 49)
                 
                 // 구글 로그인 버튼
@@ -50,7 +54,7 @@ struct LoginView: View {
                         Text("Google로 계속하기")
                             .font(.system(size: 16))
                             .fontWeight(.semibold)
-                            .foregroundStyle(.black)
+                            .foregroundStyle(Color.primaryBaseBlack)
                     }
                     .frame(width: 346, height: 49)
                     .overlay(
@@ -58,7 +62,7 @@ struct LoginView: View {
                             .stroke(Color.gray, lineWidth: 1)
                     )
                 }
-                .background(Color.white)
+                .background(Color.primaryBaseWhite)
                 .cornerRadius(5)
                 .padding(.top, 20)
             }

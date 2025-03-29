@@ -18,44 +18,38 @@ struct FolderGridCellView: View {
     
     var body: some View {
         ZStack {
-            HStack {
-                HStack(spacing: 8) {
-                    Image(systemName: "folder.fill")
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                        .foregroundColor(.blue)
+            VStack(spacing: 6) {
+                VStack {
+                    ZStack (alignment: .bottomLeading) {
+                        Image("folder")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 121)
+                        if !viewModel.isSelectionViewVisible {
+                            Button(action: {
+                                viewModel.toggleContentStared(folder)
+                            }) {
+                                Image(folder.isStared ? "star_fill" : "star")
+                                    .resizable()
+                                    .frame(width: 24, height: 24)
+                                    .padding(.bottom, 3)
+                                    .padding(.leading, 3)
+                            }
+                        }
+                    }
+                }
+                .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
+                VStack (spacing: 3){
                     Text(folder.name)
-                        .font(.caption)
-                        .foregroundColor(.black)
+                        .textStyle(.bodyTextXLSemiBold)
+                        .foregroundStyle(Color.primaryGray800)
+                    Text(folder.modifiedAt.dateFormatForGrid())
+                        .textStyle(.bodyTextLgRegular)
+                        .foregroundStyle(Color.primaryGray600)
                     Spacer()
                 }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if viewModel.isSelectionViewVisible {
-                        toggleSelection()
-                    } else {
-                        viewModel.currentParent = folder
-                        viewModel.loadContents()
-                    }
-                }
-                if !viewModel.isSelectionViewVisible {
-                    Button(action: {
-                        viewModel.selectedContent = folder
-                        if viewModel.dashboardContents == .trashCan {
-                            viewModel.isDeletedModalVisible = true
-                        }
-                        else {
-                            viewModel.isModifyModalVisible = true
-                        }
-                    }) {
-                        Image(systemName: "ellipsis")
-                            .foregroundColor(.gray)
-                    }
-                    .frame(width: 44, height: 44)
-                }
+                .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
             }
-            .background(Color.gray.opacity(0.2))
-            .cornerRadius(8)
             .background(
                 GeometryReader { geo in
                     Color.clear.onAppear {
@@ -63,18 +57,32 @@ struct FolderGridCellView: View {
                     }
                 }
             )
-            if viewModel.isSelectionViewVisible {
-                HStack {
-                    Spacer()
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                        .frame(width: 24, height: 24)
-                        .padding(.trailing, 9)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
+            .onTapGesture {
+                if viewModel.isSelectionViewVisible {
                     toggleSelection()
+                } else {
+                    viewModel.currentParent = folder
+                    viewModel.loadContents()
                 }
+            }
+            .contextMenu {
+                if viewModel.dashboardContents == .trashCan {
+                    DeleteModalView(content: folder)
+                } else {
+                    ModifyModalView(content: folder)
+                }
+            }
+        }
+        if viewModel.isSelectionViewVisible {
+            HStack {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isSelected ? .blue : .gray)
+                    .frame(width: 24, height: 24)
+                    .padding(.trailing, 9)
+            }
+            .contentShape(Rectangle())
+            .onTapGesture {
+                toggleSelection()
             }
         }
     }
