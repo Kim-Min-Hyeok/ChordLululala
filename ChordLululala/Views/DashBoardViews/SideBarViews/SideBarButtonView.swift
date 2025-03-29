@@ -24,7 +24,7 @@ struct SidebarButtonView: View {
                 
                 Text(title)
                     .textStyle(.headingSmMedium)
-                    .foregroundColor(Color.primaryBaseBlack)
+                    .foregroundColor(Color.primaryGray900)
                     .padding(.leading, 4)
                 
                 Spacer()

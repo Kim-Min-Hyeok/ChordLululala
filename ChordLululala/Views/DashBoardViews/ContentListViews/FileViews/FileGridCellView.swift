@@ -27,12 +27,12 @@ struct FileGridCellView: View {
                         Image(uiImage: thumbnail)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 200, height: 114)
+                            .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
                             .clipped()
                     } else {
                         Rectangle()
                             .fill(Color.gray.opacity(0.3))
-                            .frame(width: 200, height: 114)
+                            .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
                             .overlay(
                                 Text("preview")
                                     .font(.system(size: 12))
@@ -42,9 +42,9 @@ struct FileGridCellView: View {
                 }
                 if !viewModel.isSelectionViewVisible {
                     Button(action: {
-                        
+                        viewModel.toggleContentStared(file)
                     }) {
-                        Image("star")
+                        Image(file.isStared ? "star_fill" : "star")
                             .resizable()
                             .frame(width: 24, height: 24)
                             .padding(.bottom, 3)
@@ -52,8 +52,9 @@ struct FileGridCellView: View {
                     }
                 }
             }
-            .frame(width: 200, height: 114)
+            .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
             .cornerRadius(6)
+            .shadow(color: Color.black.opacity(0.14), radius: 4, x: 0, y: 0)
             
             // 텍스트 + 버튼 영역
             VStack (spacing: 3){
@@ -65,7 +66,7 @@ struct FileGridCellView: View {
                     .foregroundStyle(Color.primaryGray600)
                 Spacer()
             }
-            .frame(width: 200, height: 61)
+            .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
         }
         .onAppear {
             loadThumbnail()
@@ -86,12 +87,11 @@ struct FileGridCellView: View {
                 router.toNamed("/score", arguments: [file])
             }
         }
-        .onLongPressGesture(minimumDuration: 0.1) {
-            viewModel.selectedContent = file
+        .contextMenu {
             if viewModel.dashboardContents == .trashCan {
-                viewModel.isDeletedModalVisible = true
+                DeleteModalView(content: file)
             } else {
-                viewModel.isModifyModalVisible = true
+                ModifyModalView(content: file)
             }
         }
         

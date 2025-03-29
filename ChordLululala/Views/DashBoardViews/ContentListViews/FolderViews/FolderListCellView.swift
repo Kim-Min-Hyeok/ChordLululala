@@ -18,11 +18,13 @@ struct FolderListCellView: View {
     var body: some View {
         ZStack {
             HStack(alignment: .top, spacing: 18) {
-                Image("folder")
-                    .resizable()
-                    .frame(width: 61.63, height: 48.44)
-                    .padding(.top, 4)
-                    .padding(.leading, 8)
+                VStack {
+                    Image("folder")
+                        .resizable()
+                        .frame(width: 61.63, height: 48.44)
+                        .padding(.top, 4)
+                }
+                .frame(width: 78, height: 57)
                 VStack(spacing: 12) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 3) {
@@ -38,23 +40,9 @@ struct FolderListCellView: View {
                         Spacer()
                         if !viewModel.isSelectionViewVisible {
                             Button(action: {
-                                
+                                viewModel.toggleContentStared(folder)
                             }) {
-                                Image("star")
-                                    .resizable()
-                                    .frame(width: 36, height: 36)
-                            }
-                            .padding(.top, 11)
-                            Button(action: {
-                                viewModel.selectedContent = folder
-                                if viewModel.dashboardContents == .trashCan {
-                                    viewModel.isDeletedModalVisible = true
-                                }
-                                else {
-                                    viewModel.isModifyModalVisible = true
-                                }
-                            }) {
-                                Image("more")
+                                Image(folder.isStared ? "star_fill" : "star")
                                     .resizable()
                                     .frame(width: 36, height: 36)
                             }
@@ -82,6 +70,13 @@ struct FolderListCellView: View {
                     }
                 }
             )
+            .contextMenu {
+                if viewModel.dashboardContents == .trashCan {
+                    DeleteModalView(content: folder)
+                } else {
+                    ModifyModalView(content: folder)
+                }
+            }
             if viewModel.isSelectionViewVisible {
                 HStack {
                     Spacer()

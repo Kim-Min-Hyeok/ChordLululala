@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-import SwiftUI
-
 struct SidebarView: View {
     var onSelect: (DashboardContents) -> Void
     @EnvironmentObject var router: NavigationRouter
@@ -24,21 +22,22 @@ struct SidebarView: View {
             
             SidebarButtonView(imageName: "score", title: "악보", action: {
                 selected = .allDocuments
-                onSelect(.allDocuments)
+                onSelect(selected)
             }, isSelected: selected == .allDocuments)
             
             SidebarButtonView(imageName: "setlist", title: "셋리스트", action: {
                 selected = .songList
-                onSelect(.songList)
+                onSelect(selected)
             }, isSelected: selected == .songList)
             
             SidebarButtonView(imageName: "trash", title: "휴지통", action: {
                 selected = .trashCan
-                onSelect(.trashCan)
+                onSelect(selected)
             }, isSelected: selected == .trashCan)
             
             SidebarButtonView(imageName: "mypage", title: "마이페이지", action: {
-                
+                selected = .myPage
+                onSelect(selected)
             }, isSelected: false)
             
             SidebarButtonView(imageName: "mypage", title: "로그아웃", action: {

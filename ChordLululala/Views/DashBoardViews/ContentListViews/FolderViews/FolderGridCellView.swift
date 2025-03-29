@@ -27,9 +27,9 @@ struct FolderGridCellView: View {
                             .frame(width: 121)
                         if !viewModel.isSelectionViewVisible {
                             Button(action: {
-                                
+                                viewModel.toggleContentStared(folder)
                             }) {
-                                Image("star")
+                                Image(folder.isStared ? "star_fill" : "star")
                                     .resizable()
                                     .frame(width: 24, height: 24)
                                     .padding(.bottom, 3)
@@ -38,7 +38,7 @@ struct FolderGridCellView: View {
                         }
                     }
                 }
-                .frame(width: 200, height: 114)
+                .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
                 VStack (spacing: 3){
                     Text(folder.name)
                         .textStyle(.bodyTextXLSemiBold)
@@ -48,7 +48,7 @@ struct FolderGridCellView: View {
                         .foregroundStyle(Color.primaryGray600)
                     Spacer()
                 }
-                .frame(width: 200, height: 61)
+                .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
             }
             .background(
                 GeometryReader { geo in
@@ -65,12 +65,11 @@ struct FolderGridCellView: View {
                     viewModel.loadContents()
                 }
             }
-            .onLongPressGesture(minimumDuration: 0.1) {
-                viewModel.selectedContent = folder
+            .contextMenu {
                 if viewModel.dashboardContents == .trashCan {
-                    viewModel.isDeletedModalVisible = true
+                    DeleteModalView(content: folder)
                 } else {
-                    viewModel.isModifyModalVisible = true
+                    ModifyModalView(content: folder)
                 }
             }
         }

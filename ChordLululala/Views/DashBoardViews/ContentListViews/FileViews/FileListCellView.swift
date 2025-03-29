@@ -40,8 +40,10 @@ struct FileListCellView: View {
                     }
                 }
                 .cornerRadius(6)
+                .shadow(color: Color.black.opacity(0.14), radius: 4, x: 0, y: 0)
+                
                 VStack(spacing: 12) {
-                    HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(file.name)
                                 .textStyle(.bodyTextXLSemiBold)
@@ -55,23 +57,9 @@ struct FileListCellView: View {
                         Spacer()
                         if !viewModel.isSelectionViewVisible {
                             Button(action: {
-                                
+                                viewModel.toggleContentStared(file)
                             }) {
-                                Image("star")
-                                    .resizable()
-                                    .frame(width: 36, height: 36)
-                            }
-                            .padding(.top, 11)
-                            Button(action: {
-                                viewModel.selectedContent = file
-                                if viewModel.dashboardContents == .trashCan {
-                                    viewModel.isDeletedModalVisible = true
-                                }
-                                else {
-                                    viewModel.isModifyModalVisible = true
-                                }
-                            }) {
-                                Image("more")
+                                Image(file.isStared ? "star_fill" : "star")
                                     .resizable()
                                     .frame(width: 36, height: 36)
                             }
@@ -102,6 +90,13 @@ struct FileListCellView: View {
                     }
                 }
             )
+            .contextMenu {
+                if viewModel.dashboardContents == .trashCan {
+                    DeleteModalView(content: file)
+                } else {
+                    ModifyModalView(content: file)
+                }
+            }
             if viewModel.isSelectionViewVisible {
                 HStack {
                     Spacer()

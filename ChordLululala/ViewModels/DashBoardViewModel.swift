@@ -12,6 +12,7 @@ enum DashboardContents {
     case allDocuments
     case songList
     case trashCan
+    case myPage
 }
 
 enum ToggleFilter: String, CaseIterable, Identifiable {
@@ -29,6 +30,8 @@ enum SortOption: String, CaseIterable, Identifiable {
 }
 
 final class DashBoardViewModel: ObservableObject {
+    // MARK: 가로/세로 모드 인식
+    @Published var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     
     // MARK: - 현재 폴더 위치 (도메인 모델 사용)
     @Published var currentParent: ContentModel? = nil
@@ -58,6 +61,8 @@ final class DashBoardViewModel: ObservableObject {
                 if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
+            case .myPage:
+                break
             }
             loadContents()
         }
@@ -67,15 +72,17 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 사이드바 관련
     
     // MARK: - 리스트/그리드 관련
-    @Published var isListView: Bool = true
+    @Published var isListView: Bool = false
     
     // MARK: - 파일/폴더 생성 버튼 관련
     @Published var isFloatingMenuVisible: Bool = false
+    @Published var isAlbumPickerVisible: Bool = false
     @Published var isPDFPickerVisible: Bool = false
     @Published var isCreateFolderModalVisible: Bool = false
     
     // MARK: - 편집&삭제 모달 관련
     @Published var isModifyModalVisible: Bool = false
+    @Published var isRenameModalVisible: Bool = false
     @Published var isDeletedModalVisible: Bool = false
     @Published var selectedContent: ContentModel? = nil
     @Published var cellFrame: CGRect = .zero
@@ -104,6 +111,8 @@ final class DashBoardViewModel: ObservableObject {
             if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                 currentParent = trashCanBase
             }
+        case .myPage:
+            break
         }
         loadContents()
     }
@@ -159,6 +168,8 @@ final class DashBoardViewModel: ObservableObject {
                 if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
+            case .myPage:
+                break
             }
         }
         loadContents()
@@ -260,6 +271,15 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.deleteContent(content)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func toggleContentStared(_ content: ContentModel) {
+        ContentManager.shared.toggleContentStared(content)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.loadContents()
+            }
             .store(in: &cancellables)
     }
 }
