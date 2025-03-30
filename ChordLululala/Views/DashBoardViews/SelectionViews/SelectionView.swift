@@ -14,10 +14,11 @@ struct SelectionView: View {
         VStack {
             HStack {
                 Button(action: {
+                    viewModel.selectedContents.append(contentsOf: viewModel.sortedContents)
                 }) {
                     Text("전체 선택")
-                        .font(.headline)
-                        .foregroundColor(.black)
+                        .textStyle(.headingMdSemiBold)
+                        .foregroundColor(Color.primaryGray900)
                 }
                 .padding([.top, .leading], 30)
                 Spacer()
@@ -25,32 +26,28 @@ struct SelectionView: View {
                     viewModel.isSelectionViewVisible = false
                 }) {
                     Text("완료")
-                        .font(.headline)
-                        .foregroundColor(.black)
+                        .textStyle(.headingMdSemiBold)
+                        .foregroundColor(Color.primaryGray900)
                 }
                 .padding([.top, .trailing], 30)
             }
             
-            HStack(spacing: 90) {
-                SelectionOptionButton(imageName: "paperplane.fill", title: "보내기", action: {
-                    viewModel.isSelectionViewVisible = false
-                })
-                SelectionOptionButton(imageName: "doc.on.doc", title: "복제", action: {
+            HStack(spacing: 63) {
+                SelectionOptionButton(imageName: "copy_context", title: "복제", action: {
                     viewModel.duplicateSelectedContents()
                     viewModel.isSelectionViewVisible = false
                 })
-                SelectionOptionButton(imageName: "arrow.turn.up.left", title: "이동", action: {
+                SelectionOptionButton(imageName: "move_context", title: "보내기", action: {
                     viewModel.isSelectionViewVisible = false
                 })
-                SelectionOptionButton(imageName: "trash.fill", title: "휴지통", action: {
+                SelectionOptionButton(imageName: "trash_context", title: "휴지통", action: {
                     viewModel.isTrashModalVisible = true
                 })
             }
-            
+            .padding(.top, -2)
             Spacer()
-            Divider()
         }
-        .frame(maxWidth: .infinity, maxHeight: 168)
+        .frame(maxWidth: .infinity, maxHeight: 151)
         .background(Color.white)
     }
 }

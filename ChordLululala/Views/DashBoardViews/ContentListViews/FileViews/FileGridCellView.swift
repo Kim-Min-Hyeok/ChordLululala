@@ -71,14 +71,6 @@ struct FileGridCellView: View {
         .onAppear {
             loadThumbnail()
         }
-        .background(
-            GeometryReader { geo in
-                Color.clear.onAppear {
-                    viewModel.cellFrame = geo.frame(in: .global)
-                }
-            }
-        )
-        
         .onTapGesture {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()

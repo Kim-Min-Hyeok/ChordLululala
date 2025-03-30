@@ -63,13 +63,6 @@ struct FolderListCellView: View {
                     viewModel.loadContents()
                 }
             }
-            .background(
-                GeometryReader { geo in
-                    Color.clear.onAppear {
-                        viewModel.cellFrame = geo.frame(in: .global)
-                    }
-                }
-            )
             .contextMenu {
                 if viewModel.dashboardContents == .trashCan {
                     DeleteModalView(content: folder)

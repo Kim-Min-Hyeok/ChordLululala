@@ -50,13 +50,6 @@ struct FolderGridCellView: View {
                 }
                 .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
             }
-            .background(
-                GeometryReader { geo in
-                    Color.clear.onAppear {
-                        viewModel.cellFrame = geo.frame(in: .global)
-                    }
-                }
-            )
             .onTapGesture {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
