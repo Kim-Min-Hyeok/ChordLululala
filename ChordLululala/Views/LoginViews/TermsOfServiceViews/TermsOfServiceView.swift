@@ -16,14 +16,14 @@ struct TermsOfServiceView: View {
             Text("Noteflow")
                 .font(.system(size: 37.06))
                 .fontWeight(.bold)
-                .foregroundStyle(.blue)
+                .foregroundStyle(Color.primaryBlue600)
             Text("안녕하세요.")
-                .font(.system(size: 24))
-                .fontWeight(.semibold)
+                .textStyle(.displayXLSemiBold)
+                .foregroundStyle(Color.primaryGray900)
                 .padding(.top, 13)
             Text("노트플로우 가입 및 이용을 위해 서비스 이용약관에 동의해주세요")
-                .font(.system(size: 17))
-                .fontWeight(.regular)
+                .textStyle(.headingLgMedium)
+                .foregroundStyle(Color.primaryGray600)
                 .padding(.top, 10)
             
             AgreeButton(isAgreed: Binding(
@@ -33,27 +33,29 @@ struct TermsOfServiceView: View {
                 }
             )) {
                 Text("전체 동의")
-                    .font(.headline)
+                    .textStyle(.headingLgSemiBold)
+                    .foregroundStyle(Color.primaryGray700)
             }
             .padding(.top, 62)
             
             Divider()
-                .frame(width: 265)
+                .frame(width: 235)
                 .padding(.top, 15)
+                .foregroundStyle(Color.primaryGray200)
             
             // 개별 동의 버튼들
             AgreeButton(isAgreed: $viewModel.isPrivacyAgreed) {
                 Link("(필수) 개인정보 수집 및 이용동의", destination: URL(string: "https://example.com/privacy")!)
-                    .font(.body)
-                    .foregroundColor(.black)
+                    .textStyle(.headingLgMedium)
+                    .foregroundColor(Color.primaryGray700)
                     .underline()
             }
             .padding(.top, 15)
 
             AgreeButton(isAgreed: $viewModel.isServiceAgreed) {
                 Link("(필수) 서비스 이용약관", destination: URL(string: "https://example.com/terms")!)
-                    .font(.body)
-                    .foregroundColor(.black)
+                    .textStyle(.headingLgMedium)
+                    .foregroundColor(Color.primaryGray700)
                     .underline()
             }
             .padding(.top, 12)
@@ -65,8 +67,8 @@ struct TermsOfServiceView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(viewModel.isAllAgreed ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
+                    .background(viewModel.isAllAgreed ? Color.primaryBlue600 : Color.primaryGray300)
+                    .foregroundColor(Color.primaryBaseWhite)
                     .cornerRadius(8)
             }
             .disabled(!viewModel.isAllAgreed)

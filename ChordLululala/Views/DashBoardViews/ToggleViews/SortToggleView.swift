@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SortToggleView: View {
     @Binding var selectedSort: SortOption
-    private let spacing: CGFloat = 11
+    private let spacing: CGFloat = 15
     
     var body: some View {
         HStack(spacing: spacing) {
@@ -18,8 +18,8 @@ struct SortToggleView: View {
                     selectedSort = option
                 }) {
                     Text(option.rawValue)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(option == selectedSort ? .black : .gray)
+                        .textStyle(.headingMdSemiBold)
+                        .foregroundColor(option == selectedSort ? Color.primaryGray900 : Color.primaryGray400)
                 }
             }
         }
