@@ -14,10 +14,10 @@ struct DeleteModalView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            Button {
+            Button(role: .destructive) {
                 viewModel.deleteContent(content)
             } label: {
-                Label("영구적으로 삭제", image: "trash_context")
+                Label("영구적으로 삭제", image: "trash_destructive_context")
             }
             // 하위 항목은 복구 위치가 없기 때문에 복구 불가
             if viewModel.currentParent?.parentContent == nil {

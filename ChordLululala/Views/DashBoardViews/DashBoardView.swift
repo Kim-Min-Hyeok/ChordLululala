@@ -33,23 +33,7 @@ struct DashboardView: View {
                             // MARK: 파일/폴더 생성/수정 메뉴 구현을 위한 ZStack
                             ZStack {
                                 VStack(alignment: .leading, spacing: 0) {
-                                    // TODO: 테스트용 이전 폴더 되돌아가기
                                     if !viewModel.isSelectionViewVisible {
-                                        if viewModel.currentParent != nil {
-                                            HStack {
-                                                Button(action: {
-                                                    viewModel.goBack()
-                                                }) {
-                                                    HStack {
-                                                        Image(systemName: "chevron.left")
-                                                        Text("상위 폴더")
-                                                    }
-                                                }
-                                                .padding()
-                                                Spacer()
-                                            }
-                                        }
-                                        
                                         // MARK: HEADER
                                         HeaderView()
                                             .environmentObject(viewModel)
@@ -70,29 +54,30 @@ struct DashboardView: View {
                                     ScrollView {
                                         ContentListView(isListView: viewModel.isListView)
                                     }
-                                    .padding(.top, 29)
+                                    .padding(.top, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 50 : 94) : (viewModel.isLandscape ? 29 : 72))
                                     Spacer()
                                 }
-                                .padding(.horizontal, 44)
-                                // MARK: 파일 생성 모달 뷰
-                                ZStack {
-                                    if viewModel.isFloatingMenuVisible {
-                                        Color.clear
-                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                            .contentShape(Rectangle())
-                                            .onTapGesture {
-                                                withAnimation {
-                                                    viewModel.isFloatingMenuVisible = false
+                                .padding(.horizontal, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 167 : 45) : 44)
+                                
+                                if viewModel.dashboardContents != .trashCan && !viewModel.isSelectionViewVisible {
+                                    // MARK: 파일 생성 모달 뷰
+                                    ZStack {
+                                        if viewModel.isFloatingMenuVisible {
+                                            Color.clear
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    withAnimation {
+                                                        viewModel.isFloatingMenuVisible = false
+                                                    }
                                                 }
-                                            }
-                                    }
-                                    
-                                    VStack {
-                                        Spacer()
-                                        HStack {
+                                        }
+                                        
+                                        VStack {
                                             Spacer()
-                                            ZStack(alignment: .bottomTrailing) {
-                                                if viewModel.dashboardContents != .trashCan {
+                                            HStack {
+                                                Spacer()
+                                                ZStack(alignment: .bottomTrailing) {
                                                     Button(action: {
                                                         withAnimation {
                                                             viewModel.isFloatingMenuVisible.toggle()
@@ -108,16 +93,16 @@ struct DashboardView: View {
                                                     .shadow(color: Color.black.opacity(0.40), radius: 30, x: 0, y: 0)
                                                     .padding(.trailing, 41)
                                                     .padding(.bottom, viewModel.isLandscape ? 7 : 25)
-                                                }
-                                                
-                                                if viewModel.isFloatingMenuVisible {
-                                                    VStack(spacing: 10) {
-                                                        FloatingMenuView(
-                                                        )
+                                                    
+                                                    if viewModel.isFloatingMenuVisible {
+                                                        VStack(spacing: 10) {
+                                                            FloatingMenuView(
+                                                            )
+                                                        }
+                                                        .padding(.trailing, 41)
+                                                        .padding(.bottom, viewModel.isLandscape ? 75 : 93)
+                                                        .transition(.opacity)
                                                     }
-                                                    .padding(.trailing, 41)
-                                                    .padding(.bottom, viewModel.isLandscape ? 75 : 93)
-                                                    .transition(.opacity)
                                                 }
                                             }
                                         }

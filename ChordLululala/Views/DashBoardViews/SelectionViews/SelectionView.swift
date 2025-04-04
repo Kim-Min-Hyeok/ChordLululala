@@ -37,7 +37,7 @@ struct SelectionView: View {
                     viewModel.duplicateSelectedContents()
                     viewModel.isSelectionViewVisible = false
                 })
-                SelectionOptionButton(imageName: "move_context", title: "보내기", action: {
+                SelectionOptionButton(imageName: "move_context", title: "이동", action: {
                     viewModel.isSelectionViewVisible = false
                 })
                 SelectionOptionButton(imageName: "trash_context", title: "휴지통", action: {

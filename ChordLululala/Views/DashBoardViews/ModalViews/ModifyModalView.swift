@@ -30,10 +30,10 @@ struct ModifyModalView: View {
             } label: {
                 Label("복제하기", image: "duplication_context")
             }
-            Button {
+            Button(role: .destructive) {
                 viewModel.moveContentToTrash(content)
             } label: {
-                Label("휴지통으로 이동", image: "trash_context")
+                Label("휴지통으로 이동", image: "trash_destructive_context")
             }
         }
     }

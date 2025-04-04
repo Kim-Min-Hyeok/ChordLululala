@@ -23,7 +23,7 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "최신순"
+    case date = "최근 수정순"
     case name = "이름순"
     
     var id: String { rawValue }
@@ -127,7 +127,7 @@ final class DashBoardViewModel: ObservableObject {
         
         switch selectedSort {
         case .date:
-            return filtered.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+            return filtered.sorted { $0.modifiedAt > $1.modifiedAt }
         case .name:
             return filtered.sorted { $0.name < $1.name }
         }
