@@ -10,8 +10,8 @@ import SwiftUI
 struct AllStarFilterToggleView: View {
     @Binding var selectedFilter: ToggleFilter
     
-    private let tabHeight: CGFloat = 28
-    private let buttonSpacing: CGFloat = 1.33
+    private let tabHeight: CGFloat = 24
+    private let buttonSpacing: CGFloat = 1
     
     var body: some View {
         HStack(spacing: 0) {
@@ -21,25 +21,27 @@ struct AllStarFilterToggleView: View {
                     selectedFilter = filter
                 }) {
                     Text(filter.rawValue)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.black)
+                        .textStyle(.bodyTextXLMedium)
+                        .foregroundColor(Color.primaryBaseBlack)
                         .frame(maxWidth: .infinity, minHeight: tabHeight)
                         .padding(.vertical, 2)
-                        .background(isSelected ? Color.white : Color.clear)
+                        .background(isSelected ? Color.primaryBaseWhite : Color.clear)
                         .cornerRadius(7)
                         .overlay(overlayView(isSelected: isSelected))
+                        .shadow(color: isSelected ? Color.black.opacity(10/255.0) : Color.clear, radius: 1, x: 0, y: 3)
+                        .shadow(color: isSelected ? Color.black.opacity(31/255.0) : Color.clear, radius: 8, x: 0, y: 3)
                 }
-                // 버튼 사이에만 캡슐 구분선 삽입
+                // 버튼 사이
                 if index < ToggleFilter.allCases.count - 1 {
                     Capsule()
-                        .fill(Color.gray)
+                        .fill(Color.primaryGray400)
                         .frame(width: 1, height: 12)
                         .padding(.horizontal, buttonSpacing)
                 }
             }
         }
         .padding(2)
-        .background(Color(uiColor: .systemGray6))
+        .background(Color.primaryGray200)
         .cornerRadius(9)
     }
     
@@ -47,7 +49,7 @@ struct AllStarFilterToggleView: View {
     private func overlayView(isSelected: Bool) -> some View {
         if isSelected {
             RoundedRectangle(cornerRadius: 7)
-                .stroke(Color.gray, lineWidth: 0.5)
+                .stroke(Color.primaryGray100, lineWidth: 0.5)
         } else {
             EmptyView()
         }

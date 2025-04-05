@@ -267,9 +267,9 @@ struct ContentManager {
                                                       path: newRelativePath,
                                                       type: .folder,
                                                       parentContent: targetParent,
-                                                      createdAt: Date(),
-                                                      modifiedAt: Date(),
-                                                      lastAccessedAt: Date(),
+                                                      createdAt: model.modifiedAt,
+                                                      modifiedAt: model.modifiedAt,
+                                                      lastAccessedAt: model.modifiedAt,
                                                       deletedAt: nil,
                                                       originalParentId: targetParent,
                                                       syncStatus: false,
@@ -305,9 +305,9 @@ struct ContentManager {
                                                     path: newRelativePath,
                                                     type: model.type,
                                                     parentContent: newParent ?? model.parentContent,
-                                                    createdAt: Date(),
-                                                    modifiedAt: Date(),
-                                                    lastAccessedAt: Date(),
+                                                    createdAt: model.modifiedAt,
+                                                    modifiedAt: model.modifiedAt,
+                                                    lastAccessedAt: model.modifiedAt,
                                                     deletedAt: nil,
                                                     originalParentId: newParent ?? model.parentContent,
                                                     syncStatus: false,
@@ -343,6 +343,14 @@ struct ContentManager {
             }
             // CoreData에서 삭제 (Cascade Delete가 설정되어 있으므로 자식은 자동 삭제)
             ContentCoreDataManager.shared.deleteContent(model: content)
+            promise(.success(()))
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    func toggleContentStared(_ content: ContentModel) -> AnyPublisher<Void, Never> {
+        Future<Void, Never> { promise in
+            ContentCoreDataManager.shared.toggleContentStared(model: content)
             promise(.success(()))
         }
         .eraseToAnyPublisher()
