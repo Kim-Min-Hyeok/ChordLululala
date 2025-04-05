@@ -12,6 +12,7 @@ enum DashboardContents {
     case allDocuments
     case songList
     case trashCan
+    case myPage
 }
 
 enum ToggleFilter: String, CaseIterable, Identifiable {
@@ -22,13 +23,15 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "날짜순"
+    case date = "최신순"
     case name = "이름순"
     
     var id: String { rawValue }
 }
 
 final class DashBoardViewModel: ObservableObject {
+    // MARK: 가로/세로 모드 인식
+    @Published var isLandscape: Bool = UIDevice.current.orientation.isLandscape
     
     // MARK: - 현재 폴더 위치 (도메인 모델 사용)
     @Published var currentParent: ContentModel? = nil
@@ -58,6 +61,8 @@ final class DashBoardViewModel: ObservableObject {
                 if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
+            case .myPage:
+                break
             }
             loadContents()
         }
@@ -67,15 +72,17 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 사이드바 관련
     
     // MARK: - 리스트/그리드 관련
-    @Published var isListView: Bool = true
+    @Published var isListView: Bool = false
     
     // MARK: - 파일/폴더 생성 버튼 관련
     @Published var isFloatingMenuVisible: Bool = false
+    @Published var isAlbumPickerVisible: Bool = false
     @Published var isPDFPickerVisible: Bool = false
     @Published var isCreateFolderModalVisible: Bool = false
     
     // MARK: - 편집&삭제 모달 관련
     @Published var isModifyModalVisible: Bool = false
+    @Published var isRenameModalVisible: Bool = false
     @Published var isDeletedModalVisible: Bool = false
     @Published var selectedContent: ContentModel? = nil
     @Published var cellFrame: CGRect = .zero
@@ -104,28 +111,28 @@ final class DashBoardViewModel: ObservableObject {
             if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                 currentParent = trashCanBase
             }
+        case .myPage:
+            break
         }
         loadContents()
     }
     
     // MARK: - 폴더 및 파일 정렬
-    var sortedFolders: [ContentModel] {
-        let folders = contents.filter { $0.type == .folder }
-        switch selectedSort {
-        case .date:
-            return folders.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
-        case .name:
-            return folders.sorted { $0.name < $1.name }
+    var sortedContents: [ContentModel] {
+        let filtered = contents.filter { content in
+            switch currentFilter {
+            case .all:
+                return true
+            case .star:
+                return content.isStared
+            }
         }
-    }
-    
-    var sortedFiles: [ContentModel] {
-        let files = contents.filter { $0.type != .folder }
+        
         switch selectedSort {
         case .date:
-            return files.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+            return filtered.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
         case .name:
-            return files.sorted { $0.name < $1.name }
+            return filtered.sorted { $0.name < $1.name }
         }
     }
     
@@ -136,8 +143,12 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func goBack() {
-        guard let current = currentParent, let parent = current.parentContent else {
+        guard let current = currentParent else {
             print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
+            return
+        }
+        guard let parent = current.parentContent else {
+            print("현재 폴더 \(current.name)에는 부모 폴더가 없습니다. 뒤로 갈 수 없습니다.")
             return
         }
         if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
@@ -157,6 +168,8 @@ final class DashBoardViewModel: ObservableObject {
                 if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
+            case .myPage:
+                break
             }
         }
         loadContents()
@@ -166,13 +179,17 @@ final class DashBoardViewModel: ObservableObject {
     
     func loadContents() {
         guard let parent = currentParent else { return }
+        
+        print("🔍 Loading contents - Parent: \(parent), Dashboard: \(dashboardContents)")
+        
         ContentManager.shared.loadContentModels(forParent: parent, dashboardContents: dashboardContents)
             .receive(on: DispatchQueue.main)
             .sink(receiveCompletion: { completion in
                 if case let .failure(error) = completion {
-                    print("Error loading contents: \(error)")
+                    print("❌ Error loading contents: \(error)")
                 }
             }, receiveValue: { [weak self] models in
+                print("✅ Loaded contents: \(models.count)")
                 self?.contents = models
             })
             .store(in: &cancellables)
@@ -254,6 +271,15 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.deleteContent(content)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func toggleContentStared(_ content: ContentModel) {
+        ContentManager.shared.toggleContentStared(content)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.loadContents()
+            }
             .store(in: &cancellables)
     }
 }

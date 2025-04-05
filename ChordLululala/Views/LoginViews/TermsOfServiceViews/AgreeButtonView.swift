@@ -22,7 +22,7 @@ struct AgreeButton<Content: View>: View {
                 Image(systemName: "checkmark.square.fill")
                     .resizable()
                     .frame(width: 26, height: 26)
-                    .foregroundColor(isAgreed ? .blue : .gray)
+                    .foregroundColor(isAgreed ? Color.primaryBlue600 : Color.primaryGray300)
             }
             .frame(width: 36, height: 36) // 탭 영역 설정
             .contentShape(Rectangle())   // 전체 영역이 탭 가능하도록
