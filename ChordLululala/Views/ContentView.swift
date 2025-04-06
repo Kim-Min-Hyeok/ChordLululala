@@ -27,7 +27,13 @@ struct ContentView: View {
                     case "/termsofservice":
                         TermsOfServiceView()
                     case "/score":
-                        ScoreView()
+                        if let content = route.arguments as? [ContentModel],
+                           let first = content.first{
+                                ScoreView(content: first)
+                            } else {
+                                Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                            }
+                        
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }
