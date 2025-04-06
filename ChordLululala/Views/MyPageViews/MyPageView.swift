@@ -34,66 +34,87 @@ struct MyPageView: View {
                     .frame(height : 22.4)
             }.padding(.bottom, 57)
             
-            // 백업하기 / 불러오기 버튼
-            HStack(spacing: 16) {
-                Button(action: {}) {
-                    HStack {
-                        Image(systemName: "arrow.clockwise")
-                        Text("백업하기")
+            VStack(spacing : 20){
+                // 백업하기 / 불러오기 버튼
+                HStack(spacing: 20) {
+                    Button(action: {}) {
+                        HStack(spacing : 8) {
+                            Image("backup_button")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 28, height: 28)
+                            Text("백업하기")
+                                .textStyle(.headingMdSemiBold)
+                                .foregroundColor(Color.primaryGray800)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 54) // 여기서 높이 지정!
+                        .background(Color.primaryBaseWhite)
+                        .cornerRadius(200)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 200)
+                                .stroke(Color.primaryGray200, lineWidth: 1)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(8)
-                }
+                    .frame(width: 361) // height는 안 줘도 내부에서 고정됨
+                    
+                    Button(action: {}) {
+                        HStack(spacing : 8) {
+                            Image("load_button")
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 28, height: 28)
+                            Text("불러오기")
+                                .textStyle(.headingMdSemiBold)
+                                .foregroundColor(Color.primaryGray800)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 54) // 여기서 높이 지정!
+                        .background(Color.primaryBaseWhite)
+                        .cornerRadius(200)
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 200)
+                                .stroke(Color.primaryGray200, lineWidth: 1)
+                        }
+                    }
+                    .frame(width: 361) // height는 안 줘도 내부에서 고정됨
+                }.padding(.horizontal, 46)
                 
-                Button(action: {}) {
+                // 목록: 휴지통, 언어 설정
+                VStack(spacing: 1) {
                     HStack {
-                        Image(systemName: "arrow.down.to.line.alt")
-                        Text("불러오기")
+                        Image(systemName: "trash")
+                            .foregroundColor(.gray)
+                        Text("휴지통")
+                            .font(.custom("Pretendard-Regular", size: 16))
+                        Spacer()
+                        Text("3개")
+                            .foregroundColor(.gray)
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.gray)
                     }
-                    .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(8)
+                    .background(Color.white)
+                    
+                    Divider()
+                    
+                    HStack {
+                        Image(systemName: "globe")
+                            .foregroundColor(.gray)
+                        Text("언어 설정")
+                            .font(.custom("Pretendard-Regular", size: 16))
+                        Spacer()
+                        Text("한국어")
+                            .foregroundColor(.gray)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color.white)
                 }
+                .background(Color(UIColor.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
             }
             
-            // 목록: 휴지통, 언어 설정
-            VStack(spacing: 1) {
-                HStack {
-                    Image(systemName: "trash")
-                        .foregroundColor(.gray)
-                    Text("휴지통")
-                        .font(.custom("Pretendard-Regular", size: 16))
-                    Spacer()
-                    Text("3개")
-                        .foregroundColor(.gray)
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color.white)
-                
-                Divider()
-                
-                HStack {
-                    Image(systemName: "globe")
-                        .foregroundColor(.gray)
-                    Text("언어 설정")
-                        .font(.custom("Pretendard-Regular", size: 16))
-                    Spacer()
-                    Text("한국어")
-                        .foregroundColor(.gray)
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color.white)
-            }
-            .background(Color(UIColor.systemGray6))
-            .cornerRadius(10)
-            .padding(.horizontal)
             
             Spacer()
             
@@ -152,7 +173,7 @@ struct MyPageView: View {
             .background(Color.white)
             .shadow(color: .gray.opacity(0.1), radius: 2, y: -2)
         }
-        .background(Color(UIColor.systemGray6))
+        .background(Color.primaryGray50)
         .edgesIgnoringSafeArea(.bottom)
     }
 }
