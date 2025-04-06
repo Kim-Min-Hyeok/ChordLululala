@@ -12,7 +12,7 @@ struct MyPageView: View {
     var body: some View {
         VStack(spacing : 0) {
             Spacer().frame(height: 95)
-
+            
             // 프로필 이미지
             Image(systemName: "person.crop.circle.fill") // 임시 시스템 이미지
                 .resizable()
@@ -20,18 +20,20 @@ struct MyPageView: View {
                 .frame(width: 76, height: 76)
                 .clipShape(Circle())
                 .foregroundColor(.gray)
-
+                .padding(.bottom, 15)
+            
             // 이름 + 이메일
-            VStack() {
+            VStack(spacing : 0) {
                 Text("김영채")
-                    .font(.custom("Pretendard-SemiBold", size: 18))
-                    .foregroundColor(.black)
-                    .padding(.top, 15)
-                Text("kycskekfk@handong.ac.kr")
-                    .font(.custom("Pretendard-Medium", size: 16))
-                    .foregroundColor(.gray)
-            }
-
+                    .textStyle(.headingXLSemiBold)
+                    .foregroundColor(Color.primaryGray900)
+                    .frame(height : 25.2)
+                Text(verbatim: "kycskekfk@handong.ac.kr")
+                    .textStyle(.headingMdMedium)
+                    .foregroundColor(Color.primaryGray500)
+                    .frame(height : 22.4)
+            }.padding(.bottom, 57)
+            
             // 백업하기 / 불러오기 버튼
             HStack(spacing: 16) {
                 Button(action: {}) {
@@ -44,7 +46,7 @@ struct MyPageView: View {
                     .background(Color(UIColor.systemGray6))
                     .cornerRadius(8)
                 }
-
+                
                 Button(action: {}) {
                     HStack {
                         Image(systemName: "arrow.down.to.line.alt")
@@ -56,8 +58,7 @@ struct MyPageView: View {
                     .cornerRadius(8)
                 }
             }
-            .padding(.horizontal)
-
+            
             // 목록: 휴지통, 언어 설정
             VStack(spacing: 1) {
                 HStack {
@@ -73,9 +74,9 @@ struct MyPageView: View {
                 }
                 .padding()
                 .background(Color.white)
-
+                
                 Divider()
-
+                
                 HStack {
                     Image(systemName: "globe")
                         .foregroundColor(.gray)
@@ -93,9 +94,9 @@ struct MyPageView: View {
             .background(Color(UIColor.systemGray6))
             .cornerRadius(10)
             .padding(.horizontal)
-
+            
             Spacer()
-
+            
             // 로그아웃 / 회원탈퇴 버튼
             HStack(spacing: 16) {
                 Button("로그아웃") {}
@@ -104,7 +105,7 @@ struct MyPageView: View {
                     .padding(.vertical, 6)
                     .background(Color(UIColor.systemGray5))
                     .cornerRadius(6)
-
+                
                 Button("회원탈퇴") {}
                     .font(.custom("Pretendard-Regular", size: 14))
                     .foregroundColor(.gray)
@@ -113,7 +114,7 @@ struct MyPageView: View {
                     .background(Color(UIColor.systemGray5))
                     .cornerRadius(6)
             }
-
+            
             // 약관 링크
             VStack(spacing: 4) {
                 Text("개인정보 처리방침")
@@ -125,9 +126,9 @@ struct MyPageView: View {
                     .font(.custom("Pretendard-Regular", size: 12))
                     .foregroundColor(.gray)
             }
-
+            
             Spacer().frame(height: 16)
-
+            
             // 탭바 자리
             HStack {
                 Spacer()
