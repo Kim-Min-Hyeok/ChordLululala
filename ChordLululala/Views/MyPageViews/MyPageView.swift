@@ -3,17 +3,159 @@
 //  ChordLululala
 //
 //  Created by Minhyeok Kim on 3/29/25.
+//  Updated by GiYoung Kim on 4/6/25.
 //
 
 import SwiftUI
 
 struct MyPageView: View {
-    @StateObject private var viewModel = MyPageViewModel()
-    
     var body: some View {
-        VStack {
-            Text("마이페이지")
+        VStack(spacing : 0) {
+            Spacer().frame(height: 95)
+
+            // 프로필 이미지
+            Image(systemName: "person.crop.circle.fill") // 임시 시스템 이미지
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 76, height: 76)
+                .clipShape(Circle())
+                .foregroundColor(.gray)
+
+            // 이름 + 이메일
+            VStack() {
+                Text("김영채")
+                    .font(.custom("Pretendard-SemiBold", size: 18))
+                    .foregroundColor(.black)
+                    .padding(.top, 15)
+                Text("kycskekfk@handong.ac.kr")
+                    .font(.custom("Pretendard-Medium", size: 16))
+                    .foregroundColor(.gray)
+            }
+
+            // 백업하기 / 불러오기 버튼
+            HStack(spacing: 16) {
+                Button(action: {}) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("백업하기")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
+                }
+
+                Button(action: {}) {
+                    HStack {
+                        Image(systemName: "arrow.down.to.line.alt")
+                        Text("불러오기")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(UIColor.systemGray6))
+                    .cornerRadius(8)
+                }
+            }
+            .padding(.horizontal)
+
+            // 목록: 휴지통, 언어 설정
+            VStack(spacing: 1) {
+                HStack {
+                    Image(systemName: "trash")
+                        .foregroundColor(.gray)
+                    Text("휴지통")
+                        .font(.custom("Pretendard-Regular", size: 16))
+                    Spacer()
+                    Text("3개")
+                        .foregroundColor(.gray)
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
+
+                Divider()
+
+                HStack {
+                    Image(systemName: "globe")
+                        .foregroundColor(.gray)
+                    Text("언어 설정")
+                        .font(.custom("Pretendard-Regular", size: 16))
+                    Spacer()
+                    Text("한국어")
+                        .foregroundColor(.gray)
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
+            }
+            .background(Color(UIColor.systemGray6))
+            .cornerRadius(10)
+            .padding(.horizontal)
+
+            Spacer()
+
+            // 로그아웃 / 회원탈퇴 버튼
+            HStack(spacing: 16) {
+                Button("로그아웃") {}
+                    .font(.custom("Pretendard-Regular", size: 14))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(UIColor.systemGray5))
+                    .cornerRadius(6)
+
+                Button("회원탈퇴") {}
+                    .font(.custom("Pretendard-Regular", size: 14))
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(UIColor.systemGray5))
+                    .cornerRadius(6)
+            }
+
+            // 약관 링크
+            VStack(spacing: 4) {
+                Text("개인정보 처리방침")
+                    .underline()
+                    .font(.custom("Pretendard-Regular", size: 12))
+                    .foregroundColor(.gray)
+                Text("서비스 이용약관")
+                    .underline()
+                    .font(.custom("Pretendard-Regular", size: 12))
+                    .foregroundColor(.gray)
+            }
+
+            Spacer().frame(height: 16)
+
+            // 탭바 자리
+            HStack {
+                Spacer()
+                VStack {
+                    Image(systemName: "text.justify")
+                    Text("악보").font(.caption)
+                }
+                Spacer()
+                VStack {
+                    Image(systemName: "list.bullet.rectangle")
+                    Text("셋리스트").font(.caption)
+                }
+                Spacer()
+                VStack {
+                    Image(systemName: "person.crop.circle")
+                    Text("내 계정").font(.caption)
+                }
+                Spacer()
+            }
+            .padding()
+            .background(Color.white)
+            .shadow(color: .gray.opacity(0.1), radius: 2, y: -2)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemGray6))
+        .edgesIgnoringSafeArea(.bottom)
     }
+}
+
+#Preview {
+    MyPageView()
 }
