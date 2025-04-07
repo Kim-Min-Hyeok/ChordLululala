@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct MyPageView: View {
+    @StateObject private var myPageViewModel = MyPageViewModel()
+    
     var body: some View {
         VStack(spacing : 0) {
             Spacer().frame(height: 95)
@@ -104,52 +106,80 @@ struct MyPageView: View {
                 .cornerRadius(5)
                 
                 HStack {
-                    Image(systemName: "globe")
+                    Image("language_setting_button")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 28, height: 28)
+                        .padding(.leading, 24)
+                        .padding(.vertical, 13)
                         .foregroundColor(.gray)
                     Text("언어 설정")
+                        .textStyle(.headingMdSemiBold)
                         .font(.custom("Pretendard-Regular", size: 16))
                     Spacer()
-                    Text("한국어")
-                        .foregroundColor(.gray)
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
+                    
+//                    Menu {
+//                        ForEach(myPageViewModel.availableLanguages, id: \.self){ language in
+//                            Button(action: {
+//                                myPageViewModel.selectedLanguage(language)
+//                            }){
+//                                Label(language, systemImage: myPageViewModel.selectedLanguage == language ? "checkmark" : "")
+//                            }
+//                        }
+//                    } label: {
+                        HStack {
+                            Text(myPageViewModel.selectedLanguage)
+                                .foregroundColor(.gray)
+                            Image(systemName: "chevron.down")
+                                .foregroundStyle(.gray)
+                        }
+//                    }
                 }
-                .padding()
-                .background(Color.white)
+                .background(Color.primaryBaseWhite)
+                .padding(.horizontal, 46)
+                .cornerRadius(5)
             }
             
             
             Spacer()
             
             // 로그아웃 / 회원탈퇴 버튼
-            HStack(spacing: 16) {
-                Button("로그아웃") {}
-                    .font(.custom("Pretendard-Regular", size: 14))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(UIColor.systemGray5))
-                    .cornerRadius(6)
+            HStack(spacing: 12) {
+                Button(action:{}) {
+                    Text("로그아웃")
+                        .font(.bodyTextXLRegular)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .foregroundColor(.primaryGray700)
+                }
+                .background(Color.primaryGray200)
+                .cornerRadius(5)
+                    
                 
-                Button("회원탈퇴") {}
-                    .font(.custom("Pretendard-Regular", size: 14))
-                    .foregroundColor(.gray)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(UIColor.systemGray5))
-                    .cornerRadius(6)
+                Button(action:{}) {
+                    Text("회원탈퇴")
+                        .font(.bodyTextXLRegular)
+                        .foregroundColor(.primaryGray400)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                }
+                .background(Color.primaryGray100)
+                .cornerRadius(5)
             }
+            .padding(.bottom, 21)
             
             // 약관 링크
             VStack(spacing: 4) {
                 Text("개인정보 처리방침")
                     .underline()
-                    .font(.custom("Pretendard-Regular", size: 12))
-                    .foregroundColor(.gray)
+                    .font(.custom("Pretendard-Regular", size: 12)
+                    .foregroundColor(.primaryGray900)
                 Text("서비스 이용약관")
                     .underline()
                     .font(.custom("Pretendard-Regular", size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.primaryGray900)
             }
+            
             
             Spacer().frame(height: 16)
             
