@@ -172,39 +172,14 @@ struct MyPageView: View {
             VStack(spacing: 4) {
                 Text("개인정보 처리방침")
                     .underline()
-                    .font(.custom("Pretendard-Regular", size: 12)
+                    .font(.custom("Pretendard-Regular", size: 12))
                     .foregroundColor(.primaryGray900)
                 Text("서비스 이용약관")
                     .underline()
                     .font(.custom("Pretendard-Regular", size: 12))
                     .foregroundColor(.primaryGray900)
             }
-            
-            
-            Spacer().frame(height: 16)
-            
-            // 탭바 자리
-            HStack {
-                Spacer()
-                VStack {
-                    Image(systemName: "text.justify")
-                    Text("악보").font(.caption)
-                }
-                Spacer()
-                VStack {
-                    Image(systemName: "list.bullet.rectangle")
-                    Text("셋리스트").font(.caption)
-                }
-                Spacer()
-                VStack {
-                    Image(systemName: "person.crop.circle")
-                    Text("내 계정").font(.caption)
-                }
-                Spacer()
-            }
-            .padding()
-            .background(Color.white)
-            .shadow(color: .gray.opacity(0.1), radius: 2, y: -2)
+            .padding(.bottom, 91)
         }
         .background(Color.primaryGray50)
         .edgesIgnoringSafeArea(.bottom)
