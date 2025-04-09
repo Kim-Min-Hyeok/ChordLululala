@@ -94,12 +94,12 @@ struct MyPageView: View {
                     Text("휴지통")
                         .textStyle(.headingMdSemiBold)
                         .foregroundStyle(Color.primaryGray900)
-//                        .padding(.leading, 8)
                     Spacer()
                     Text("3개")
                         .foregroundColor(.gray)
                     Image(systemName: "chevron.right")
                         .foregroundColor(.gray)
+                        .padding(.trailing, 18)
                 }
                 .background(Color.primaryBaseWhite)
                 .padding(.horizontal, 46)
@@ -133,7 +133,9 @@ struct MyPageView: View {
                             Image(systemName: "chevron.down")
                                 .foregroundStyle(.gray)
                         }
+                        .padding(.trailing, 18)
 //                    }
+                        
                 }
                 .background(Color.primaryBaseWhite)
                 .padding(.horizontal, 46)
