@@ -102,8 +102,8 @@ struct MyPageView: View {
                         .padding(.trailing, 18)
                 }
                 .background(Color.primaryBaseWhite)
-                .padding(.horizontal, 46)
                 .cornerRadius(5)
+                .frame(width: 742)
                 
                 HStack {
                     Image("language_setting_button")
@@ -138,8 +138,8 @@ struct MyPageView: View {
                         
                 }
                 .background(Color.primaryBaseWhite)
-                .padding(.horizontal, 46)
                 .cornerRadius(5)
+                .frame(width: 742)
             }
             
             
