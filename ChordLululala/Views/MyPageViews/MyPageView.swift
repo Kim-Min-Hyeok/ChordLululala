@@ -78,41 +78,44 @@ struct MyPageView: View {
                     .frame(width: 361) // height는 안 줘도 내부에서 고정됨
                 }.padding(.horizontal, 46)
                 
-                // 목록: 휴지통, 언어 설정
-                VStack(spacing: 1) {
-                    HStack {
-                        Image(systemName: "trash")
-                            .foregroundColor(.gray)
-                        Text("휴지통")
-                            .font(.custom("Pretendard-Regular", size: 16))
-                        Spacer()
-                        Text("3개")
-                            .foregroundColor(.gray)
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                    .background(Color.white)
-                    
-                    Divider()
-                    
-                    HStack {
-                        Image(systemName: "globe")
-                            .foregroundColor(.gray)
-                        Text("언어 설정")
-                            .font(.custom("Pretendard-Regular", size: 16))
-                        Spacer()
-                        Text("한국어")
-                            .foregroundColor(.gray)
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                    .background(Color.white)
+                // 목록: 휴지통
+                Button(action: {}){
+//                    HStack(spacing : 0){
+//                        
+//                    }
+                    Image("trashcan_button")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 28, height: 28)
+                        .padding(.leading, 24)
+                        .padding(.vertical, 13)
+                    Text("휴지통")
+                        .textStyle(.headingMdSemiBold)
+                        .foregroundStyle(Color.primaryGray900)
+//                        .padding(.leading, 8)
+                    Spacer()
+                    Text("3개")
+                        .foregroundColor(.gray)
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(.gray)
                 }
-                .background(Color(UIColor.systemGray6))
-                .cornerRadius(10)
-                .padding(.horizontal)
+                .background(Color.primaryBaseWhite)
+                .padding(.horizontal, 46)
+                .cornerRadius(5)
+                
+                HStack {
+                    Image(systemName: "globe")
+                        .foregroundColor(.gray)
+                    Text("언어 설정")
+                        .font(.custom("Pretendard-Regular", size: 16))
+                    Spacer()
+                    Text("한국어")
+                        .foregroundColor(.gray)
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
             }
             
             
