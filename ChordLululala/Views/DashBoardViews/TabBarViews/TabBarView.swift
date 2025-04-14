@@ -30,7 +30,8 @@ struct TabBarView: View {
             }, isSelected: selected == .trashCan)
             
             TabBarButtonView(imageName: "mypage", title: "마이페이지", action: {
-                
+                selected = .myPage
+                onSelect(selected)
             }, isSelected: false)
         }
         .frame(maxWidth: .infinity, maxHeight: 110)

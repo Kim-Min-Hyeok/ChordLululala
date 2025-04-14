@@ -18,6 +18,15 @@ struct FolderListCellView: View {
     var body: some View {
         ZStack {
             HStack(alignment: .top, spacing: 18) {
+                if viewModel.isSelectionViewVisible {
+                    HStack {
+                        Image(isSelected ? "selected" : "not_selected")
+                            .resizable()
+                            .frame(width: 25.41, height: 25.41)
+                            .padding(.bottom, 1.59)
+                    }
+                    .frame(maxHeight: .infinity)
+                }
                 VStack {
                     Image("folder")
                         .resizable()
@@ -47,6 +56,7 @@ struct FolderListCellView: View {
                                     .frame(width: 36, height: 36)
                             }
                             .padding(.top, 11)
+                            .disabled(viewModel.isSelectionViewVisible)
                         }
                     }
                     Divider()
@@ -55,6 +65,7 @@ struct FolderListCellView: View {
                 }
             }
             .frame(height: 61)
+            .padding(.bottom, 11)
             .onTapGesture {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
@@ -63,35 +74,14 @@ struct FolderListCellView: View {
                     viewModel.loadContents()
                 }
             }
-            .background(
-                GeometryReader { geo in
-                    Color.clear.onAppear {
-                        viewModel.cellFrame = geo.frame(in: .global)
-                    }
-                }
-            )
-            .contextMenu {
+            .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
                 if viewModel.dashboardContents == .trashCan {
                     DeleteModalView(content: folder)
                 } else {
                     ModifyModalView(content: folder)
                 }
             }
-            if viewModel.isSelectionViewVisible {
-                HStack {
-                    Spacer()
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                        .frame(width: 24, height: 24)
-                        .padding(.trailing, 9)
-                }
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    toggleSelection()
-                }
-            }
         }
-        .padding(.bottom, 11)
     }
     
     private func toggleSelection() {

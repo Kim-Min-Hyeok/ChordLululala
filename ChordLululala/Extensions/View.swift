@@ -14,4 +14,16 @@ extension View {
     func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
+    
+    @ViewBuilder
+    func conditionalContextMenu<Content: View>(
+        isEnabled: Bool,
+        @ViewBuilder menuItems: () -> Content
+    ) -> some View {
+        if isEnabled {
+            self.contextMenu(menuItems: menuItems)
+        } else {
+            self
+        }
+    }
 }

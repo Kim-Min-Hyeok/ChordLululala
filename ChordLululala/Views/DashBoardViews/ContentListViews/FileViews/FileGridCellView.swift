@@ -20,6 +20,13 @@ struct FileGridCellView: View {
     
     var body: some View {
         VStack(spacing: 6) {
+            // 선택 모드 오버레이: 체크 아이콘
+            if viewModel.isSelectionViewVisible {
+                Image(isSelected ? "selected" : "not_selected")
+                    .resizable()
+                    .frame(width: 25.41, height: 25.41)
+                    .padding(.bottom, 6)
+            }
             // 이미지 영역
             ZStack(alignment: .bottomLeading) {
                 Group {
@@ -40,17 +47,16 @@ struct FileGridCellView: View {
                             )
                     }
                 }
-                if !viewModel.isSelectionViewVisible {
-                    Button(action: {
-                        viewModel.toggleContentStared(file)
-                    }) {
-                        Image(file.isStared ? "star_fill" : "star")
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .padding(.bottom, 3)
-                            .padding(.leading, 3)
-                    }
+                Button(action: {
+                    viewModel.toggleContentStared(file)
+                }) {
+                    Image(file.isStared ? "star_fill" : "star")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .padding(.bottom, 3)
+                        .padding(.leading, 3)
                 }
+                .disabled(viewModel.isSelectionViewVisible)
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
             .cornerRadius(6)
@@ -71,14 +77,6 @@ struct FileGridCellView: View {
         .onAppear {
             loadThumbnail()
         }
-        .background(
-            GeometryReader { geo in
-                Color.clear.onAppear {
-                    viewModel.cellFrame = geo.frame(in: .global)
-                }
-            }
-        )
-        
         .onTapGesture {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
@@ -87,31 +85,11 @@ struct FileGridCellView: View {
                 router.toNamed("/score", arguments: [file])
             }
         }
-        .contextMenu {
+        .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
             if viewModel.dashboardContents == .trashCan {
                 DeleteModalView(content: file)
             } else {
                 ModifyModalView(content: file)
-            }
-        }
-        
-        
-        // 선택 모드 오버레이: 체크 아이콘
-        if viewModel.isSelectionViewVisible {
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                        .frame(width: 24, height: 24)
-                        .padding(.trailing, 9)
-                }
-                .padding(.bottom, 10)
-            }
-            .contentShape(Rectangle())
-            .onTapGesture {
-                toggleSelection()
             }
         }
     }
