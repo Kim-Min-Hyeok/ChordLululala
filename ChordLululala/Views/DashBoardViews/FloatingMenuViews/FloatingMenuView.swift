@@ -12,32 +12,34 @@ struct FloatingMenuView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            FloatingMenuButton(icon: "album", title: "사진에서 불러오기", action: {
+            FloatingMenuButton(icon: "album", title: "이미지 업로드", action: {
                 withAnimation {
                     viewModel.isFloatingMenuVisible.toggle()
                     viewModel.isAlbumPickerVisible = true
                 }
             })
             Divider()
-            FloatingMenuButton(icon: "upload", title: "파일에서 불러오기", action: {
+            FloatingMenuButton(icon: "upload", title: "파일 업로드", action: {
                 withAnimation {
                     viewModel.isFloatingMenuVisible.toggle()
                     viewModel.isPDFPickerVisible = true
                 }
             })
-            Divider()
-                .frame(height: 0.32)
-                .foregroundStyle(Color.primaryGray300)
-            FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
-                withAnimation {
-                    viewModel.isFloatingMenuVisible.toggle()
-                    viewModel.isCreateFolderModalVisible = true
-                }
-            })
+            if viewModel.currentParent?.parentContent == nil {
+                Divider()
+                    .frame(height: 0.32)
+                    .foregroundStyle(Color.primaryGray300)
+                FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
+                    withAnimation {
+                        viewModel.isFloatingMenuVisible.toggle()
+                        viewModel.isCreateFolderModalVisible = true
+                    }
+                })
+            }
         }
         .background(Color.primaryBaseWhite)
         .cornerRadius(13)
-        .frame(width: 210, height: 107)
+        .frame(width: 210)
     }
 }
 

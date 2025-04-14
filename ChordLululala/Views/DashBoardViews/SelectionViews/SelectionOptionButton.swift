@@ -16,16 +16,15 @@ struct SelectionOptionButton: View {
         Button(action: {
             action?()
         }) {
-            VStack(spacing: 10) {
-                Image(systemName: imageName)
+            VStack(spacing: 3) {
+                Image(imageName)
                     .resizable()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 39, height: 39)
                     .foregroundColor(.black)
                 Text(title)
-                    .font(.subheadline)
-                    .foregroundColor(.black)
+                    .textStyle(.headingSmMedium)
+                    .foregroundColor(title == "휴지통" ? Color.supportingRed500 : Color.primaryGray900)
             }
-            .padding()
         }
     }
 }

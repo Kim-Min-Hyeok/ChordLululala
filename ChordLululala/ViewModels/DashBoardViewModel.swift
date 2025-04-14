@@ -23,7 +23,7 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "최신순"
+    case date = "최근 수정순"
     case name = "이름순"
     
     var id: String { rawValue }
@@ -81,11 +81,8 @@ final class DashBoardViewModel: ObservableObject {
     @Published var isCreateFolderModalVisible: Bool = false
     
     // MARK: - 편집&삭제 모달 관련
-    @Published var isModifyModalVisible: Bool = false
     @Published var isRenameModalVisible: Bool = false
-    @Published var isDeletedModalVisible: Bool = false
     @Published var selectedContent: ContentModel? = nil
-    @Published var cellFrame: CGRect = .zero
     
     // MARK: - 선택모드 관련
     @Published var isSelectionViewVisible: Bool = false
@@ -130,7 +127,7 @@ final class DashBoardViewModel: ObservableObject {
         
         switch selectedSort {
         case .date:
-            return filtered.sorted { $0.lastAccessedAt < $1.lastAccessedAt }
+            return filtered.sorted { $0.modifiedAt > $1.modifiedAt }
         case .name:
             return filtered.sorted { $0.name < $1.name }
         }
@@ -271,6 +268,19 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.deleteContent(content)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func deleteAllContents() {
+        let publishers = sortedContents.map { content in
+            ContentManager.shared.deleteContent(content)
+        }
+        Publishers.MergeMany(publishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadContents()
+            }
             .store(in: &cancellables)
     }
     
