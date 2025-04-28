@@ -9,13 +9,21 @@ import SwiftUI
 import PDFKit
 
 class ScoreViewModel: ObservableObject {
-    @Published var content: ContentModel?
+    @Published var content: ContentModel? {
+        didSet{
+            headerViewModel.title = content?.name ?? ""
+        }
+    }
     @Published var pdfImages: [UIImage] = []
     @Published var currentPage: Int = 0
+    
+    let headerViewModel : ScoreHeaderViewModel
+    
     
     init(content: ContentModel?) {
         print("📦 ScoreViewModel 초기화됨. 전달된 content: \(String(describing: content))")
         self.content = content
+        self.headerViewModel = ScoreHeaderViewModel(title: content?.name ?? "")
         if let content = content {
             loadPDF(for: content)
         }
