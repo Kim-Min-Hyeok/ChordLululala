@@ -15,7 +15,7 @@ struct ScoreView : View {
     var body: some View{
         
         VStack{
-            ScoreHeaderView(title: viewModel.content?.name ?? "제목없음")
+            ScoreHeaderView(viewModel: viewModel.headerViewModel)
             ScoreMainBodyView()
                 .environmentObject(viewModel)
             

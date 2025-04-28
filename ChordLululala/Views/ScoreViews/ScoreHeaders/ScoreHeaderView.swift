@@ -9,71 +9,96 @@ import SwiftUI
 
 
 struct ScoreHeaderView: View {
+    @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
-    @State var title: String
+    
     
     var body: some View {
-        HStack{
-            // 뒤로가기
+        HStack(spacing:0){
+            /// 뒤로가기
             Button(action:{
                 router.back()
             }){
-                Image(systemName: "chevron.backward")
-                    .foregroundColor(Color.black)
+                Image("scoreheader_back")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+                    .foregroundColor(Color.primaryBaseBlack)
             }
-            .padding(.trailing,10)
-            
-            
             
             Spacer()
             
-            // 제목
-            Text(title)
-                .fontWeight(.semibold)
-            
+            /// 제목
+            Text(viewModel.truncatedTitle)
+                .foregroundColor(Color.primaryGray900)
+                .textStyle(.headingLgSemiBold)
+                .lineLimit(1)                    // 한 줄로 제한
+                .truncationMode(.tail)          // 넘치면 뒤에 “…” 표시
+                .layoutPriority(1)
             Spacer()
             
-            // 펜슬
-            Button(action:{
+            HStack(spacing: 7){
+                /// 펜슬
+                Button(action:{
+                    print("펜슬 기능 클릭") // TODO: 기능 추가해야함
+                }){
+                    Image("scoreheader_pencil")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 36, height: 36)
+                        .foregroundColor(Color.primaryBaseBlack)
+                }
+                .padding(.trailing,10)
                 
+                /// 페이지 추가버튼
+                Button(action:{
+                    print("페이지 추가버튼 클릭") //TODO: 기능 추가해야함
+                }){
+                    Image("scoreheader_page_add")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 36, height: 36)
+                        .foregroundColor(Color.primaryBaseBlack)
+                }
                 
-                print("펜슬 기능 클릭") // 기능 추가해야함
-            }){
-                Image(systemName: "pencil.circle.fill") // 이미지 바꿔야 함
-                    .foregroundColor(Color.black)
+                /// 키변환
+                Button(action:{
+                    print("키변환 기능 클릭") //TODO: 기능 추가해야함
+                }){
+                    HStack{
+                        Image("scoreheader_chordchange")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 24, height: 24)
+                        
+                        Text("키변환")
+                            .textStyle(.headingLgMedium)
+                    }
+                }
+                .frame(width: 94, height: 42)
+                .background(Color.primaryBlue500)
+                .foregroundColor(Color.primaryBaseWhite)
+                .cornerRadius(8)
+                .padding(.trailing,10)
+                
+                ///전체 페이지 보기
+                Button(action:{
+                    
+                    print("전체 페이지 보기 클릭") //TODO: 기능 추가해야함
+                }){
+                    Image("scoreheader_page_list")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 36, height: 36)
+                        .foregroundColor(Color.primaryBaseBlack)
+                    
+                }
             }
-            .padding(.trailing,10)
             
-            // 메모장
-            Button(action:{
-                
-                print("메모장 기능 클릭") // 기능 추가해야함
-            }){
-                Text("메모장")
-                    .foregroundColor(Color.black)
-            }
-            .padding(.trailing,10)
-            
-            // 키변환
-            Button(action:{
-                
-                print("키변환 기능 클릭") // 기능 추가해야함
-            }){
-                Text("키변환")
-                    .foregroundColor(Color.blue)
-            }
-            .padding(.trailing,10)
-            
-            // 설정
-            Button(action:{
-                
-                print("설정 기능 클릭") // 기능 추가해야함
-            }){
-                Image(systemName: "gear") // 이미지 바꿔야 함
-                    .foregroundColor(Color.black)
-            }
         }
+        .padding(.leading, 22)
+        .padding(.trailing, 22)
         .frame(height: 83)
-        .padding(.horizontal)
+        
     }
 }
