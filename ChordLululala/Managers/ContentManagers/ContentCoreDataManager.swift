@@ -165,13 +165,13 @@ final class ContentCoreDataManager {
         } else {
             // 최상위 컨텐츠 로드: dashboardContents에 따라 base 디렉토리로 분기
             switch dashboardContents {
-            case .allDocuments:
+            case .score:
                 if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
                     predicate = NSPredicate(format: "parentContent.cid == %@", scoreBase.cid as CVarArg)
                 } else {
                     predicate = NSPredicate(value: false)
                 }
-            case .songList:
+            case .setlist:
                 if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
                     predicate = NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
                 } else {

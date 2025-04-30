@@ -26,7 +26,7 @@ struct AgreeButton<Content: View>: View {
             }
             .frame(width: 36, height: 36) // 탭 영역 설정
             .contentShape(Rectangle())   // 전체 영역이 탭 가능하도록
-            .onTapGesture {
+            .onTapGesture { //
                 isAgreed.toggle()
             }
             content()

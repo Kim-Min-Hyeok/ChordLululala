@@ -38,7 +38,7 @@ struct SelectionView: View {
                     viewModel.isSelectionViewVisible = false
                 })
                 SelectionOptionButton(imageName: "move_context", title: "이동", action: {
-                    viewModel.isSelectionViewVisible = false
+                    viewModel.isMoveModalVisible = true
                 })
                 SelectionOptionButton(imageName: "trash_context", title: "휴지통", action: {
                     viewModel.isTrashModalVisible = true

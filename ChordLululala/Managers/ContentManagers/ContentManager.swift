@@ -16,12 +16,12 @@ struct ContentManager {
     }
     
     func fetchBaseDirectory(named name: String) -> ContentModel? {
-            return ContentCoreDataManager.shared.fetchBaseDirectory(named: name)
-        }
+        return ContentCoreDataManager.shared.fetchBaseDirectory(named: name)
+    }
     
     func fetchContentModel(with id: UUID) -> ContentModel? {
-            return ContentCoreDataManager.shared.fetchContentModel(with: id)
-        }
+        return ContentCoreDataManager.shared.fetchContentModel(with: id)
+    }
     
     func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
         return ContentCoreDataManager.shared
@@ -112,6 +112,45 @@ struct ContentManager {
                 }
             } else {
                 ContentCoreDataManager.shared.updateContent(model: updatedModel)
+                promise(.success(()))
+            }
+        }
+        .eraseToAnyPublisher()
+    }
+    
+    // 파일 이동
+    func moveContent(_ content: ContentModel, to destination: ContentModel) -> AnyPublisher<Void, Never> {
+        Future<Void, Never> { promise in
+            guard
+                let oldRel = content.path,
+                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            else {
+                promise(.success(()))
+                return
+            }
+            
+            let sourceURL = docsURL.appendingPathComponent(oldRel)
+            
+            guard let destRel = destination.path else {
+                print("Destination path is nil")
+                promise(.success(()))
+                return
+            }
+            
+            let destFolderURL = docsURL.appendingPathComponent(destRel, isDirectory: true)
+            
+            let newURL = destFolderURL.appendingPathComponent(content.name)
+            
+            ContentFileManagerManager.shared.moveItem(from: sourceURL, to: newURL) { result in
+                switch result {
+                case .success(let newRel):
+                    var updated = content
+                    updated.path = newRel
+                    updated.parentContent = destination.cid
+                    ContentCoreDataManager.shared.updateContent(model: updated)
+                case .failure(let error):
+                    print("Move failed:", error)
+                }
                 promise(.success(()))
             }
         }

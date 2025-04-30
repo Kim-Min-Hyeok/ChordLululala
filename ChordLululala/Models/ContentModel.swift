@@ -26,7 +26,7 @@ struct ContentModel {
 
 enum ContentType: Int16 {
     case score = 0
-    case songList = 1
+    case setlist = 1
     case folder = 2
 }
 
