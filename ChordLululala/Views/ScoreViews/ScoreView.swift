@@ -15,9 +15,12 @@ struct ScoreView : View {
     var body: some View{
         
         VStack{
+            /// 악보 헤더부분
             ScoreHeaderView(viewModel: viewModel.headerViewModel)
-            ScoreMainBodyView()
-                .environmentObject(viewModel)
+                
+            /// 악보 바디 뷰
+            ScoreMainBodyView(pdfViewModel: viewModel.pdfViewModel, currentPage: $viewModel.currentPage)
+        
             
             Spacer()
         }
