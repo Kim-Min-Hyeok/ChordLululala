@@ -19,10 +19,11 @@ struct ScoreView : View {
             ScoreHeaderView(viewModel: viewModel.headerViewModel)
                 
             /// 악보 바디 뷰
-            ScoreMainBodyView(pdfViewModel: viewModel.pdfViewModel, currentPage: $viewModel.currentPage)
+            ScoreMainBodyView(
+                pdfViewModel: viewModel.pdfViewModel,
+                currentPage: $viewModel.currentPage
+            )
         
-            
-            Spacer()
         }
         .navigationBarHidden(true)
         

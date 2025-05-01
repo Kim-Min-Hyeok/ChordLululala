@@ -20,7 +20,7 @@ final class ScorePDFViewModel : ObservableObject {
         }
         loadPDF(for: content)
     }
-    
+
     // pdf를 uiimage로 변환하는 함수
     private func loadPDF(for content: ContentModel) {
             DispatchQueue.global(qos: .userInitiated).async {
@@ -50,9 +50,5 @@ final class ScorePDFViewModel : ObservableObject {
                 
                 DispatchQueue.main.async { self.images = newImages }
             }
-        }
- 
-    
-    
-    
+        } 
 }
