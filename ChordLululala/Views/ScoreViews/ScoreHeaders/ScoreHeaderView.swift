@@ -113,8 +113,9 @@ struct ScoreHeaderView: View {
                 }
                 
             }
-            .padding(.leading, 22)
-            .padding(.trailing, 22)
+            .padding(.horizontal, 22)
+            .frame(maxHeight:.infinity,
+                   alignment: .bottom)
         }
         .frame(height: 83)
         
