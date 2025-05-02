@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ScoreMainBodyView: View {
     @ObservedObject var pdfViewModel: ScorePDFViewModel
+    @ObservedObject var playmodeViewModel: PlayModeViewModel
     @Binding var currentPage: Int
     
     var body: some View {
@@ -15,7 +16,8 @@ struct ScoreMainBodyView: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: UIScreen.main.bounds.width * 0.9)
+                        .frame(width: UIScreen.main.bounds.width *
+                               (playmodeViewModel.isOn ? 1.0 : 0.9))
                         .shadow(radius: 4)
                         .padding(.vertical)
                         .tag(index)       // 페이지 태그 지정
@@ -24,6 +26,7 @@ struct ScoreMainBodyView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .indexViewStyle(.page(backgroundDisplayMode: .never))
             .overlay(
+                
                 /// 페이지 인디케이터
                 PageIndicatorView(
                     current: currentPage + 1,
@@ -33,27 +36,27 @@ struct ScoreMainBodyView: View {
                 alignment: .bottomLeading
             )
             .overlay(
+                
                 /// 연주모드 버튼
                 Button(action:{
-                    print("연주모드 토글") // TODO: 연주모드 기능 추가하기
+                    withAnimation(.easeInOut) {
+                        playmodeViewModel.toggle()
+                    }
+                    
                 }) {
-                    Text("연주모드 ON")
-                        .frame(width: 131, height: 44)
-                        .background(Color.primaryGray500)
+                    // 연주모드일때 OFF 뜨고, 일반모드일 떄 메세지
+                    Text(playmodeViewModel.isOn ? "OFF" : "연주모드 ON")
+                        .frame(width: playmodeViewModel.isOn ? 55 : 131,
+                               height: 44)
+                        .background(playmodeViewModel.isOn ? Color.init(hex: "#2563EB") : Color.primaryGray500)
                         .opacity(0.9)
                         .cornerRadius(8)
                         .foregroundColor(Color.primaryGray50)
                 }
-                .offset(x: -22, y: -25),
+                    .offset(x: -22, y: -25),
                 alignment: .bottomTrailing
             )
             
         }
     }
 }
-
-
-
-
-
-

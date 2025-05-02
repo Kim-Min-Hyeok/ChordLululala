@@ -12,8 +12,6 @@ struct ScoreHeaderView: View {
     @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
 
-
-    
     var body: some View {
         GeometryReader { geo in
             let isLandscape = geo.size.width > geo.size.height // 화면이 가로모드이면 true, 세로모드이면 false
