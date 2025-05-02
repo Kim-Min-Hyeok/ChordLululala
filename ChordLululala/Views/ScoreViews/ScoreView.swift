@@ -16,11 +16,15 @@ struct ScoreView : View {
         
         VStack{
             /// 악보 헤더부분
-            ScoreHeaderView(viewModel: viewModel.headerViewModel)
+            if !viewModel.playmodeViewModel.isOn {
+                ScoreHeaderView(viewModel: viewModel.headerViewModel)
+                    .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
+            }
                 
             /// 악보 바디 뷰
             ScoreMainBodyView(
                 pdfViewModel: viewModel.pdfViewModel,
+                playmodeViewModel: viewModel.playmodeViewModel,
                 currentPage: $viewModel.currentPage
             )
         
