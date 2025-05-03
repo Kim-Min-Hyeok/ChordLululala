@@ -10,6 +10,7 @@ final class ScoreViewModel: ObservableObject{
     let headerViewModel: ScoreHeaderViewModel
     let pdfViewModel: ScorePDFViewModel
     let playmodeViewModel = PlayModeViewModel()
+    let pageNavViewModel: PageNavigationViewModel
     
     // 현재 페이지 인덱스
     @Published var currentPage: Int = 0
@@ -20,7 +21,8 @@ final class ScoreViewModel: ObservableObject{
         // 1) 하위 VM 초기화
         self.headerViewModel = ScoreHeaderViewModel(title: content?.name ?? "")
         self.pdfViewModel    = ScorePDFViewModel()
-        
+        self.pageNavViewModel = PageNavigationViewModel(pdfViewModel: pdfViewModel)
+
         // 2) Combine 파이프라인 설정
         // content.name → headerViewModel.title
         $content
