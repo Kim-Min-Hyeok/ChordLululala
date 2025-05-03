@@ -25,7 +25,7 @@ struct ScoreView : View {
             ScoreMainBodyView(
                 pdfViewModel: viewModel.pdfViewModel,
                 playmodeViewModel: viewModel.playmodeViewModel,
-                currentPage: $viewModel.currentPage
+                pageNavViewModel: viewModel.pageNavViewModel
             )
         
         }
