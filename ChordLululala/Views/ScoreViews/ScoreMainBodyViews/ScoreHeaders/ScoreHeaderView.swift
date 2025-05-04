@@ -11,7 +11,9 @@ import SwiftUI
 struct ScoreHeaderView: View {
     @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
-
+    @ObservedObject var annotationVM : ScoreAnnotationViewModel
+    
+    
     var body: some View {
         GeometryReader { geo in
             let isLandscape = geo.size.width > geo.size.height // 화면이 가로모드이면 true, 세로모드이면 false
@@ -42,7 +44,7 @@ struct ScoreHeaderView: View {
                 HStack(spacing: 7){
                     /// 펜슬
                     Button(action:{
-                        print("펜슬 기능 클릭") // TODO: 기능 추가해야함
+                        annotationVM.isEditing.toggle()
                     }){
                         Image("scoreheader_pencil")
                             .resizable()
