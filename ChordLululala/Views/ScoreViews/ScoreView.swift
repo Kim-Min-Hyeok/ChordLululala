@@ -17,7 +17,9 @@ struct ScoreView : View {
         VStack{
             /// 악보 헤더부분
             if !viewModel.playmodeViewModel.isOn {
-                ScoreHeaderView(viewModel: viewModel.headerViewModel)
+                ScoreHeaderView(viewModel: viewModel.headerViewModel,
+                                annotationVM: viewModel.annotationViewModel
+                )
                     .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
             }
                 
@@ -25,7 +27,8 @@ struct ScoreView : View {
             ScoreMainBodyView(
                 pdfViewModel: viewModel.pdfViewModel,
                 playmodeViewModel: viewModel.playmodeViewModel,
-                pageNavViewModel: viewModel.pageNavViewModel
+                pageNavViewModel: viewModel.pageNavViewModel,
+                annotationVM: viewModel.annotationViewModel
             )
         
         }

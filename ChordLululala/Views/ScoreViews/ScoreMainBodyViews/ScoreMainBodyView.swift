@@ -5,6 +5,7 @@ struct ScoreMainBodyView: View {
     @ObservedObject var pdfViewModel: ScorePDFViewModel
     @ObservedObject var playmodeViewModel: PlayModeViewModel
     @ObservedObject var pageNavViewModel: PageNavigationViewModel
+    @ObservedObject var annotationVM: ScoreAnnotationViewModel
     
     var body: some View {
         ZStack {
@@ -54,12 +55,21 @@ struct ScoreMainBodyView: View {
                         .foregroundColor(Color.primaryGray50)
                 }
                     .offset(x: -22, y: -25),
-                    alignment: .bottomTrailing
+                alignment: .bottomTrailing
             )
             
             // 연주모드 실행시 투명한 버튼 뷰 띄우기
             if playmodeViewModel.isOn {
                 PlayModeOverlayView(pageNavViewModel: pageNavViewModel)
+            }
+            
+            // 주석 모드일때 띄우기
+            if annotationVM.isEditing {
+                CanvasView(
+                    drawing: $annotationVM.currentDrawing,
+                    isEditable: true
+                )
+                .ignoresSafeArea()
             }
         }
     }
