@@ -15,11 +15,19 @@ struct ScoreView : View {
     var body: some View{
         
         VStack{
-            ScoreHeaderView(title: viewModel.content?.name ?? "제목없음")
-            ScoreMainBodyView()
-                .environmentObject(viewModel)
-            
-            Spacer()
+            /// 악보 헤더부분
+            if !viewModel.playmodeViewModel.isOn {
+                ScoreHeaderView(viewModel: viewModel.headerViewModel)
+                    .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
+            }
+                
+            /// 악보 바디 뷰
+            ScoreMainBodyView(
+                pdfViewModel: viewModel.pdfViewModel,
+                playmodeViewModel: viewModel.playmodeViewModel,
+                pageNavViewModel: viewModel.pageNavViewModel
+            )
+        
         }
         .navigationBarHidden(true)
         
