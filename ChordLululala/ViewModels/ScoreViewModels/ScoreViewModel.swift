@@ -13,7 +13,7 @@ final class ScoreViewModel: ObservableObject{
     let playmodeViewModel = PlayModeViewModel()
     let pageNavViewModel: PageNavigationViewModel
     let annotationViewModel: ScoreAnnotationViewModel
-    
+    let isTransposingViewModel = IsTransposingViewModel()
     // 현재 페이지 인덱스
     @Published var currentPage: Int = 0
     
@@ -51,12 +51,11 @@ final class ScoreViewModel: ObservableObject{
             }
             .store(in: &cancellables)
         
+        
         pageNavViewModel.$currentPage
             .sink { [weak self] newPage in
                 guard let self = self else { return }
-                // 이전 페이지 저장
-                // (이전 페이지 번호는 combine 으로 처리하거나, annotation VM 에서 내부적으로 관리해도 됩니다)
-                self.annotationViewModel.load(page: newPage)
+                self.annotationViewModel.load(page: newPage) // TODO: 필기 저장하는 기능 구현해야함
             }
             .store(in: &cancellables)
         
