@@ -13,7 +13,7 @@ struct ScoreHeaderView: View {
     @EnvironmentObject var router : NavigationRouter
     @ObservedObject var annotationVM : ScoreAnnotationViewModel
     @ObservedObject var isTransposing: IsTransposingViewModel
-    
+    @ObservedObject var pageAdditionVM : PageAdditionViewModel
     
     var body: some View {
         GeometryReader { geo in
@@ -90,13 +90,17 @@ struct ScoreHeaderView: View {
                         
                         /// 페이지 추가버튼
                         Button(action:{
-                            print("페이지 추가버튼 클릭") //TODO: 기능 추가해야함
+                            pageAdditionVM.presentSheet()
                         }){
                             Image("scoreheader_page_add")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 36, height: 36)
                                 .foregroundColor(Color.primaryBaseBlack)
+                        } .sheet(isPresented: $pageAdditionVM.isSheetPresented) {
+                            AddPageModalView { type in
+                                pageAdditionVM.addPage(type)
+                            }
                         }
                         
                         /// 키변환

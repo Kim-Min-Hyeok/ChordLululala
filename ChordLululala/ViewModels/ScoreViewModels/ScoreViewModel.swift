@@ -10,6 +10,7 @@ final class ScoreViewModel: ObservableObject{
     
     let headerViewModel: ScoreHeaderViewModel
     let pdfViewModel: ScorePDFViewModel
+    let pageAdditionViewModel: PageAdditionViewModel
     let playmodeViewModel = PlayModeViewModel()
     let pageNavViewModel: PageNavigationViewModel
     let annotationViewModel: ScoreAnnotationViewModel
@@ -23,6 +24,7 @@ final class ScoreViewModel: ObservableObject{
         // 1) 하위 VM 초기화
         self.headerViewModel = ScoreHeaderViewModel(title: content?.name ?? "")
         self.pdfViewModel    = ScorePDFViewModel()
+        self.pageAdditionViewModel = PageAdditionViewModel(pdfViewModel: pdfViewModel)
         self.pageNavViewModel = PageNavigationViewModel(pdfViewModel: pdfViewModel)
         self.annotationViewModel = ScoreAnnotationViewModel(
             contentId: content?.cid ?? UUID()
