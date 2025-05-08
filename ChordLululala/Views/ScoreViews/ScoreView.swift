@@ -19,7 +19,8 @@ struct ScoreView : View {
             if !viewModel.playmodeViewModel.isOn {
                 ScoreHeaderView(viewModel: viewModel.headerViewModel,
                                 annotationVM: viewModel.annotationViewModel,
-                                isTransposing: viewModel.isTransposingViewModel
+                                isTransposing: viewModel.isTransposingViewModel,
+                                pageAdditionVM: viewModel.pageAdditionViewModel
                 )
                 .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
             }
