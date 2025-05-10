@@ -22,7 +22,9 @@ struct ScoreView : View {
                     ScoreHeaderView(viewModel: viewModel.headerViewModel,
                                     annotationVM: viewModel.annotationViewModel,
                                     isTransposing: viewModel.isTransposingViewModel,
-                                    pageAdditionVM: viewModel.pageAdditionViewModel
+                                    pageAdditionVM: viewModel.pageAdditionViewModel,
+                                    file: viewModel.content
+                                    
                     )
                     .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
                 }

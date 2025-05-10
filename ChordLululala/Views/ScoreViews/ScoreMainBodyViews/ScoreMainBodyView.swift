@@ -9,18 +9,6 @@ struct ScoreMainBodyView: View {
     @ObservedObject var isTransposing: IsTransposingViewModel
     
     var body: some View {
-        if isTransposing.isOn {
-            
-            ZStack {
-                Color.primaryGray50
-                    .edgesIgnoringSafeArea(.all)
-                LoadingView()
-                    .frame(maxWidth: .infinity,
-                           maxHeight: .infinity,
-                           alignment: .center)
-            }
-            
-        } else {
             ZStack {
                 Color.primaryGray50
                     .edgesIgnoringSafeArea(.all)
@@ -86,7 +74,7 @@ struct ScoreMainBodyView: View {
                 }
             }
             
-        }
+        
         
     }
 }
