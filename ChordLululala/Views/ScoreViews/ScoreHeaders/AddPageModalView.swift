@@ -5,7 +5,7 @@ struct AddPageModalView: View {
     let onSelect: (PageType) -> Void
     @State private var selectedType: PageType? = nil
     @ObservedObject var pageAdditionVM: PageAdditionViewModel
-
+    
     var body: some View {
         ZStack(alignment: .top) {
             // 1)배경 카드
@@ -30,7 +30,7 @@ struct AddPageModalView: View {
                 .background(Color.primaryGray50)
                 .cornerRadius(10)
                 .padding(.bottom, 15)          // 닫기 바와 본문 사이 간격
-
+                
                 
                 VStack(spacing: 0) {
                     Text("새 페이지 생성")
@@ -41,7 +41,7 @@ struct AddPageModalView: View {
                         .foregroundColor(.primaryGray500)
                 }
                 .padding(.bottom, 28)
-
+                
                 
                 HStack(spacing: 33) {
                     PageOptionView(
@@ -56,12 +56,12 @@ struct AddPageModalView: View {
                     ) { selectedType = .staff }
                 }
                 .padding(.bottom, 22)
-
+                
                 Divider()
                     .frame(height: 1)
                     .foregroundColor(.primaryGray200)
                     .padding(.bottom, 14)
-
+                
                 
                 Button(action: {
                     if let type = selectedType {
@@ -73,8 +73,8 @@ struct AddPageModalView: View {
                         .textStyle(.headingLgSemiBold)
                         .foregroundColor(
                             selectedType != nil
-                                ? Color.primaryBlue600
-                                : Color.primaryGray300
+                            ? Color.primaryBlue600
+                            : Color.primaryGray300
                         )
                 }
                 .disabled(selectedType == nil)
@@ -83,6 +83,6 @@ struct AddPageModalView: View {
         }
         .frame(width: 321, height: 395) // 전체 카드 크기
         .shadow(color: Color.primaryBaseBlack.opacity(0.25), radius: 30)
-           }
+    }
 }
 
