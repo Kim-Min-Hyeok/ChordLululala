@@ -91,16 +91,13 @@ struct ScoreHeaderView: View {
                         /// 페이지 추가버튼
                         Button(action:{
                             pageAdditionVM.presentSheet()
+//                            isModalPresented.toggle()
                         }){
                             Image("scoreheader_page_add")
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 36, height: 36)
                                 .foregroundColor(Color.primaryBaseBlack)
-                        } .sheet(isPresented: $pageAdditionVM.isSheetPresented) {
-                            AddPageModalView { type in
-                                pageAdditionVM.addPage(type)
-                            }
                         }
                         
                         /// 키변환
@@ -150,6 +147,9 @@ struct ScoreHeaderView: View {
                             
                         }
                     }
+                    
+                    
+                    
                     
                 }
                 .padding(.horizontal, 22)
