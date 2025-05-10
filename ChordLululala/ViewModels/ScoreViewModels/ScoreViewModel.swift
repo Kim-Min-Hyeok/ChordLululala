@@ -61,6 +61,13 @@ final class ScoreViewModel: ObservableObject{
             }
             .store(in: &cancellables)
         
+        pageAdditionViewModel.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        
         // 3) 초기 값 설정
         self.content = content
     }
