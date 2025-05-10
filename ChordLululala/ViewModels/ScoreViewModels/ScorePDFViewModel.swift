@@ -50,5 +50,41 @@ final class ScorePDFViewModel : ObservableObject {
                 
                 DispatchQueue.main.async { self.images = newImages }
             }
-        } 
+        }
+    
+    
+    /// 새 페이지 추가 기능
+        func addPage(_ type: PageType) {
+            // 기준 페이지 크기: 첫 페이지 크기 또는 기본값
+            let pageSize = images.first?.size ?? CGSize(width: 800, height: 1100)
+            let renderer = UIGraphicsImageRenderer(size: pageSize)
+            let newImage = renderer.image { ctx in
+                // 백지 배경
+                UIColor.white.setFill()
+                ctx.fill(CGRect(origin: .zero, size: pageSize))
+
+                if type == .staff {
+                    // "staff_template" 에셋이 있는 경우 사용
+                    if let template = UIImage(named: "staff_template") {
+                        template.draw(in: CGRect(origin: .zero, size: pageSize))
+                    } else {
+                        // 직접 오선 5개 그리기
+                        ctx.cgContext.setStrokeColor(UIColor.black.cgColor)
+                        ctx.cgContext.setLineWidth(1)
+                        let spacing = pageSize.height / 6
+                        for line in 1...5 {
+                            let y = spacing * CGFloat(line)
+                            ctx.cgContext.move(to: CGPoint(x: 0, y: y))
+                            ctx.cgContext.addLine(to: CGPoint(x: pageSize.width, y: y))
+                        }
+                        ctx.cgContext.strokePath()
+                    }
+                }
+            }
+
+            DispatchQueue.main.async {
+                self.images.append(newImage)
+            }
+        }
+    
 }
