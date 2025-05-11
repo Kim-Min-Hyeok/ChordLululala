@@ -11,11 +11,17 @@ import SwiftUI
 struct ScoreHeaderView: View {
     @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
-
+    @ObservedObject var annotationVM : ScoreAnnotationViewModel
+    @ObservedObject var isTransposing: IsTransposingViewModel
+    @ObservedObject var pageAdditionVM : PageAdditionViewModel
+    let file : ContentModel?
+    
+    
     var body: some View {
         GeometryReader { geo in
             let isLandscape = geo.size.width > geo.size.height // 화면이 가로모드이면 true, 세로모드이면 false
             let leftSpacerWidth: CGFloat = isLandscape ? 456 : 16
+            
             
             HStack(spacing:0){
                 /// 뒤로가기
@@ -42,7 +48,7 @@ struct ScoreHeaderView: View {
                 HStack(spacing: 7){
                     /// 펜슬
                     Button(action:{
-                        print("펜슬 기능 클릭") // TODO: 기능 추가해야함
+                        annotationVM.isEditing.toggle()
                     }){
                         Image("scoreheader_pencil")
                             .resizable()
@@ -54,7 +60,7 @@ struct ScoreHeaderView: View {
                     
                     /// 페이지 추가버튼
                     Button(action:{
-                        print("페이지 추가버튼 클릭") //TODO: 기능 추가해야함
+                        pageAdditionVM.presentSheet()
                     }){
                         Image("scoreheader_page_add")
                             .resizable()
@@ -65,7 +71,9 @@ struct ScoreHeaderView: View {
                     
                     /// 키변환
                     Button(action:{
-                        print("키변환 기능 클릭") //TODO: 기능 추가해야함
+                        guard let file = file else {return}
+                        router.toNamed("/chordreconize", arguments: [ file ])
+
                     }){
                         HStack{
                             Image("scoreheader_chordchange")
@@ -110,12 +118,17 @@ struct ScoreHeaderView: View {
                     }
                 }
                 
+                
+                
+                
             }
             .padding(.horizontal, 22)
             .frame(maxHeight:.infinity,
                    alignment: .bottom)
+            
+            
         }
-        .frame(height: 83)
+        .frame(height: 91)
         
     }
 }
