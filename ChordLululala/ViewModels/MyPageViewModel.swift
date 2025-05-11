@@ -18,3 +18,8 @@ class MyPageViewModel: ObservableObject {
         selectedLanguage = language
     }
 }
+
+
+class BackupViewModel: ObservableObject {
+    @Published var isBackupButtonPressed = true
+}

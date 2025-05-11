@@ -10,6 +10,7 @@ import SwiftUI
 
 struct MyPageView: View {
     @StateObject private var myPageViewModel = MyPageViewModel()
+    @StateObject private var viewModel = BackupViewModel()
     
     var body: some View {
         VStack(spacing : 0) {
@@ -39,7 +40,9 @@ struct MyPageView: View {
             VStack(spacing : 20){
                 // 백업하기 / 불러오기 버튼
                 HStack(spacing: 20) {
-                    Button(action: {}) {
+                    Button(action: {
+                        viewModel.isBackupButtonPressed.toggle()
+                    }) {
                         HStack(spacing : 8) {
                             Image("backup_button")
                                 .resizable()
@@ -50,7 +53,7 @@ struct MyPageView: View {
                                 .foregroundColor(Color.primaryGray800)
                         }
                         .frame(maxWidth: .infinity, minHeight: 54) // 여기서 높이 지정!
-                        .background(Color.primaryBaseWhite)
+                        .background(viewModel.isBackupButtonPressed ? Color.primaryBaseWhite : Color.primaryGray100)
                         .cornerRadius(200)
                         .overlay {
                             RoundedRectangle(cornerRadius: 200)
@@ -123,7 +126,7 @@ struct MyPageView: View {
 //                            Button(action: {
 //                                myPageViewModel.selectedLanguage(language)
 //                            }){
-//                                Label(language, systemImage: myPageViewModel.selectedLanguage == language ? "checkmark" : "")
+//                                Label(language, systemImage: myPageViewModel.selectedLanguage == language ? "checkmark" : "")q
 //                            }
 //                        }
 //                    } label: {
