@@ -33,7 +33,7 @@ struct ModifyModalView: View {
             Button(role: .destructive) {
                 viewModel.moveContentToTrash(content)
             } label: {
-                Label("휴지통으로 이동", image: "trash_destructive_context")
+                Label("삭제", image: "trash_destructive_context")
             }
         }
     }

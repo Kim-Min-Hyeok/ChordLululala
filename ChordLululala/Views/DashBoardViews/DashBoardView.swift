@@ -178,13 +178,26 @@ struct DashboardView: View {
             
             // MARK: 휴지통 이동 모달
             if viewModel.isTrashModalVisible {
-                Color.black.opacity(0.4)
+                Color.clear
+                    .contentShape(Rectangle())
                     .ignoresSafeArea()
                     .onTapGesture {
                         viewModel.isTrashModalVisible = false
-                        viewModel.isSelectionViewVisible = false
                     }
                 TrashModalView()
+                    .transition(.opacity)
+            }
+            
+            // MARK: 파일 이동 모달
+            if viewModel.isMoveModalVisible {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        viewModel.isMoveModalVisible = false
+                        viewModel.selectedDestination = nil
+                    }
+                MoveModalView()
                     .transition(.opacity)
             }
         }

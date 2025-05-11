@@ -23,7 +23,7 @@ struct RenameModalView: View {
             switch content.type {
             case .score:
                 return "파일"
-            case .songList:
+            case .setlist:
                 return "셋리스트"
             case .folder:
                 return "폴더"
