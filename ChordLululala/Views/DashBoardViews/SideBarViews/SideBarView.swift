@@ -44,6 +44,10 @@ struct SidebarView: View {
                 logout()
             }, isSelected: false)
             
+            SidebarButtonView(imageName: "mypage", title: "데이터 초기화", action: {
+                CoreDataManager.shared.deleteAllCoreDataObjects()
+            }, isSelected: false)
+            
             Spacer()
         }
         .frame(maxWidth: 257, maxHeight: .infinity, alignment: .leading)

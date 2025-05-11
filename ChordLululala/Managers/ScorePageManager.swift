@@ -14,7 +14,7 @@ import Combine
 final class ScorePageManager {
     static let shared = ScorePageManager()
     private let context = CoreDataManager.shared.context
-
+    
     /// detailModel에 대해 PDF 페이지 수만큼 ScorePage 엔티티 생성
     func createPages(for detail: ScoreDetailModel, fileURL: URL) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
@@ -52,5 +52,15 @@ final class ScorePageManager {
             }
         }
         .eraseToAnyPublisher()
+    }
+    
+    func fetchPageEntities(for detail: ScoreDetailModel) -> [ScorePage] {
+        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
+        req.predicate = NSPredicate(format: "scoreDetail.s_did == %@", detail.s_did as CVarArg)
+        return (try? context.fetch(req)) ?? []
+    }
+    
+    func fetchPageModels(for detail: ScoreDetailModel) -> [ScorePageModel] {
+        fetchPageEntities(for: detail).map { ScorePageModel(entity: $0) }
     }
 }

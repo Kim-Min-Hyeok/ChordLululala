@@ -218,30 +218,33 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func uploadFile(with url: URL) {
-            guard let parent = currentParent else { return }
+        guard let parent = currentParent else { return }
 
-            ContentManager.shared
-                .uploadFile(
-                    with: url,
-                    currentParent: parent,
-                    dashboardContents: dashboardContents
-                )
-                .compactMap { $0 }  // nil 걸러내기
-                .flatMap { cm in
-                    ScoreDetailManager.shared.createScoreDetail(for: cm)
+        ContentManager.shared
+            .uploadFile(
+                with: url,
+                currentParent: parent,
+                dashboardContents: dashboardContents
+            )
+            .compactMap { $0 }  // nil 걸러내기
+            .flatMap { cm in
+                // 1) ContentModel → ScoreDetail 생성 또는 조회
+                ScoreDetailManager.shared.createScoreDetail(for: cm)
+            }
+            .flatMap { detail in
+                // 2) ScoreDetailModel → PDF URL
+                guard let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail) else {
+                    return Just(()).eraseToAnyPublisher()
                 }
-                .flatMap { detailModel in
-                    guard let detail = detailModel,
-                          let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail)
-                    else { return Just(()).eraseToAnyPublisher() }
-                    return ScorePageManager.shared.createPages(for: detail, fileURL: pdfURL)
-                }
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] in
-                    self?.loadContents()
-                }
-                .store(in: &cancellables)
-        }
+                // 3) PDF URL → ScorePage 생성
+                return ScorePageManager.shared.createPages(for: detail, fileURL: pdfURL)
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.loadContents()
+            }
+            .store(in: &cancellables)
+    }
     
     func createFolder(folderName: String) {
         guard let currentParent = currentParent else { return }

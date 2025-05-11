@@ -38,13 +38,6 @@ struct DashboardView: View {
                                         HeaderView()
                                             .environmentObject(viewModel)
                                             .padding(.top, 33)
-                                        
-                                        // TODO: 테스트용: 모든 데이터 삭제 버튼
-                                        //                                    Button("모든 데이터 삭제") {
-                                        //                                        CoreDataManager.shared.deleteAllCoreDataObjects()
-                                        //                                        FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
-                                        //                                    }
-                                        //                                    .padding(.vertical, 50)
                                     }
                                     else {
                                         Rectangle()
