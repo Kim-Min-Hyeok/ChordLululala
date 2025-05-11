@@ -17,47 +17,48 @@ final class ContentCoreDataManager {
     // MARK: - Create
     
     // 모델로 Content 직접 생성 (부모 관계를 실제 엔티티로 연결)
-    func createContent(model: ContentModel) {
+    @discardableResult
+    func createContent(model: ContentModel) -> ContentModel {
         let newEntity = Content(context: context)
         newEntity.update(from: model)
         
-        // 부모 UUID가 있다면, 해당하는 Content 엔티티를 찾아서 관계 설정
+        // 부모 관계 설정
         if let parentID = model.parentContent {
-            let parentRequest: NSFetchRequest<Content> = Content.fetchRequest()
-            parentRequest.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
-            if let parentEntity = try? context.fetch(parentRequest).first {
-                newEntity.parentContent = parentEntity
-            } else {
-                newEntity.parentContent = nil
-            }
+            let req: NSFetchRequest<Content> = Content.fetchRequest()
+            req.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
+            newEntity.parentContent = (try? context.fetch(req).first)
         } else {
             newEntity.parentContent = nil
         }
         
         CoreDataManager.shared.saveContext()
+        return model
     }
     
-    // 기본 Content 생성 (UUID를 부모로 전달)
+    /// 이름·경로 등으로 모델 생성 → entity 저장 → 모델 리턴
+    @discardableResult
     func createContent(name: String,
                        path: String? = nil,
                        type: Int16,
                        parent: UUID? = nil,
-                       scoreDetail: UUID? = nil) {
+                       scoreDetail: UUID? = nil) -> ContentModel {
         let now = Date()
-        let model = ContentModel(cid: UUID(),
-                                 name: name,
-                                 path: path,
-                                 type: ContentType(rawValue: type) ?? .score,
-                                 parentContent: parent,
-                                 createdAt: now,
-                                 modifiedAt: now,
-                                 lastAccessedAt: now,
-                                 deletedAt: nil,
-                                 originalParentId: parent,
-                                 syncStatus: false,
-                                 isStared: false,
-                                 scoreDetail: scoreDetail)
-        createContent(model: model)
+        let model = ContentModel(
+            cid: UUID(),
+            name: name,
+            path: path,
+            type: ContentType(rawValue: type) ?? .score,
+            parentContent: parent,
+            createdAt: now,
+            modifiedAt: now,
+            lastAccessedAt: now,
+            deletedAt: nil,
+            originalParentId: parent,
+            syncStatus: false,
+            isStared: false,
+            scoreDetail: scoreDetail
+        )
+        return createContent(model: model)
     }
     
     // 기본 디렉토리 초기화: Score, Song_List, Trash_Can 생성

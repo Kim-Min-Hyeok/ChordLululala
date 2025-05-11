@@ -31,27 +31,40 @@ struct ContentManager {
     }
     
     // 파일 업로드 – 작업 완료 시 Void 발행
-    func uploadFile(with url: URL, currentParent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<Void, Never> {
-        Future<Void, Never> { promise in
-            let relativeFolderPath = currentParent?.path
-            ContentFileManagerManager.shared.uploadFile(from: url,
-                                                        to: dashboardContents,
-                                                        relativeFolderPath: relativeFolderPath) { result in
+    func uploadFile(
+        with url: URL,
+        currentParent: ContentModel?,
+        dashboardContents: DashboardContents
+    ) -> AnyPublisher<ContentModel?, Never> {
+        // 1) Future를 명시적으로 변수에 담아 타입을 분명히 함
+        let future: Future<ContentModel?, Never> = Future { promise in
+            let rel = currentParent?.path
+            ContentFileManagerManager.shared.uploadFile(
+                from: url,
+                to: dashboardContents,
+                relativeFolderPath: rel
+            ) { result in
                 switch result {
-                case .success((let destinationURL, let relativePath)):
-                    // 파일 복사가 성공하면 CoreData에 콘텐츠 생성
-                    ContentCoreDataManager.shared.createContent(name: destinationURL.lastPathComponent,
-                                                                path: relativePath,
-                                                                type: ContentType.score.rawValue,
-                                                                parent: currentParent?.cid,
-                                                                scoreDetail: nil)
-                case .failure(let error):
-                    print("파일 업로드 실패: \(error)")
+                case .success((let destURL, let relPath)):
+                    // CoreData에 저장하고, 생성된 모델을 리턴
+                    let model = ContentCoreDataManager.shared.createContent(
+                        name: destURL.lastPathComponent,
+                        path: relPath,
+                        type: ContentType.score.rawValue,
+                        parent: currentParent?.cid,
+                        scoreDetail: nil
+                    )
+                    promise(.success(model))
+                case .failure(let err):
+                    print("파일 업로드 실패:", err)
+                    promise(.success(nil))
                 }
-                promise(.success(()))
             }
         }
-        .eraseToAnyPublisher()
+        
+        // 2) 명시적으로 eraseToAnyPublisher() 호출
+        return future
+            .eraseToAnyPublisher()
     }
     
     // 폴더 생성 – 작업 완료 시 Void 발행
