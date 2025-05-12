@@ -24,6 +24,7 @@ final class ScoreAnnotationViewModel: ObservableObject{
     private let contentId: UUID
     private var annotations: [Int: PageAnnotation] = [:]
     private var cancellables = Set<AnyCancellable>()
+    private let context = CoreDataManager.shared.context // CoreData를 위해 필요함
     
     init(contentId: UUID
     ) {
@@ -33,21 +34,35 @@ final class ScoreAnnotationViewModel: ObservableObject{
     }
     
     /// 현재 페이지의 PKDrawing 을 저장하고 메모리 해제
-    func save(page: Int) {
-        guard let pageAnnot = annotations[page] else {
-            // 새로 생성
-            let newId = UUID()
-            let model = PageAnnotation(page: page, drawing: currentDrawing, storageId: newId)
-            annotations[page] = model
-            persist(model)
-            return
+        func save(page: Int) {
+            guard let pageAnnot = annotations[page] else {
+                // 새로 생성
+                let newId = UUID()
+                let model = PageAnnotation(page: page, drawing: currentDrawing, storageId: newId)
+                annotations[page] = model
+                persist(model)
+                return
+            }
+            // 기존에 있던 ID 로 업데이트
+            var updated = pageAnnot
+            updated.drawing = currentDrawing
+            annotations[page] = updated
+            persist(updated)
         }
-        // 기존에 있던 ID 로 업데이트
-        var updated = pageAnnot
-        updated.drawing = currentDrawing
-        annotations[page] = updated
-        persist(updated)
-    }
+//    func save(page: Int){
+//        let pa = annotations[page] ?? {
+//            let newId = UUID()
+//            let model = PageAnnotation(page: page,
+//                                       drawing: currentDrawing,
+//                                       storageId: newId)
+//            annotations[page] = model
+//            return model
+//        }()
+//        
+//        persist(pa)
+//    }
+    
+    
     
     /// 저장된 페이지가 있으면 로드, 아니면 빈 캔버스
     func load(page: Int) {
@@ -65,6 +80,12 @@ final class ScoreAnnotationViewModel: ObservableObject{
     private func persist(_ pa: PageAnnotation) {
         // CoreData 의 ScoreAnnotation 엔티티에
         // pa.storageId, contentId, pa.page, strokeData = pa.drawing.dataRepresentation() 저장
+        
+        
+        
+        
+        
+        
     }
     
     private func fetchFromStore(contentId: UUID, page: Int) -> PageAnnotation? {
