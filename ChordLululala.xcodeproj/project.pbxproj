@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		07E94A31C4FF31FEE6253B54 /* Pods_ChordLululala_ChordLululalaUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DC9E219ED955F338E7DCF94 /* Pods_ChordLululala_ChordLululalaUITests.framework */; };
+		6EC34FB4F2751AB225CF28E0 /* Pods_ChordLululalaTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8BDFF047FC67A971CA53BADC /* Pods_ChordLululalaTests.framework */; };
+		B52945FC8AAC7AC7E0B6230E /* Pods_ChordLululala.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 74273B521EDFD31E8A6FAB75 /* Pods_ChordLululala.framework */; };
 		DBC0BDDE2D8E95CE00302F84 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DBC0BDDD2D8E95CE00302F84 /* GoogleSignIn */; };
 		DBC0BDE02D8E95CE00302F84 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DBC0BDDF2D8E95CE00302F84 /* GoogleSignInSwift */; };
 /* End PBXBuildFile section */
@@ -29,9 +32,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0DC9E219ED955F338E7DCF94 /* Pods_ChordLululala_ChordLululalaUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChordLululala_ChordLululalaUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1BBB781BC2B4424964949B65 /* Pods-ChordLululala.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululala.debug.xcconfig"; path = "Target Support Files/Pods-ChordLululala/Pods-ChordLululala.debug.xcconfig"; sourceTree = "<group>"; };
+		312C62FFE916C3F696D3F6C4 /* Pods-ChordLululalaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululalaTests.release.xcconfig"; path = "Target Support Files/Pods-ChordLululalaTests/Pods-ChordLululalaTests.release.xcconfig"; sourceTree = "<group>"; };
+		5D2D80715F5424B31FFC6F6C /* Pods-ChordLululala-ChordLululalaUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululala-ChordLululalaUITests.release.xcconfig"; path = "Target Support Files/Pods-ChordLululala-ChordLululalaUITests/Pods-ChordLululala-ChordLululalaUITests.release.xcconfig"; sourceTree = "<group>"; };
+		74273B521EDFD31E8A6FAB75 /* Pods_ChordLululala.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChordLululala.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		8BDFF047FC67A971CA53BADC /* Pods_ChordLululalaTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChordLululalaTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A04F50EF70966E4C76505F2B /* Pods-ChordLululala-ChordLululalaUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululala-ChordLululalaUITests.debug.xcconfig"; path = "Target Support Files/Pods-ChordLululala-ChordLululalaUITests/Pods-ChordLululala-ChordLululalaUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		BBB393D1FA79F53FE2AD8B43 /* Pods-ChordLululalaTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululalaTests.debug.xcconfig"; path = "Target Support Files/Pods-ChordLululalaTests/Pods-ChordLululalaTests.debug.xcconfig"; sourceTree = "<group>"; };
 		DB32EEBC2D4CC838008C113B /* ChordLululala.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChordLululala.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		EF8A1449F9FF473B9BC5EAD3 /* Pods-ChordLululala.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululala.release.xcconfig"; path = "Target Support Files/Pods-ChordLululala/Pods-ChordLululala.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -72,6 +84,7 @@
 			files = (
 				DBC0BDDE2D8E95CE00302F84 /* GoogleSignIn in Frameworks */,
 				DBC0BDE02D8E95CE00302F84 /* GoogleSignInSwift in Frameworks */,
+				B52945FC8AAC7AC7E0B6230E /* Pods_ChordLululala.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6EC34FB4F2751AB225CF28E0 /* Pods_ChordLululalaTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,12 +100,36 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				07E94A31C4FF31FEE6253B54 /* Pods_ChordLululala_ChordLululalaUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		6AFAFEB28180AA7AF12FBCC9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				74273B521EDFD31E8A6FAB75 /* Pods_ChordLululala.framework */,
+				0DC9E219ED955F338E7DCF94 /* Pods_ChordLululala_ChordLululalaUITests.framework */,
+				8BDFF047FC67A971CA53BADC /* Pods_ChordLululalaTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		D8CC04D83FCE88E1AA9C7BFF /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				1BBB781BC2B4424964949B65 /* Pods-ChordLululala.debug.xcconfig */,
+				EF8A1449F9FF473B9BC5EAD3 /* Pods-ChordLululala.release.xcconfig */,
+				A04F50EF70966E4C76505F2B /* Pods-ChordLululala-ChordLululalaUITests.debug.xcconfig */,
+				5D2D80715F5424B31FFC6F6C /* Pods-ChordLululala-ChordLululalaUITests.release.xcconfig */,
+				BBB393D1FA79F53FE2AD8B43 /* Pods-ChordLululalaTests.debug.xcconfig */,
+				312C62FFE916C3F696D3F6C4 /* Pods-ChordLululalaTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		DB32EEB32D4CC838008C113B = {
 			isa = PBXGroup;
 			children = (
@@ -99,6 +137,8 @@
 				DB32EED62D4CC83C008C113B /* ChordLululalaTests */,
 				DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */,
 				DB32EEBD2D4CC838008C113B /* Products */,
+				D8CC04D83FCE88E1AA9C7BFF /* Pods */,
+				6AFAFEB28180AA7AF12FBCC9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -119,6 +159,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB32EEE62D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululala" */;
 			buildPhases = (
+				96CF6EEE2F94E7270C78C79F /* [CP] Check Pods Manifest.lock */,
 				DB32EEB82D4CC838008C113B /* Sources */,
 				DB32EEB92D4CC838008C113B /* Frameworks */,
 				DB32EEBA2D4CC838008C113B /* Resources */,
@@ -143,6 +184,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB32EEEB2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaTests" */;
 			buildPhases = (
+				85CCCEDE228B37D2178EFC0B /* [CP] Check Pods Manifest.lock */,
 				DB32EECF2D4CC83B008C113B /* Sources */,
 				DB32EED02D4CC83B008C113B /* Frameworks */,
 				DB32EED12D4CC83B008C113B /* Resources */,
@@ -156,8 +198,6 @@
 				DB32EED62D4CC83C008C113B /* ChordLululalaTests */,
 			);
 			name = ChordLululalaTests;
-			packageProductDependencies = (
-			);
 			productName = ChordLululalaTests;
 			productReference = DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -166,6 +206,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DB32EEEE2D4CC83C008C113B /* Build configuration list for PBXNativeTarget "ChordLululalaUITests" */;
 			buildPhases = (
+				40605901B5860330251C4C7A /* [CP] Check Pods Manifest.lock */,
 				DB32EED92D4CC83C008C113B /* Sources */,
 				DB32EEDA2D4CC83C008C113B /* Frameworks */,
 				DB32EEDB2D4CC83C008C113B /* Resources */,
@@ -179,8 +220,6 @@
 				DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */,
 			);
 			name = ChordLululalaUITests;
-			packageProductDependencies = (
-			);
 			productName = ChordLululalaUITests;
 			productReference = DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -197,6 +236,7 @@
 				TargetAttributes = {
 					DB32EEBB2D4CC838008C113B = {
 						CreatedOnToolsVersion = 16.1;
+						LastSwiftMigration = 1620;
 					};
 					DB32EED22D4CC83B008C113B = {
 						CreatedOnToolsVersion = 16.1;
@@ -256,6 +296,75 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		40605901B5860330251C4C7A /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ChordLululala-ChordLululalaUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		85CCCEDE228B37D2178EFC0B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ChordLululalaTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		96CF6EEE2F94E7270C78C79F /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-ChordLululala-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		DB32EEB82D4CC838008C113B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -296,9 +405,11 @@
 /* Begin XCBuildConfiguration section */
 		DB32EEE72D4CC83C008C113B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1BBB781BC2B4424964949B65 /* Pods-ChordLululala.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ChordLululala/ChordLululala.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -323,6 +434,8 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ChordLululala/OpenCV/ChordLululala-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -330,15 +443,17 @@
 		};
 		DB32EEE82D4CC83C008C113B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF8A1449F9FF473B9BC5EAD3 /* Pods-ChordLululala.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = ChordLululala/ChordLululala.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ChordLululala/Preview Content\"";
-				DEVELOPMENT_TEAM = 4W525ARBM5;
+				DEVELOPMENT_TEAM = 55JW9PZ4J9;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = ChordLululala/Info.plist;
@@ -357,6 +472,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "ChordLululala/OpenCV/ChordLululala-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -483,6 +599,7 @@
 		};
 		DB32EEEC2D4CC83C008C113B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = BBB393D1FA79F53FE2AD8B43 /* Pods-ChordLululalaTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -502,6 +619,7 @@
 		};
 		DB32EEED2D4CC83C008C113B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 312C62FFE916C3F696D3F6C4 /* Pods-ChordLululalaTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -521,6 +639,7 @@
 		};
 		DB32EEEF2D4CC83C008C113B /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A04F50EF70966E4C76505F2B /* Pods-ChordLululala-ChordLululalaUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -538,6 +657,7 @@
 		};
 		DB32EEF02D4CC83C008C113B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5D2D80715F5424B31FFC6F6C /* Pods-ChordLululala-ChordLululalaUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

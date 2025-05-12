@@ -9,8 +9,8 @@ import Combine
 import SwiftUI
 
 enum DashboardContents {
-    case allDocuments
-    case songList
+    case score
+    case setlist
     case trashCan
     case myPage
 }
@@ -23,7 +23,7 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "최근 수정순"
+    case date = "최신순"
     case name = "이름순"
     
     var id: String { rawValue }
@@ -42,18 +42,18 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 필터링 관련
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
-    @Published var dashboardContents: DashboardContents = .allDocuments {
+    @Published var dashboardContents: DashboardContents = .score {
         didSet {
             currentFilter = .all
             selectedSort = .date
             searchText = ""
             // 대시보드 종류에 따라 기본 폴더를 지정
             switch dashboardContents {
-            case .allDocuments:
+            case .score:
                 if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
                     currentParent = scoreBase
                 }
-            case .songList:
+            case .setlist:
                 if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
                     currentParent = songListBase
                 }
@@ -65,6 +65,7 @@ final class DashBoardViewModel: ObservableObject {
                 break
             }
             loadContents()
+            loadMoveDestinations()
         }
     }
     @Published var searchText: String = ""
@@ -87,7 +88,10 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 선택모드 관련
     @Published var isSelectionViewVisible: Bool = false
     @Published var isTrashModalVisible: Bool = false
+    @Published var isMoveModalVisible: Bool = false
     @Published var selectedContents: [ContentModel] = []
+    @Published var moveDestinations: [ContentModel] = []
+    @Published var selectedDestination: ContentModel? = nil
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -96,11 +100,11 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.initializeBaseDirectories()
         // 초기 대시보드에 따른 기본 폴더 지정
         switch dashboardContents {
-        case .allDocuments:
+        case .score:
             if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                 currentParent = scoreBase
             }
-        case .songList:
+        case .setlist:
             if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
                 currentParent = songListBase
             }
@@ -112,6 +116,27 @@ final class DashBoardViewModel: ObservableObject {
             break
         }
         loadContents()
+        loadMoveDestinations()
+    }
+    
+    // 파일 이동 가능 폴더 가져오기
+    func loadMoveDestinations() {
+        switch dashboardContents {
+        case .score:
+            if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+            }
+        case .setlist:
+            if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+            }
+        case .trashCan:
+            if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+            }
+        case .myPage:
+            moveDestinations = []
+        }
     }
     
     // MARK: - 폴더 및 파일 정렬
@@ -153,11 +178,11 @@ final class DashBoardViewModel: ObservableObject {
         } else {
             print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
             switch dashboardContents {
-            case .allDocuments:
+            case .score:
                 if let scoreBase = ContentManager.shared.fetchBaseDirectory(named: "Score") {
                     currentParent = scoreBase
                 }
-            case .songList:
+            case .setlist:
                 if let songListBase = ContentManager.shared.fetchBaseDirectory(named: "Song_List") {
                     currentParent = songListBase
                 }
@@ -193,10 +218,31 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func uploadFile(with url: URL) {
-        guard let currentParent = currentParent else { return }
-        ContentManager.shared.uploadFile(with: url, currentParent: currentParent, dashboardContents: dashboardContents)
+        guard let parent = currentParent else { return }
+
+        ContentManager.shared
+            .uploadFile(
+                with: url,
+                currentParent: parent,
+                dashboardContents: dashboardContents
+            )
+            .compactMap { $0 }  // nil 걸러내기
+            .flatMap { cm in
+                // 1) ContentModel → ScoreDetail 생성 또는 조회
+                ScoreDetailManager.shared.createScoreDetail(for: cm)
+            }
+            .flatMap { detail in
+                // 2) ScoreDetailModel → PDF URL
+                guard let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail) else {
+                    return Just(()).eraseToAnyPublisher()
+                }
+                // 3) PDF URL → ScorePage 생성
+                return ScorePageManager.shared.createPages(for: detail, fileURL: pdfURL)
+            }
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+            }
             .store(in: &cancellables)
     }
     
@@ -247,6 +293,22 @@ final class DashBoardViewModel: ObservableObject {
         ContentManager.shared.restoreContent(content)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.loadContents() }
+            .store(in: &cancellables)
+    }
+    
+    func moveSelectedContents(to destination: ContentModel) {
+        let publishers = selectedContents.map { content in
+            ContentManager.shared.moveContent(content, to: destination)
+        }
+        Publishers.MergeMany(publishers)
+            .collect()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.selectedContents.removeAll()
+                self?.isMoveModalVisible = false
+                self?.isSelectionViewVisible = false
+                self?.loadContents()
+            }
             .store(in: &cancellables)
     }
     

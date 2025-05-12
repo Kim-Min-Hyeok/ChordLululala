@@ -38,13 +38,6 @@ struct DashboardView: View {
                                         HeaderView()
                                             .environmentObject(viewModel)
                                             .padding(.top, 33)
-                                        
-                                        // TODO: 테스트용: 모든 데이터 삭제 버튼
-                                        //                                    Button("모든 데이터 삭제") {
-                                        //                                        CoreDataManager.shared.deleteAllCoreDataObjects()
-                                        //                                        FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
-                                        //                                    }
-                                        //                                    .padding(.vertical, 50)
                                     }
                                     else {
                                         Rectangle()
@@ -178,13 +171,26 @@ struct DashboardView: View {
             
             // MARK: 휴지통 이동 모달
             if viewModel.isTrashModalVisible {
-                Color.black.opacity(0.4)
+                Color.clear
+                    .contentShape(Rectangle())
                     .ignoresSafeArea()
                     .onTapGesture {
                         viewModel.isTrashModalVisible = false
-                        viewModel.isSelectionViewVisible = false
                     }
                 TrashModalView()
+                    .transition(.opacity)
+            }
+            
+            // MARK: 파일 이동 모달
+            if viewModel.isMoveModalVisible {
+                Color.clear
+                    .contentShape(Rectangle())
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        viewModel.isMoveModalVisible = false
+                        viewModel.selectedDestination = nil
+                    }
+                MoveModalView()
                     .transition(.opacity)
             }
         }
