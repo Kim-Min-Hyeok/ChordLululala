@@ -70,8 +70,7 @@ struct FolderListCellView: View {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
                 } else {
-                    viewModel.currentParent = folder
-                    viewModel.loadContents()
+                    viewModel.didTapFolder(folder)
                 }
             }
             .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
