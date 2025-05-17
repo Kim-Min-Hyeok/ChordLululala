@@ -73,6 +73,10 @@ struct ScoreMainBodyView: View {
                     .ignoresSafeArea()
                 }
             }
+            .onChange(of: pageNavViewModel.currentPage){ newPage in
+                annotationVM.save()
+                annotationVM.load()
+            }
             
         
         
