@@ -50,11 +50,11 @@ struct ScoreHeaderView: View {
                     Button(action:{
                         annotationVM.isEditing.toggle()
                     }){
-                        Image("scoreheader_pencil")
+                        Image(annotationVM.isEditing ? "scoreheader_pencil_fill" : "scoreheader_pencil")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 36, height: 36)
-                            .foregroundColor(Color.primaryBaseBlack)
+                            .foregroundColor(Color.primaryGray900)
                     }
                     .padding(.trailing,10)
                     
@@ -73,7 +73,7 @@ struct ScoreHeaderView: View {
                     Button(action:{
                         guard let file = file else {return}
                         router.toNamed("/chordreconize", arguments: [ file ])
-
+                        
                     }){
                         HStack{
                             Image("scoreheader_chordchange")
