@@ -55,6 +55,7 @@ final class ScoreAnnotationViewModel : ObservableObject {
         let models = annotationManager.fetch(for: pageModel)
         if let first = models.first,
            let drawing = try? PKDrawing(data: first.strokeData){
+            print(#fileID,#function,#line, "불러오기 성공")
             currentDrawing = drawing
         } else {
             currentDrawing = PKDrawing()

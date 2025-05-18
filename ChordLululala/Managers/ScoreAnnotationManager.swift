@@ -46,9 +46,10 @@ final class ScoreAnnotationManager {
         guard let pageEntity = (try? context.fetch(req))?.first,
               let set = pageEntity.scoreAnnotations as? Set<ScoreAnnotation>
         else {
+            print("⚠️ 필기 데이터 없음")
             return []
         }
-        
+        print("✅ CoreData 조회 완료: \(set.count)개의 필기 데이터")
         return set.map(ScoreAnnotationModel.init(entity:))
     }
     

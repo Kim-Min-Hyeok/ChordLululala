@@ -81,7 +81,9 @@ final class ScoreViewModel: ObservableObject{
         pageNavViewModel.$currentPage
             .sink { [weak self] newPage in
                 guard let self = self else { return }
-                //                self.annotationViewModel.load(page: newPage) // TODO: 필기 저장하는 기능 구현해야함
+//                self.annotationViewModel.load(page: newPage) // TODO: 필기 저장하는 기능 구현해야함
+                self.annotationViewModel.save()
+                self.annotationViewModel.load()
             }
             .store(in: &cancellables)
         
