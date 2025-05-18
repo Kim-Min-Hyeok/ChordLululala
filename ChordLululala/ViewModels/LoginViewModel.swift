@@ -12,17 +12,22 @@ import GoogleSignIn
 
 class LoginViewModel: NSObject, ObservableObject {
     @Published var user: UserModel? = nil
-    
     private var cancellables = Set<AnyCancellable>()
-    
     var appleSignInCompletion: (() -> Void)?
+
+    override init() {
+        super.init()
+        self.user = UserManager.shared.currentUser
+        UserManager.shared.$currentUser
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$user)
+    }
+    
     func customLoginWithApple(onSuccess: @escaping () -> Void) {
         self.appleSignInCompletion = onSuccess
-        
         let provider = ASAuthorizationAppleIDProvider()
         let request = provider.createRequest()
         request.requestedScopes = [.fullName, .email]
-        
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
@@ -34,22 +39,21 @@ class LoginViewModel: NSObject, ObservableObject {
             print("GIDClientID가 Info.plist에 없습니다.")
             return
         }
-        
         _ = GIDConfiguration(clientID: clientID)
-        
         guard let presentingViewController = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else {
             print("루트 뷰 컨트롤러를 찾을 수 없습니다.")
             return
         }
-        
-        Future<(String, String), Error> { promise in
+        Future<(String, String, String?, String?), Error> { promise in
             GIDSignIn.sharedInstance.signIn(withPresenting: presentingViewController) { result, error in
                 if let error = error {
                     promise(.failure(error))
                 } else if let result = result {
                     let providerId = result.user.userID ?? "Unknown"
                     let fullName = result.user.profile?.name ?? "User"
-                    promise(.success((providerId, fullName)))
+                    let email = result.user.profile?.email
+                    let profileImageURL = result.user.profile?.imageURL(withDimension: 100)?.absoluteString
+                    promise(.success((providerId, fullName, email, profileImageURL)))
                 }
             }
         }
@@ -58,37 +62,40 @@ class LoginViewModel: NSObject, ObservableObject {
             if case .failure(let error) = completion {
                 print("구글 로그인 실패: \(error.localizedDescription)")
             }
-        } receiveValue: { [weak self] providerId, fullName in
-            guard self != nil else { return }
-            print("구글 로그인 성공: \(providerId), \(fullName)")
-            
-            UserManager.shared.createOrUpdateUser(with: providerId, name: fullName)
-            
-            UserDefaults.standard.set(providerId, forKey: "lastLoggedInUserID")
-            UserDefaults.standard.set(fullName, forKey: "lastLoggedInUserName")
-            
+        } receiveValue: { providerId, fullName, email, profileImageURL in
+            print("구글 로그인 성공: \(providerId), \(fullName), \(email ?? ""), \(profileImageURL ?? "")")
+            UserManager.shared.saveUser(
+                providerId: providerId,
+                name: fullName,
+                email: email,
+                profileImageURL: profileImageURL
+            )
             DispatchQueue.main.async {
                 onSuccess()
+                UserManager.shared.printCurrentUserDefaults()
             }
         }
         .store(in: &cancellables)
     }
 }
 
+// MARK: - Apple Delegate
 extension LoginViewModel: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         if let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential {
             let providerId = appleIDCredential.user
             let fullName = appleIDCredential.fullName?.givenName ?? "User"
-            print("커스텀 Apple 로그인 성공: \(providerId), \(fullName)")
-            
-            UserManager.shared.createOrUpdateUser(with: providerId, name: fullName)
-            
-            UserDefaults.standard.set(providerId, forKey: "lastLoggedInUserID")
-            UserDefaults.standard.set(fullName, forKey: "lastLoggedInUserName")
-            
+            let email = appleIDCredential.email // 최초 로그인시에만 값 있음
+            print("커스텀 Apple 로그인 성공: \(providerId), \(fullName), \(email ?? "")")
+            UserManager.shared.saveUser(
+                providerId: providerId,
+                name: fullName,
+                email: email,
+                profileImageURL: nil // 애플은 프로필 없음
+            )
             DispatchQueue.main.async {
                 self.appleSignInCompletion?()
+                UserManager.shared.printCurrentUserDefaults()
             }
         }
     }

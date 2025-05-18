@@ -15,7 +15,6 @@
         <relationship name="childContent" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="parentContent" inverseEntity="Content"/>
         <relationship name="parentContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="childContent" inverseEntity="Content"/>
         <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ScoreDetail" inverseName="content" inverseEntity="ScoreDetail"/>
-        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="contents" inverseEntity="User"/>
     </entity>
     <entity name="ScoreAnnotation" representedClassName="ScoreAnnotation" syncable="YES" codeGenerationType="class">
         <attribute name="s_aid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -58,12 +57,5 @@
     <entity name="Setting" representedClassName="Setting" syncable="YES" codeGenerationType="class">
         <attribute name="layout" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="sid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="setting" inverseEntity="User"/>
-    </entity>
-    <entity name="User" representedClassName="User" syncable="YES" codeGenerationType="class">
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="uid" optional="YES" attributeType="String"/>
-        <relationship name="contents" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="user" inverseEntity="Content"/>
-        <relationship name="setting" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="Setting" inverseName="user" inverseEntity="Setting"/>
     </entity>
 </model>
