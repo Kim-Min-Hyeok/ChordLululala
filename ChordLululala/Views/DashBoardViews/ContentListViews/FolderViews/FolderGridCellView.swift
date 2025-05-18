@@ -48,7 +48,14 @@ struct FolderGridCellView: View {
                 Text(folder.modifiedAt.dateFormatForGrid())
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
-                Spacer()
+                if viewModel.isSearching {
+                    Text(viewModel.getParentName(of: folder))
+                            .textStyle(.bodyTextLgRegular)
+                            .foregroundStyle(Color.primaryBlue600)
+                            .padding(.top, 3)
+                } else {
+                    Spacer()
+                }
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
         }
@@ -56,8 +63,7 @@ struct FolderGridCellView: View {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
             } else {
-                viewModel.currentParent = folder
-                viewModel.loadContents()
+                viewModel.didTapFolder(folder)
             }
         }
         .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
