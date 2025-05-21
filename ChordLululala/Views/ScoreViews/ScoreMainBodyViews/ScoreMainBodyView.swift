@@ -47,13 +47,31 @@ struct ScoreMainBodyView: View {
                     
                 }) {
                     // 연주모드일때 OFF 뜨고, 일반모드일 떄 메세지
-                    Text(playmodeViewModel.isOn ? "OFF" : "연주모드 ON")
-                        .frame(width: playmodeViewModel.isOn ? 55 : 131,
-                               height: 44)
-                        .background(playmodeViewModel.isOn ? Color.init(hex: "#2563EB") : Color.primaryGray500)
-                        .opacity(0.9)
-                        .cornerRadius(8)
+                    if(playmodeViewModel.isOn){
+                        Text("연주 모드 ON")
+                            .textStyle(.headingLgMedium)
+                            .frame(width: 131,height: 44)
+                            .background(Color.primaryGray800)
+                            .opacity(0.9)
+                            .cornerRadius(8)
+                            .foregroundColor(Color.primaryGray50)
+                    } else {
+                        HStack(spacing: 3){
+                            Image("playmode_lock")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                            Text("OFF")
+                                .textStyle(.headingLgMedium)
+                        }
+                        .frame(width: 79,height: 37)
+                        .background(Color.primaryGray900)
                         .foregroundColor(Color.primaryGray50)
+                        .opacity(0.9)
+                        .cornerRadius(32)
+                    }
+                    
+                    
+                    
                 }
                     .offset(x: -22, y: -25),
                 alignment: .bottomTrailing
