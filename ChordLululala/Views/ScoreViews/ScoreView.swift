@@ -37,7 +37,7 @@ struct ScoreView : View {
                     annotationVM: viewModel.annotationViewModel,
                     isTransposing: viewModel.isTransposingViewModel
                 )
-                
+             
             }
             
             /// 페이지 추가 버튼 눌렀을때 뜨는 모달창
