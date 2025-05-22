@@ -1,4 +1,4 @@
-
+//
 import SwiftUI
 
 struct ScoreMainBodyView: View {
@@ -73,7 +73,9 @@ struct ScoreMainBodyView: View {
                     
                     
                 }
-                    .offset(x: -22, y: -25),
+                    .offset(
+                        x: playmodeViewModel.isOn ?  -22 : -16,
+                        y: playmodeViewModel.isOn ? -25 : -30),
                 alignment: .bottomTrailing
             )
             
@@ -107,11 +109,16 @@ struct ScoreMainBodyView: View {
             
         }
         .onChange(of: pageNavViewModel.currentPage){ newPage in
-            annotationVM.save()
             annotationVM.load()
         }
-        
+        .onDisappear {
+            annotationVM.save()
+        }
         
         
     }
 }
+
+
+
+

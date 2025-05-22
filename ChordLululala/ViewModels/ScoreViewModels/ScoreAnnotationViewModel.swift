@@ -9,41 +9,40 @@ import SwiftUI
 import PencilKit
 import Combine
 import CoreData
-//
-//// 한 페이지 분량의 필기 데이터를 담는 모델
-struct PageAnnotation {
-    let page: Int
-    var drawing: PKDrawing
-    var storageId: UUID  // CoreData 에 저장할 때 쓰일 고유 식별자
-}
-
 
 final class ScoreAnnotationViewModel : ObservableObject {
-    @Published var isEditing: Bool = false
     @Published var currentDrawing: PKDrawing = PKDrawing()
-    
-    var pageModel : ScorePageModel
+    @Published var isEditing: Bool = false
+
     private let annotationManager = ScoreAnnotationManager.shared
+    var pageModel : ScorePageModel
     private var cancellables = Set<AnyCancellable>()
     
     init(pageModel: ScorePageModel){
         self.pageModel = pageModel
+        print("▶️ [ViewModel.init] for pageID:", pageModel.s_pid)           // 📍 init 호출 시점
+
         setupAutoSave()
         load()
     }
     
     private func setupAutoSave(){
+        
+        // 필기가 바뀌면 1초 디바운스 저장
         $currentDrawing
             .dropFirst()
             .debounce(for: .seconds(1), scheduler: RunLoop.main)
             .sink { [weak self] _ in
+                print("🔄 [AutoSave] currentDrawing changed, saving...")      // 📍 자동 저장 트리거
                 self?.save()
             }
             .store(in: &cancellables)
         
         $isEditing
+            .dropFirst()
             .filter { !$0 }
             .sink { [weak self] _ in
+                print("🔒 [AutoSave] editing ended, saving...")              // 📍 편집 종료 트리거
                 self?.save()
             }
             .store(in: &cancellables)
@@ -52,12 +51,14 @@ final class ScoreAnnotationViewModel : ObservableObject {
     
     
     func load(){
+        print("▶️ [ViewModel.load] fetching annotations for pageID:", pageModel.s_pid)  // 📍 load 호출
         let models = annotationManager.fetch(for: pageModel)
         if let first = models.first,
            let drawing = try? PKDrawing(data: first.strokeData){
-            print(#fileID,#function,#line, "불러오기 성공")
+            print("✅ [ViewModel.load] Loaded annotation (strokeData size:", first.strokeData.count, "bytes)")  // 📍 성공 로그
             currentDrawing = drawing
         } else {
+            print("⚠️ [ViewModel.load] No annotation found, initializing blank")   // 📍 없음 로그
             currentDrawing = PKDrawing()
         }
         
@@ -65,7 +66,8 @@ final class ScoreAnnotationViewModel : ObservableObject {
     
     func save(){
         let data = currentDrawing.dataRepresentation()
-        let annotation = ScoreAnnotationModel(s_aid: UUID(), strokeData: data)
+        let annotation = ScoreAnnotationModel(s_aid: pageModel.s_pid, strokeData: data)
+        print("▶️ [ViewModel.save] saving annotation (data size:", data.count, "bytes) for pageID:", pageModel.s_pid)  // 📍 save 호출
         annotationManager.save(annotations: [annotation], for: pageModel)
     }
     
