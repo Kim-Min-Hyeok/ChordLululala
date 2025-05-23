@@ -14,6 +14,7 @@ struct ScoreHeaderView: View {
     @ObservedObject var annotationVM : ScoreAnnotationViewModel
     @ObservedObject var isTransposing: IsTransposingViewModel
     @ObservedObject var pageAdditionVM : PageAdditionViewModel
+    @EnvironmentObject var settingVM : ScoreSettingViewModel
     let file : ContentModel?
     
     
@@ -106,8 +107,8 @@ struct ScoreHeaderView: View {
                     
                     ///설정
                     Button(action:{
-                        
-                        print("전체 페이지 보기 클릭") //TODO: 기능 추가해야함
+                        settingVM.toggle()
+                        print("설정 보기 클릭") //TODO: 기능 추가해야함
                     }){
                         Image("scoreheader_setting")
                             .resizable()

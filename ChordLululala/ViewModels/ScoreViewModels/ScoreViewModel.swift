@@ -15,6 +15,8 @@ final class ScoreViewModel: ObservableObject{
     let pageNavViewModel: PageNavigationViewModel
     let annotationViewModel: ScoreAnnotationViewModel
     let isTransposingViewModel = IsTransposingViewModel()
+    let scoreSettingViewModel = ScoreSettingViewModel()
+    
     // 현재 페이지 인덱스
     @Published var currentPage: Int = 0
     
@@ -75,6 +77,13 @@ final class ScoreViewModel: ObservableObject{
         
         // 연주모드 변경
         playmodeViewModel.objectWillChange
+            .sink { [weak self] _ in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // 한페이지, 두페이지씩 보기 변경
+        scoreSettingViewModel.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
