@@ -13,7 +13,7 @@ import CoreData
 final class ScoreAnnotationViewModel : ObservableObject {
     @Published var currentDrawing: PKDrawing = PKDrawing()
     @Published var isEditing: Bool = false
-
+    
     private let annotationManager = ScoreAnnotationManager.shared
     var pageModel : ScorePageModel
     private var cancellables = Set<AnyCancellable>()
@@ -21,7 +21,7 @@ final class ScoreAnnotationViewModel : ObservableObject {
     init(pageModel: ScorePageModel){
         self.pageModel = pageModel
         print("▶️ [ViewModel.init] for pageID:", pageModel.s_pid)           // 📍 init 호출 시점
-
+        
         setupAutoSave()
         load()
     }

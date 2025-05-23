@@ -7,6 +7,8 @@ struct ScoreMainBodyView: View {
     @ObservedObject var pageNavViewModel: PageNavigationViewModel
     @ObservedObject var annotationVM: ScoreAnnotationViewModel
     @ObservedObject var isTransposing: IsTransposingViewModel
+    @EnvironmentObject var settingVM: ScoreSettingViewModel
+    
     
     var body: some View {
         ZStack {
@@ -105,8 +107,14 @@ struct ScoreMainBodyView: View {
                 .ignoresSafeArea()
                 .animation(.easeInOut, value: annotationVM.isEditing)
             }
-            
-            
+        }
+        .overlay(alignment: .topTrailing){
+            /// 설정 버튼 눌렀을 때 모달 표시
+            if settingVM.isSetting{
+                ScoreSettingView()
+                    .padding(.top,6)
+                    .padding(.trailing, 26)
+            }
         }
         .onChange(of: pageNavViewModel.currentPage){ newPage in
             annotationVM.load()

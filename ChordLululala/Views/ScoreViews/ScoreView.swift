@@ -13,8 +13,6 @@ struct ScoreView : View {
     }
     
     var body: some View{
-        
-        
         ZStack{
             VStack{
                 /// 악보 헤더부분
@@ -37,7 +35,7 @@ struct ScoreView : View {
                     annotationVM: viewModel.annotationViewModel,
                     isTransposing: viewModel.isTransposingViewModel
                 )
-             
+                
             }
             
             /// 페이지 추가 버튼 눌렀을때 뜨는 모달창
@@ -49,10 +47,11 @@ struct ScoreView : View {
                             viewModel.pageAdditionViewModel.addPage(type)
                         }, pageAdditionVM: viewModel.pageAdditionViewModel
                     )
-
+                    
                 }
             }
         }
+        .environmentObject(viewModel.scoreSettingViewModel)
         .navigationBarHidden(true)
         
     }
