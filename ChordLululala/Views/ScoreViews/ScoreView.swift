@@ -52,6 +52,7 @@ struct ScoreView : View {
             }
         }
         .environmentObject(viewModel.scoreSettingViewModel)
+        .environmentObject(viewModel.scorePageOverViewModel)
         .navigationBarHidden(true)
         
     }
