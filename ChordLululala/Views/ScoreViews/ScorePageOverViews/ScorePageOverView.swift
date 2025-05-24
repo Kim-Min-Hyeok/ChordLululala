@@ -45,7 +45,16 @@ struct ScorePageOverView: View {
                             )
                         }
                     }
+                    // 페이지 추가버튼
                     PageAddButtonView()
+                        .overlay(alignment: .bottom) {
+                            if vm.isAddPageModalPresented {
+                                PageAddModalView()
+                                    .offset(y:171)
+                                    .zIndex(1)
+                            }
+                        }
+                    
                 }
             }
         }
