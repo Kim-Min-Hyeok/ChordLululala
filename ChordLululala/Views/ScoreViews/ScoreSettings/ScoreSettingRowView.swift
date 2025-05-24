@@ -31,7 +31,7 @@ struct ScoreSettingRowView: View {
             .padding(.vertical, 8.84)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color(hex: "F7F7F7")) // TODO: 디자인 시스템 적용되면 바꾸기
+        .background(Color.primaryGray100) // TODO: 디자인 시스템 적용되면 바꾸기
     }
 }
 

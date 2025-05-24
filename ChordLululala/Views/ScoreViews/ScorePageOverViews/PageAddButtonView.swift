@@ -8,10 +8,11 @@
 import SwiftUI
 
 struct PageAddButtonView: View {
+    @EnvironmentObject var vm : ScorePageOverViewModel
     var body: some View {
         
         Button(action:{
-            // TODO: 페이지 추가 버튼 클릭시
+            vm.isAddPage() // 페이지 추가 버튼 클릭시
         }){
             ZStack {
                 RoundedRectangle(cornerRadius: 8.78)

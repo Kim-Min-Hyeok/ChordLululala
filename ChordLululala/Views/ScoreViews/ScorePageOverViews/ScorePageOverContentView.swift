@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ScorePageOverContentView: View {
+    @EnvironmentObject var vm : ScorePageOverViewModel
+    
     let pageIndex : Int
     let image : UIImage
     var body: some View {
@@ -27,14 +29,23 @@ struct ScorePageOverContentView: View {
                 
                 Button(action: {
                     //TODO: 모달 창 띄우기
+                    vm.isPageOption()
                 }){
                     Image("dropdown")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 10, height: 15)
                 }
+                .popover(
+                    isPresented: $vm.isPageOptionModalPresented,
+                    attachmentAnchor: .rect(.bounds),
+                    arrowEdge: .top
+                ){
+                    PageOptionModalView()
+                }
             }
             .foregroundColor(Color.primaryGray500)
+            
         }
         .frame(width: 129, height: 167)
     }
