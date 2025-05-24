@@ -70,7 +70,14 @@ struct FileGridCellView: View {
                 Text(file.modifiedAt.dateFormatForGrid())
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
-                Spacer()
+                if viewModel.isSearching {
+                    Text(viewModel.getParentName(of: file))
+                            .textStyle(.bodyTextLgRegular)
+                            .foregroundStyle(Color.primaryBlue600)
+                            .padding(.top, 3)
+                } else {
+                    Spacer()
+                }
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 61)
         }

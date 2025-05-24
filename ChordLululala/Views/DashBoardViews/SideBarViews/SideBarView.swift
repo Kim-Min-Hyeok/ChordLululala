@@ -41,7 +41,8 @@ struct SidebarView: View {
             }, isSelected: false)
             
             SidebarButtonView(imageName: "mypage", title: "로그아웃", action: {
-                logout()
+                UserManager.shared.logout()
+                router.offAll("/login")
             }, isSelected: false)
             
             SidebarButtonView(imageName: "mypage", title: "데이터 초기화", action: {
@@ -52,12 +53,5 @@ struct SidebarView: View {
         }
         .frame(maxWidth: 257, maxHeight: .infinity, alignment: .leading)
         .background(Color.primaryBaseWhite)
-    }
-    
-    private func logout() {
-        // lastLoggedInUserID 삭제
-        UserDefaults.standard.removeObject(forKey: "lastLoggedInUserID")
-        // /login 경로로 라우팅
-        router.toNamed("/login")
     }
 }

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
+    @State private var showToast = false
+    @State private var toastMessage = ""
     
     var body: some View {
         // MARK: 휴지통 이동 모달 구현을 위한 ZStack
@@ -18,7 +20,7 @@ struct DashboardView: View {
                 // MARK: 전체 / 사이드바
                 HStack(spacing: 0) {
                     // MARK: 사이드바
-                    if viewModel.isLandscape && !viewModel.isSelectionViewVisible {
+                    if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
                         SidebarView(onSelect: { newContent in
                             viewModel.dashboardContents = newContent
                         })
@@ -52,7 +54,7 @@ struct DashboardView: View {
                                 }
                                 .padding(.horizontal, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 167 : 45) : 44)
                                 
-                                if viewModel.dashboardContents != .trashCan && !viewModel.isSelectionViewVisible {
+                                if viewModel.dashboardContents != .trashCan && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
                                     // MARK: 파일 생성 모달 뷰
                                     ZStack {
                                         if viewModel.isFloatingMenuVisible {
@@ -104,7 +106,7 @@ struct DashboardView: View {
                             }
                         }
                         
-                        if !viewModel.isLandscape && !viewModel.isSelectionViewVisible {
+                        if !viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
                             TabBarView(onSelect: { newContent in
                                 viewModel.dashboardContents = newContent
                             })
@@ -163,10 +165,22 @@ struct DashboardView: View {
             .overlay(
                 Group {
                     if viewModel.isSelectionViewVisible {
-                        SelectionView()
+                        SelectionView(onMove: handleMoveAction)
                     }
                 },
                 alignment: .top
+            )
+            
+            .overlay(
+                Group {
+                    if showToast {
+                        ToastView(message: toastMessage)
+                            .frame(width: 324, height: 54)
+                            .padding(.leading, 25)
+                            .padding(.bottom, 7)
+                    }
+                },
+                alignment: .bottomLeading
             )
             
             // MARK: 휴지통 이동 모달
@@ -208,5 +222,32 @@ struct DashboardView: View {
             .background(Color.primaryGray50)
             .environmentObject(viewModel)
             .navigationBarHidden(true)
+    }
+    
+    private func handleMoveAction() {
+        let hadFolders = viewModel.selectedContents.contains { $0.type == .folder }
+        if hadFolders {
+            toastMessage = "폴더는 이동할 수 없습니다. 제외해주세요."
+            showToast = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                showToast = false
+            }
+        } else if !viewModel.selectedContents.isEmpty {
+            viewModel.isMoveModalVisible = true
+        }
+    }
+}
+
+struct ToastView: View {
+    let message: String
+    
+    var body: some View {
+        Text(message)
+            .textStyle(.bodyTextLgMedium)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .multilineTextAlignment(.center)
+            .background(Color(hex: "111827").opacity(0.9))
+            .foregroundColor(Color.primaryGray50)
+            .cornerRadius(7)
     }
 }
