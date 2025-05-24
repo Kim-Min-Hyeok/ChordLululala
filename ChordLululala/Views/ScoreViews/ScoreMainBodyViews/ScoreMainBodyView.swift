@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct ScoreMainBodyView: View {
-    @ObservedObject var pdfViewModel: ScorePDFViewModel
+    @EnvironmentObject var pdfViewModel: ScorePDFViewModel
     @ObservedObject var playmodeViewModel: PlayModeViewModel
     @ObservedObject var pageNavViewModel: PageNavigationViewModel
     @ObservedObject var annotationVM: ScoreAnnotationViewModel
@@ -116,11 +116,7 @@ struct ScoreMainBodyView: View {
                     .padding(.trailing, 26)
             }
         }
-        .overlay {
-            if(overViewVM.isPageOver) {
-                ScorePageOverView()
-            }
-        }
+        
         
         
         .onChange(of: pageNavViewModel.currentPage){ newPage in
