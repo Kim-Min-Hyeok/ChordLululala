@@ -15,6 +15,8 @@ struct ScoreHeaderView: View {
     @ObservedObject var isTransposing: IsTransposingViewModel
     @ObservedObject var pageAdditionVM : PageAdditionViewModel
     @EnvironmentObject var settingVM : ScoreSettingViewModel
+    @EnvironmentObject var overViewVM : ScorePageOverViewModel
+    
     let file : ContentModel?
     
     
@@ -94,8 +96,7 @@ struct ScoreHeaderView: View {
                     
                     ///전체 페이지 보기
                     Button(action:{
-                        
-                        print("전체 페이지 보기 클릭") //TODO: 기능 추가해야함
+                        overViewVM.toggle()
                     }){
                         Image("scoreheader_page_list")
                             .resizable()
