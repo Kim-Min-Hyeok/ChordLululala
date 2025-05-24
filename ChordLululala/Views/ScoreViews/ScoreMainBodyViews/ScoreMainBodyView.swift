@@ -9,6 +9,7 @@ struct ScoreMainBodyView: View {
     @ObservedObject var isTransposing: IsTransposingViewModel
     @EnvironmentObject var settingVM: ScoreSettingViewModel
     @EnvironmentObject var overViewVM : ScorePageOverViewModel
+    @EnvironmentObject var zoomVM : ImageZoomViewModel
     
     var body: some View {
         ZStack {
@@ -20,11 +21,28 @@ struct ScoreMainBodyView: View {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
+                        .scaleEffect(zoomVM.scale)
+                        .offset(zoomVM.offset)
                         .frame(width: UIScreen.main.bounds.width *
                                (playmodeViewModel.isOn ? 1.0 : 0.9))
                         .shadow(radius: 4)
                         .padding(.vertical)
                         .tag(index)       // 페이지 태그 지정
+                        .gesture(
+                            SimultaneousGesture( // 화면 확대 축소 기능
+                                MagnificationGesture()
+                                    .onChanged(zoomVM.onPinchChanged)
+                                    .onEnded(zoomVM.onPinchEnded),
+                                DragGesture()
+                                    .onChanged(zoomVM.onDragChanged)
+                                    .onEnded(zoomVM.onDragEnded)
+                                               )
+                        )
+                        .onTapGesture(count:2) { // 두번 탭하면 원래 크기로 돌아가기
+                            withAnimation(.easeInOut) {
+                                zoomVM.reset()
+                            }
+                        }
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))

@@ -7,7 +7,7 @@ import SwiftUI
 struct ScoreView : View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel: ScoreViewModel
-    
+    @StateObject var zoomVM: ImageZoomViewModel = ImageZoomViewModel()
     init(content: ContentModel?) {
         _viewModel = StateObject(wrappedValue: ScoreViewModel(content: content))
     }
@@ -58,6 +58,7 @@ struct ScoreView : View {
         .environmentObject(viewModel.scoreSettingViewModel)
         .environmentObject(viewModel.scorePageOverViewModel)
         .environmentObject(viewModel.pdfViewModel)
+        .environmentObject(zoomVM)
         .navigationBarHidden(true)
         
     }
