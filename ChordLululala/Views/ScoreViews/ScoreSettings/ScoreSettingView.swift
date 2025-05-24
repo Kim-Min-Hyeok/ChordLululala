@@ -21,7 +21,7 @@ struct ScoreSettingView : View {
             
             Divider()
                 .frame(height: 0.41)
-                .background(Color.primaryGray400) // TODO: 나중에 디자인 시스템 정하면 바꾸기
+                .background(Color.primaryGray400)
             
             ScoreSettingRowView(
                 settingImageName: "score_single",
@@ -30,7 +30,7 @@ struct ScoreSettingView : View {
             
             Divider()
                 .frame(height: 0.41)
-                .background(Color.primaryGray400) // TODO: 나중에 디자인 시스템 정하면 바꾸기
+                .background(Color.primaryGray400)
             
             
             ScoreSettingRowView(
@@ -39,7 +39,7 @@ struct ScoreSettingView : View {
             )
         }
         .frame(width: 210)
-        .background(Color.primaryGray50) // TODO: 나중에 디자인 시스템 정하면 바꾸기
+        .background(Color.primaryGray50) 
         .cornerRadius(9)
         .shadow(color: Color.primaryBaseBlack.opacity(0.15) , radius: 10)
     }
