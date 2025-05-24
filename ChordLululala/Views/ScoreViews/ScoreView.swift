@@ -29,7 +29,6 @@ struct ScoreView : View {
                 
                 /// 악보 바디 뷰
                 ScoreMainBodyView(
-                    pdfViewModel: viewModel.pdfViewModel,
                     playmodeViewModel: viewModel.playmodeViewModel,
                     pageNavViewModel: viewModel.pageNavViewModel,
                     annotationVM: viewModel.annotationViewModel,
@@ -51,8 +50,14 @@ struct ScoreView : View {
                 }
             }
         }
+        .overlay {
+            if(viewModel.scorePageOverViewModel.isPageOver) {
+                ScorePageOverView()
+            }
+        }
         .environmentObject(viewModel.scoreSettingViewModel)
         .environmentObject(viewModel.scorePageOverViewModel)
+        .environmentObject(viewModel.pdfViewModel)
         .navigationBarHidden(true)
         
     }
