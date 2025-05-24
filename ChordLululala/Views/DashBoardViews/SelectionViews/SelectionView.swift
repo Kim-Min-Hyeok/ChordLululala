@@ -9,12 +9,17 @@ import SwiftUI
 
 struct SelectionView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
+    var onMove: () -> Void
     
     var body: some View {
         VStack {
             HStack {
                 Button(action: {
-                    viewModel.selectedContents.append(contentsOf: viewModel.sortedContents)
+                    if viewModel.selectedContents.count == viewModel.sortedContents.count {
+                        viewModel.selectedContents.removeAll()
+                    } else {
+                        viewModel.selectedContents = viewModel.sortedContents
+                    }
                 }) {
                     Text("전체 선택")
                         .textStyle(.headingMdSemiBold)
@@ -33,18 +38,20 @@ struct SelectionView: View {
             }
             
             HStack(spacing: 63) {
-                SelectionOptionButton(imageName: "copy_context", title: "복제", action: {
+                SelectionOptionButton(imageBaseName: "copy_context", title: "복제") {
                     viewModel.duplicateSelectedContents()
                     viewModel.isSelectionViewVisible = false
-                })
-                SelectionOptionButton(imageName: "move_context", title: "이동", action: {
-                    viewModel.isMoveModalVisible = true
-                })
-                SelectionOptionButton(imageName: "trash_context", title: "휴지통", action: {
+                }
+                SelectionOptionButton(imageBaseName: "move_context", title: "이동") {
+                    onMove()
+                }
+                SelectionOptionButton(imageBaseName: "trash_context", title: "휴지통") {
                     viewModel.isTrashModalVisible = true
-                })
+                }
             }
             .padding(.top, -2)
+            .disabled(viewModel.selectedContents.isEmpty)
+            
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: 151)

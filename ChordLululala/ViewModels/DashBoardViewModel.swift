@@ -23,7 +23,7 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "최신순"
+    case date = "최근 수정순"
     case name = "이름순"
     
     var id: String { rawValue }
@@ -39,6 +39,43 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 현재 폴더 내 Contents (파일/폴더, 도메인 모델)
     @Published var contents: [ContentModel] = []
     
+    // MARK: - 검색 관련
+    @Published var isSearching = false
+    @Published var searchText = "" {
+        didSet { updateSearch(query: searchText) }
+    }
+    private var savedParent: ContentModel?
+    private var savedDashboard: DashboardContents?
+    
+    func enterSearch() {
+        guard !isSearching else { return }
+        savedParent    = currentParent
+        savedDashboard = dashboardContents
+        withAnimation(.easeInOut) {
+            self.isSearching = true
+        }
+        contents = []
+    }
+    
+    func exitSearch() {
+        guard isSearching else { return }
+        searchText  = ""
+        if let dash   = savedDashboard { dashboardContents = dash   }
+        if let parent = savedParent      { currentParent    = parent }
+        loadContents()
+        withAnimation(.easeInOut) {
+            isSearching    = false
+        }
+    }
+    
+    func updateSearch(query: String) {
+        guard isSearching else { return }
+        let all = ContentCoreDataManager.shared.fetchContentModelsSync()
+        contents = all.filter {
+            $0.name.localizedCaseInsensitiveContains(query)
+        }
+    }
+    
     // MARK: - 필터링 관련
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
@@ -46,7 +83,6 @@ final class DashBoardViewModel: ObservableObject {
         didSet {
             currentFilter = .all
             selectedSort = .date
-            searchText = ""
             // 대시보드 종류에 따라 기본 폴더를 지정
             switch dashboardContents {
             case .score:
@@ -68,7 +104,6 @@ final class DashBoardViewModel: ObservableObject {
             loadMoveDestinations()
         }
     }
-    @Published var searchText: String = ""
     
     // MARK: - 사이드바 관련
     
@@ -121,22 +156,25 @@ final class DashBoardViewModel: ObservableObject {
     
     // 파일 이동 가능 폴더 가져오기
     func loadMoveDestinations() {
+        var destinations: [ContentModel] = []
         switch dashboardContents {
         case .score:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
-                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+                destinations = [base] + ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
             }
         case .setlist:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+                destinations = [base] + ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
             }
         case .trashCan:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                moveDestinations = ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
+                destinations = [base] + ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
             }
         case .myPage:
-            moveDestinations = []
+            destinations = []
         }
+        // 폴더 타입만 남기기
+        moveDestinations = destinations.filter { $0.type == .folder }
     }
     
     // MARK: - 폴더 및 파일 정렬
@@ -160,20 +198,26 @@ final class DashBoardViewModel: ObservableObject {
     
     // MARK: - 폴더 간 이동
     func didTapFolder(_ folder: ContentModel) {
+        if isSearching {
+            exitSearch()
+        }
         currentParent = folder
         loadContents()
     }
     
-    func goBack() {
-        guard let current = currentParent else {
-            print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
-            return
-        }
-        guard let parent = current.parentContent else {
-            print("현재 폴더 \(current.name)에는 부모 폴더가 없습니다. 뒤로 갈 수 없습니다.")
-            return
-        }
-        if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
+        func goBack() {
+            if isSearching {
+                exitSearch()
+            }
+            guard let current = currentParent else {
+                print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
+                return
+            }
+            guard let parent = current.parentContent else {
+                print("현재 폴더 \(current.name)에는 부모 폴더가 없습니다. 뒤로 갈 수 없습니다.")
+                return
+            }
+            if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
             currentParent = parentFolder
         } else {
             print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
@@ -250,21 +294,30 @@ final class DashBoardViewModel: ObservableObject {
         guard let currentParent = currentParent else { return }
         ContentManager.shared.createFolder(folderName: folderName, currentParent: currentParent, dashboardContents: dashboardContents)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
             .store(in: &cancellables)
     }
     
     func renameContent(_ content: ContentModel, newName: String) {
         ContentManager.shared.renameContent(content, newName: newName)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
             .store(in: &cancellables)
     }
     
     func duplicateContent(_ content: ContentModel) {
         ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
             .store(in: &cancellables)
     }
     
@@ -278,6 +331,7 @@ final class DashBoardViewModel: ObservableObject {
             .sink { [weak self] _ in
                 self?.selectedContents.removeAll()
                 self?.loadContents()
+                self?.loadMoveDestinations()
             }
             .store(in: &cancellables)
     }
@@ -285,14 +339,20 @@ final class DashBoardViewModel: ObservableObject {
     func moveContentToTrash(_ content: ContentModel) {
         ContentManager.shared.moveContentToTrash(content)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
             .store(in: &cancellables)
     }
     
     func restoreContent(_ content: ContentModel) {
         ContentManager.shared.restoreContent(content)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] in self?.loadContents() }
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
             .store(in: &cancellables)
     }
     
@@ -322,6 +382,7 @@ final class DashBoardViewModel: ObservableObject {
             .sink { [weak self] _ in
                 self?.selectedContents.removeAll()
                 self?.loadContents()
+                self?.loadMoveDestinations()
             }
             .store(in: &cancellables)
     }
@@ -353,5 +414,15 @@ final class DashBoardViewModel: ObservableObject {
                 self?.loadContents()
             }
             .store(in: &cancellables)
+    }
+    
+    func getParentName(of content: ContentModel) -> String {
+        guard
+            let pid = content.parentContent,
+            let parent = ContentCoreDataManager.shared.fetchContentModel(with: pid)
+        else {
+            return "전체 폴더"
+        }
+        return parent.parentContent == nil ? "전체 폴더" : parent.name
     }
 }
