@@ -7,14 +7,12 @@ import SwiftUI
 struct ScoreView : View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel: ScoreViewModel
-    
+    @StateObject var zoomVM: ImageZoomViewModel = ImageZoomViewModel()
     init(content: ContentModel?) {
         _viewModel = StateObject(wrappedValue: ScoreViewModel(content: content))
     }
     
     var body: some View{
-        
-        
         ZStack{
             VStack{
                 /// 악보 헤더부분
@@ -31,7 +29,6 @@ struct ScoreView : View {
                 
                 /// 악보 바디 뷰
                 ScoreMainBodyView(
-                    pdfViewModel: viewModel.pdfViewModel,
                     playmodeViewModel: viewModel.playmodeViewModel,
                     pageNavViewModel: viewModel.pageNavViewModel,
                     annotationVM: viewModel.annotationViewModel,
@@ -49,10 +46,19 @@ struct ScoreView : View {
                             viewModel.pageAdditionViewModel.addPage(type)
                         }, pageAdditionVM: viewModel.pageAdditionViewModel
                     )
-
+                    
                 }
             }
         }
+        .overlay {
+            if(viewModel.scorePageOverViewModel.isPageOver) {
+                ScorePageOverView()
+            }
+        }
+        .environmentObject(viewModel.scoreSettingViewModel)
+        .environmentObject(viewModel.scorePageOverViewModel)
+        .environmentObject(viewModel.pdfViewModel)
+        .environmentObject(zoomVM)
         .navigationBarHidden(true)
         
     }

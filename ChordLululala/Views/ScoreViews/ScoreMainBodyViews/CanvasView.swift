@@ -1,18 +1,20 @@
-//
-//  CanvasView.swift
-//  ChordLululala
-//
-//  Created by 김민준 on 5/4/25.
-//
+////
+////  CanvasView.swift
+////  ChordLululala
+////
+////  Created by 김민준 on 5/4/25.
+
+
 
 import SwiftUI
 import PencilKit
 
-/// SwiftUI 에서 PKCanvasView 를 쓰기 위한 UIViewRepresentable
+
 struct CanvasView: UIViewRepresentable {
     @Binding var drawing: PKDrawing
     let isEditable: Bool
-    
+    var showToolbar: Bool
+
     func makeUIView(context: Context) -> PKCanvasView {
         let canvas = PKCanvasView()
         canvas.drawing = drawing
@@ -22,11 +24,38 @@ struct CanvasView: UIViewRepresentable {
         canvas.isOpaque = false
         canvas.isUserInteractionEnabled = isEditable
         
-        // pencil로만 그려지게 설정 
-        if #available(iOS 14.0, *) {
-              canvas.drawingPolicy = .pencilOnly
-          }
+        // 도구바 설정
+        if showToolbar {
+            canvas.drawingPolicy = .pencilOnly
+            setupToolbar(for: canvas)
+        } else {
+            canvas.drawingPolicy = .default
+        }
         
+        return canvas
+    }
+    
+    func updateUIView(_ uiView: PKCanvasView, context: Context) {
+        uiView.isUserInteractionEnabled = isEditable
+        
+        // 도구바 표시 상태 업데이트
+        if showToolbar {
+            setupToolbar(for: uiView)
+        } else {
+            if let window = uiView.window,
+               let toolPicker = PKToolPicker.shared(for: window) {
+                toolPicker.setVisible(false, forFirstResponder: uiView)
+                toolPicker.removeObserver(uiView)
+            }
+        }
+        
+        if uiView.drawing != drawing {
+            uiView.drawing = drawing
+        }
+    }
+    
+    // 도구바 설정을 위한 헬퍼 메서드
+    private func setupToolbar(for canvas: PKCanvasView) {
         DispatchQueue.main.async {
             guard let window = canvas.window,
                   let toolPicker = PKToolPicker.shared(for: window) else {
@@ -35,20 +64,6 @@ struct CanvasView: UIViewRepresentable {
             toolPicker.addObserver(canvas)
             toolPicker.setVisible(true, forFirstResponder: canvas)
             canvas.becomeFirstResponder()
-        }
-        
-        return canvas
-    }
-    
-    func updateUIView(_ uiView: PKCanvasView, context: Context) {
-        uiView.isUserInteractionEnabled = isEditable
-        if uiView.drawing != drawing {
-            uiView.drawing = drawing
-        }
-        if !isEditable, let window = uiView.window,
-           let toolPicker = PKToolPicker.shared(for: window) {
-            toolPicker.setVisible(false, forFirstResponder: uiView)
-            toolPicker.removeObserver(uiView)
         }
     }
     
@@ -66,4 +81,3 @@ struct CanvasView: UIViewRepresentable {
         }
     }
 }
-

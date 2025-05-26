@@ -14,6 +14,9 @@ struct ScoreHeaderView: View {
     @ObservedObject var annotationVM : ScoreAnnotationViewModel
     @ObservedObject var isTransposing: IsTransposingViewModel
     @ObservedObject var pageAdditionVM : PageAdditionViewModel
+    @EnvironmentObject var settingVM : ScoreSettingViewModel
+    @EnvironmentObject var overViewVM : ScorePageOverViewModel
+    
     let file : ContentModel?
     
     
@@ -50,11 +53,11 @@ struct ScoreHeaderView: View {
                     Button(action:{
                         annotationVM.isEditing.toggle()
                     }){
-                        Image("scoreheader_pencil")
+                        Image(annotationVM.isEditing ? "scoreheader_pencil_fill" : "scoreheader_pencil")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 36, height: 36)
-                            .foregroundColor(Color.primaryBaseBlack)
+                            .foregroundColor(Color.primaryGray900)
                     }
                     .padding(.trailing,10)
                     
@@ -73,7 +76,7 @@ struct ScoreHeaderView: View {
                     Button(action:{
                         guard let file = file else {return}
                         router.toNamed("/chordreconize", arguments: [ file ])
-
+                        
                     }){
                         HStack{
                             Image("scoreheader_chordchange")
@@ -93,8 +96,7 @@ struct ScoreHeaderView: View {
                     
                     ///전체 페이지 보기
                     Button(action:{
-                        
-                        print("전체 페이지 보기 클릭") //TODO: 기능 추가해야함
+                        overViewVM.toggle()
                     }){
                         Image("scoreheader_page_list")
                             .resizable()
@@ -106,8 +108,8 @@ struct ScoreHeaderView: View {
                     
                     ///설정
                     Button(action:{
-                        
-                        print("전체 페이지 보기 클릭") //TODO: 기능 추가해야함
+                        settingVM.toggle()
+                        print("설정 보기 클릭") //TODO: 기능 추가해야함
                     }){
                         Image("scoreheader_setting")
                             .resizable()
