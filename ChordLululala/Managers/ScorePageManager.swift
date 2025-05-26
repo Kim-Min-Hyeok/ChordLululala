@@ -63,4 +63,24 @@ final class ScorePageManager {
     func fetchPageModels(for detail: ScoreDetailModel) -> [ScorePageModel] {
         fetchPageEntities(for: detail).map { ScorePageModel(entity: $0) }
     }
+    
+    func clonePages(from originalPages: [ScorePageModel], to detail: ScoreDetailModel) {
+        let req: NSFetchRequest<ScoreDetail> = ScoreDetail.fetchRequest()
+        req.predicate = NSPredicate(format: "s_did == %@", detail.s_did as CVarArg)
+        
+        guard let detailEntity = try? context.fetch(req).first else {
+            print("❌ 복사 대상 ScoreDetail 못찾음")
+            return
+        }
+
+        for page in originalPages {
+            let newPage = ScorePage(context: context)
+            newPage.s_pid = UUID()
+            newPage.rotation = Int16(page.rotation)
+            newPage.scoreDetail = detailEntity
+            detailEntity.addToScorePages(newPage)
+        }
+        
+        try? context.save()
+    }
 }

@@ -7,24 +7,43 @@
 
 import Foundation
 
-// MARK: - 도메인 모델
-struct ScoreDetailModel {
+final class ScoreDetailModel: Hashable, Identifiable {
     let s_did: UUID
-    var key: String      // 원래 키
-    var t_key: String    // 변환될 키
-    var scorePages: [UUID]  // ScorePage 엔티티와의 관계 (각 ScorePage의 식별자 배열)
-}
+    var key: String         // 원래 키
+    var t_key: String       // 변환될 키
+    var scorePages: [ScorePageModel]
 
-extension ScoreDetailModel {
-    init(entity: ScoreDetail) {
-        self.s_did = entity.s_did ?? UUID()
-        self.key = entity.key ?? ""
-        self.t_key = entity.t_key ?? ""
-        if let scorePagesSet = entity.scorePages as? Set<ScorePage> {
-            self.scorePages = scorePagesSet.compactMap { $0.s_pid }
-        } else {
-            self.scorePages = []
-        }
+    // MARK: - 생성자
+    init(
+        s_did: UUID = UUID(),
+        key: String,
+        t_key: String,
+        scorePages: [ScorePageModel] = []
+    ) {
+        self.s_did = s_did
+        self.key = key
+        self.t_key = t_key
+        self.scorePages = scorePages
+    }
+
+    // MARK: - Entity → Model 변환
+    convenience init(entity: ScoreDetail) {
+        let pageModels = (entity.scorePages as? Set<ScorePage>)?.map { ScorePageModel(entity: $0) } ?? []
+        self.init(
+            s_did: entity.s_did ?? UUID(),
+            key: entity.key ?? "",
+            t_key: entity.t_key ?? "",
+            scorePages: pageModels
+        )
+    }
+
+    // MARK: - Hashable & Equatable
+    static func == (lhs: ScoreDetailModel, rhs: ScoreDetailModel) -> Bool {
+        return lhs.s_did == rhs.s_did
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(s_did)
     }
 }
 

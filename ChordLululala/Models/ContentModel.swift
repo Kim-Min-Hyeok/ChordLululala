@@ -7,59 +7,93 @@
 
 import Foundation
 
-// 도메인 모델
-struct ContentModel {
-    let cid: UUID
-    var name: String
-    var path: String?             // FileManager 내의 경로
-    var type: ContentType         // score(0), song_list(1), folder(2)
-    var parentContent: UUID?      // 상위 폴더의 cid
-    var createdAt: Date
-    var modifiedAt: Date
-    var lastAccessedAt: Date
-    var deletedAt: Date?          // 삭제 시각
-    var originalParentId: UUID?   // 복구 폴더(원본 상위 폴더)
-    var syncStatus: Bool          // 서버 동기화 여부
-    var isStared: Bool
-    var scoreDetail: UUID?
-}
-
 enum ContentType: Int16 {
     case score = 0
     case setlist = 1
     case folder = 2
+    case scoresOfSetlist = 3
 }
 
-extension ContentModel: Hashable, Equatable {
-    static func == (lhs: ContentModel, rhs: ContentModel) -> Bool {
-        return lhs.cid == rhs.cid &&
-        lhs.name == rhs.name &&
-        lhs.isStared == rhs.isStared
+import Foundation
+
+// MARK: - 도메인 모델
+final class ContentModel: Hashable, Equatable, Identifiable {
+    let cid: UUID
+    var name: String
+    var path: String?
+    var type: ContentType
+    var parentContent: ContentModel?
+    var createdAt: Date
+    var modifiedAt: Date
+    var lastAccessedAt: Date
+    var deletedAt: Date?
+    var originalParentId: UUID?
+    var syncStatus: Bool
+    var isStared: Bool
+    var scoreDetail: ScoreDetailModel?
+    var scores: [ContentModel]?
+
+    // MARK: - 생성자
+    init(
+        cid: UUID = UUID(),
+        name: String,
+        path: String?,
+        type: ContentType,
+        parentContent: ContentModel? = nil,
+        createdAt: Date,
+        modifiedAt: Date,
+        lastAccessedAt: Date,
+        deletedAt: Date? = nil,
+        originalParentId: UUID? = nil,
+        syncStatus: Bool,
+        isStared: Bool,
+        scoreDetail: ScoreDetailModel? = nil,
+        scores: [ContentModel]? = nil
+    ) {
+        self.cid = cid
+        self.name = name
+        self.path = path
+        self.type = type
+        self.parentContent = parentContent
+        self.createdAt = createdAt
+        self.modifiedAt = modifiedAt
+        self.lastAccessedAt = lastAccessedAt
+        self.deletedAt = deletedAt
+        self.originalParentId = originalParentId
+        self.syncStatus = syncStatus
+        self.isStared = isStared
+        self.scoreDetail = scoreDetail
+        self.scores = scores
     }
-    
+
+    // MARK: - Entity → Model 변환
+    convenience init(entity: Content) {
+        let scoresModels = (entity.scores as? Set<Content>)?.map { ContentModel(entity: $0) } ?? []
+        self.init(
+            cid: entity.cid ?? UUID(),
+            name: entity.name ?? "Unnamed",
+            path: entity.path,
+            type: ContentType(rawValue: entity.type) ?? .score,
+            parentContent: entity.parentContent.map { ContentModel(entity: $0) },
+            createdAt: entity.createdAt ?? Date(),
+            modifiedAt: entity.modifiedAt ?? Date(),
+            lastAccessedAt: entity.lastAccessedAt ?? Date(),
+            deletedAt: entity.deletedAt,
+            originalParentId: entity.originalParentId,
+            syncStatus: entity.syncStatus,
+            isStared: entity.isStared,
+            scoreDetail: entity.scoreDetail.map { ScoreDetailModel(entity: $0) },
+            scores: scoresModels
+        )
+    }
+
+    // MARK: - Equatable & Hashable
+    static func == (lhs: ContentModel, rhs: ContentModel) -> Bool {
+        return lhs.cid == rhs.cid && lhs.name == rhs.name && lhs.isStared == rhs.isStared
+    }
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(cid)
-    }
-}
-extension ContentModel {
-    init(entity: Content) {
-        self.cid = entity.cid ?? UUID()
-        self.name = entity.name ?? "Unnamed"
-        self.path = entity.path
-        self.type = ContentType(rawValue: entity.type) ?? .score
-        self.parentContent = entity.parentContent?.cid
-        self.createdAt = entity.createdAt ?? Date()
-        self.modifiedAt = entity.modifiedAt ?? Date()
-        self.lastAccessedAt = entity.lastAccessedAt ?? Date()
-        self.deletedAt = entity.deletedAt
-        self.originalParentId = entity.originalParentId
-        self.syncStatus = entity.syncStatus
-        self.isStared = entity.isStared
-        if let scoreDetailEntity = entity.scoreDetail {
-            self.scoreDetail = scoreDetailEntity.s_did
-        } else {
-            self.scoreDetail = nil
-        }
     }
 }
 
@@ -76,6 +110,5 @@ extension Content {
         self.originalParentId = model.originalParentId
         self.syncStatus = model.syncStatus
         self.isStared = model.isStared
-        // ScoreDetail 관계 업데이트는 별도 로직으로 관리합니다.
     }
 }

@@ -1,55 +1,52 @@
 //
-//  RenameModalView.swift
+//  SetContentNameModalView.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 3/26/25.
+//  Created by Minhyeok Kim on 5/21/25.
 //
 
 import SwiftUI
 
-struct RenameModalView: View {
+struct SetContentNameModalView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    
-    let content: ContentModel
     @FocusState private var isFocused: Bool
-    
     @State private var name: String = ""
-    private let originalName: String
     
-    private let type: String
+    let titleText: String
+    let bodyText: String
+    let originalName: String
+    let onComplete: (String) -> Void
+    let onCancel: () -> Void
     
-    init(content: ContentModel) {
-        self.type = {
-            switch content.type {
-            case .score, .scoresOfSetlist:
-                return "파일"
-            case .setlist:
-                return "셋리스트"
-            case .folder:
-                return "폴더"
-            }
-        }()
-        
-        self.content = content
-        let baseName = (content.name as NSString).deletingPathExtension
-        self._name = State(initialValue: baseName)
-        self.originalName = baseName
+    init(
+        _ titleText: String,
+        _ bodyText: String,
+        _ originalName: String,
+        onComplete: @escaping (String) -> Void,
+        onCancel: @escaping () -> Void
+    )  {
+        self.titleText = titleText
+        self.bodyText = bodyText
+        self.originalName = originalName
+        self.onComplete = onComplete
+        self.onCancel = onCancel
+        self._name = State(initialValue: originalName)
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("\(type) 이름 변경")
-                .font(.headline)
-                .foregroundColor(.primary)
+            Text(titleText)
+                .textStyle(.headingMdSemiBold)
+                .foregroundColor(.primaryGray900)
                 .padding(.top, 18)
             
-            Text("이 \(type)의 새로운 이름을 입력하십시오.")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            Text(bodyText)
+                .textStyle(.bodyTextLgRegular)
+                .foregroundColor(.primaryGray500)
                 .padding(.top, 8)
             
             ZStack(alignment: .trailing) {
-                TextField("이름 없음", text: $name)
+                TextField("무제", text: $name)
                     .textFieldStyle(.roundedBorder)
                     .focused($isFocused)
                 
@@ -72,7 +69,7 @@ struct RenameModalView: View {
                 .padding(.top, 18)
             HStack {
                 Button("취소") {
-                    viewModel.isRenameModalVisible = false
+                    onCancel()
                 }
                 .frame(maxWidth: .infinity)
                 
@@ -81,9 +78,10 @@ struct RenameModalView: View {
                 
                 Button("확인") {
                     if name != originalName {
-                        viewModel.renameContent(content, newName: name)
+                        onComplete(name)
+                    } else {
+                        onCancel()
                     }
-                    viewModel.isRenameModalVisible = false
                 }
                 .frame(maxWidth: .infinity)
             }

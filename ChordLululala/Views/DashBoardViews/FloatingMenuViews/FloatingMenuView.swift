@@ -12,29 +12,50 @@ struct FloatingMenuView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            FloatingMenuButton(icon: "album", title: "이미지 업로드", action: {
-                withAnimation {
-                    viewModel.isFloatingMenuVisible.toggle()
-                    viewModel.isAlbumPickerVisible = true
-                }
-            })
-            Divider()
-            FloatingMenuButton(icon: "upload", title: "파일 업로드", action: {
-                withAnimation {
-                    viewModel.isFloatingMenuVisible.toggle()
-                    viewModel.isPDFPickerVisible = true
-                }
-            })
-            if viewModel.currentParent?.parentContent == nil {
-                Divider()
-                    .frame(height: 0.32)
-                    .foregroundStyle(Color.primaryGray300)
-                FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
+            if viewModel.dashboardContents == .score {
+                FloatingMenuButton(icon: "album", title: "이미지 업로드", action: {
                     withAnimation {
                         viewModel.isFloatingMenuVisible.toggle()
-                        viewModel.isCreateFolderModalVisible = true
+                        viewModel.isAlbumPickerVisible = true
                     }
                 })
+                Divider()
+                FloatingMenuButton(icon: "upload", title: "파일 업로드", action: {
+                    withAnimation {
+                        viewModel.isFloatingMenuVisible.toggle()
+                        viewModel.isPDFPickerVisible = true
+                    }
+                })
+                if viewModel.currentParent?.parentContent == nil {
+                    Divider()
+                        .frame(height: 0.32)
+                        .foregroundStyle(Color.primaryGray300)
+                    FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
+                        withAnimation {
+                            viewModel.isFloatingMenuVisible.toggle()
+                            viewModel.isCreateFolderModalVisible = true
+                        }
+                    })
+                }
+            }
+            else if viewModel.dashboardContents == .setlist {
+                FloatingMenuButton(icon: "setlist2", title: "셋리스트 생성", action: {
+                    withAnimation {
+                        viewModel.isFloatingMenuVisible.toggle()
+                        viewModel.isCreateSetlistModalVisible = true
+                    }
+                })
+                if viewModel.currentParent?.parentContent == nil {
+                    Divider()
+                        .frame(height: 0.32)
+                        .foregroundStyle(Color.primaryGray300)
+                    FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
+                        withAnimation {
+                            viewModel.isFloatingMenuVisible.toggle()
+                            viewModel.isCreateFolderModalVisible = true
+                        }
+                    })
+                }
             }
         }
         .background(Color.primaryBaseWhite)

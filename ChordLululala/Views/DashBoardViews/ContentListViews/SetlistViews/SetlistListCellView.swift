@@ -1,18 +1,18 @@
 //
-//  FolderListCellView.swift
+//  SetlistListCellView.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 2/19/25.
+//  Created by Minhyeok Kim on 5/22/25.
 //
 
 import SwiftUI
 
-struct FolderListCellView: View {
+struct SetlistListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    let folder: ContentModel
+    let setlist: ContentModel
     
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == folder.cid }
+        viewModel.selectedContents.contains { $0.cid == setlist.cid }
     }
     
     var body: some View {
@@ -28,7 +28,7 @@ struct FolderListCellView: View {
                     .frame(maxHeight: .infinity)
                 }
                 VStack {
-                    Image("folder")
+                    Image("setlist3")
                         .resizable()
                         .frame(width: 61.63, height: 48.44)
                         .padding(.top, 4)
@@ -37,10 +37,10 @@ struct FolderListCellView: View {
                 VStack(spacing: 12) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(folder.name)
+                            Text(setlist.name)
                                 .textStyle(.bodyTextXLSemiBold)
                                 .foregroundStyle(Color.primaryGray800)
-                            Text(folder.modifiedAt.dateFormatForList())
+                            Text(setlist.modifiedAt.dateFormatForList())
                                 .textStyle(.bodyTextLgRegular)
                                 .foregroundStyle(Color.primaryGray600)
                                 .padding(.top, 3)
@@ -49,9 +49,9 @@ struct FolderListCellView: View {
                         Spacer()
                         if !viewModel.isSelectionViewVisible {
                             Button(action: {
-                                viewModel.toggleContentStared(folder)
+                                viewModel.toggleContentStared(setlist)
                             }) {
-                                Image(folder.isStared ? "star_fill" : "star")
+                                Image(setlist.isStared ? "star_fill" : "star")
                                     .resizable()
                                     .frame(width: 36, height: 36)
                             }
@@ -70,14 +70,14 @@ struct FolderListCellView: View {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
                 } else {
-                    viewModel.didTapFolder(folder)
+                    // 셋리스트 들어가기
                 }
             }
             .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
                 if viewModel.dashboardContents == .trashCan {
-                    DeleteModalView(content: folder)
+                    DeleteModalView(content: setlist)
                 } else {
-                    FileContextMenuView(content: folder)
+                    FileContextMenuView(content: setlist)
                 }
             }
         }
@@ -85,9 +85,9 @@ struct FolderListCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == folder.cid }
+            viewModel.selectedContents.removeAll { $0.cid == setlist.cid }
         } else {
-            viewModel.selectedContents.append(folder)
+            viewModel.selectedContents.append(setlist)
         }
     }
 }

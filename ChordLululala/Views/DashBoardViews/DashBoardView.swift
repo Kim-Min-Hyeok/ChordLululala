@@ -20,7 +20,7 @@ struct DashboardView: View {
                 // MARK: 전체 / 사이드바
                 HStack(spacing: 0) {
                     // MARK: 사이드바
-                    if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
+                    if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching && viewModel.dashboardContents != .createSetlist {
                         SidebarView(onSelect: { newContent in
                             viewModel.dashboardContents = newContent
                         })
@@ -31,13 +31,16 @@ struct DashboardView: View {
                         if viewModel.dashboardContents == .myPage {
                             MyPageView()
                         }
+                        else if viewModel.dashboardContents == .createSetlist {
+                            CreateSetlistView()
+                        }
                         else {
                             // MARK: 파일/폴더 생성/수정 메뉴 구현을 위한 ZStack
                             ZStack {
                                 VStack(alignment: .leading, spacing: 0) {
                                     if !viewModel.isSelectionViewVisible {
                                         // MARK: HEADER
-                                        HeaderView()
+                                        DashBoardHeaderView()
                                             .environmentObject(viewModel)
                                             .padding(.top, 33)
                                     }
@@ -136,7 +139,26 @@ struct DashboardView: View {
                         viewModel.isPDFPickerVisible = false
                     }
                 }
-                
+                // MARK: 셋리스트 생성 모달
+                if viewModel.isCreateSetlistModalVisible {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            viewModel.isCreateSetlistModalVisible = false
+                        }
+                    
+                    SetContentNameModalView(
+                        "셋리스트 생성",
+                        "생성할 셋리스트의 이름을 작성해주세요.",
+                        ""
+                    ) { setlistName in
+                        viewModel.nameOfSetlistCreating = setlistName
+                        viewModel.isCreateSetlistModalVisible = false
+                        viewModel.dashboardContents = .createSetlist
+                    } onCancel: {
+                        viewModel.isCreateSetlistModalVisible = false
+                    }
+                }
                 // MARK: 폴더 생성 모달
                 if viewModel.isCreateFolderModalVisible {
                     Color.clear
@@ -144,21 +166,51 @@ struct DashboardView: View {
                         .onTapGesture {
                             viewModel.isCreateFolderModalVisible = false
                         }
-                    CreateFolderModalView(isPresented: $viewModel.isCreateFolderModalVisible,
-                                          currentParent: viewModel.currentParent) { folderName, _ in
-                        print("parent: \(String(describing: viewModel.currentParent)), dashboardContent: \(viewModel.dashboardContents)")
+                    
+                    SetContentNameModalView(
+                        "폴더 생성",
+                        "생성할 폴더의 이름을 작성해주세요.",
+                        ""
+                    ) { folderName in
                         viewModel.createFolder(folderName: folderName)
-                        print("parent: \(String(describing: viewModel.currentParent)), dashboardContent: \(viewModel.dashboardContents)")
+                        viewModel.isCreateFolderModalVisible = false
+                    } onCancel: {
+                        viewModel.isCreateFolderModalVisible = false
                     }
-                                          .transition(.opacity)
                 }
+                // MARK: Content 이름 수정 모달
                 if viewModel.isRenameModalVisible, let content = viewModel.selectedContent {
                     Color.clear
                         .contentShape(Rectangle())
                         .onTapGesture {
                             viewModel.isRenameModalVisible = false
                         }
-                    RenameModalView(content: content)
+                    let (titleText, bodyText): (String, String) = {
+                        switch content.type {
+                        case .folder:
+                            return ("폴더 이름 변경", "이 폴더의 새로운 이름을 입력하십시오.")
+                        case .score, .scoresOfSetlist:
+                            return ("파일 이름 변경", "이 파일의 새로운 이름을 입력하십시오.")
+                        case .setlist:
+                            return ("셋리스트 이름 변경", "이 셋리스트의 새로운 이름을 입력하십시오.")
+                        }
+                    }()
+                    
+                    let baseName = (content.name as NSString).deletingPathExtension
+                    
+                    SetContentNameModalView(
+                        titleText,
+                        bodyText,
+                        baseName  // ← 여기서 미리 가공해서 넘김
+                    ) { newName in
+                        // 확장자 붙이기 (필요하면)
+                        let ext = (content.name as NSString).pathExtension
+                        let finalName = ext.isEmpty ? newName : "\(newName).\(ext)"
+                        viewModel.renameContent(content, newName: finalName)
+                        viewModel.isRenameModalVisible = false
+                    } onCancel: {
+                        viewModel.isRenameModalVisible = false
+                    }
                 }
             }
             // MARK: 선택 모드 뷰

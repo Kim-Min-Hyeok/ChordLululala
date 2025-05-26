@@ -1,19 +1,19 @@
 //
-//  FolderGridCellView.swift
+//  SetlistGridCellView.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 2/21/25.
+//  Created by Minhyeok Kim on 5/22/25.
 //
 
 import SwiftUI
 
-struct FolderGridCellView: View {
+struct SetlistGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @State private var cellFrame: CGRect = .zero
     
-    let folder: ContentModel
+    let setlist: ContentModel
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == folder.cid }
+        viewModel.selectedContents.contains { $0.cid == setlist.cid }
     }
     
     var body: some View {
@@ -25,14 +25,14 @@ struct FolderGridCellView: View {
                     .padding(.bottom, 6)
             }
             ZStack (alignment: .bottomLeading) {
-                Image("folder")
+                Image("setlist3")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 121)
                 Button(action: {
-                    viewModel.toggleContentStared(folder)
+                    viewModel.toggleContentStared(setlist)
                 }) {
-                    Image(folder.isStared ? "star_fill" : "star")
+                    Image(setlist.isStared ? "star_fill" : "star")
                         .resizable()
                         .frame(width: 24, height: 24)
                         .padding(.bottom, 3)
@@ -42,14 +42,14 @@ struct FolderGridCellView: View {
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
             VStack (spacing: 3){
-                Text(folder.name)
+                Text(setlist.name)
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(folder.modifiedAt.dateFormatForGrid())
+                Text(setlist.modifiedAt.dateFormatForGrid())
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
                 if viewModel.isSearching {
-                    Text(viewModel.getParentName(of: folder))
+                    Text(viewModel.getParentName(of: setlist))
                             .textStyle(.bodyTextLgRegular)
                             .foregroundStyle(Color.primaryBlue600)
                             .padding(.top, 3)
@@ -63,23 +63,23 @@ struct FolderGridCellView: View {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
             } else {
-                viewModel.didTapFolder(folder)
+                // 셋리스트 들어가기
             }
         }
         .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
             if viewModel.dashboardContents == .trashCan {
-                DeleteModalView(content: folder)
+                DeleteModalView(content: setlist)
             } else {
-                FileContextMenuView(content: folder)
+                FileContextMenuView(content: setlist)
             }
         }
     }
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == folder.cid }
+            viewModel.selectedContents.removeAll { $0.cid == setlist.cid }
         } else {
-            viewModel.selectedContents.append(folder)
+            viewModel.selectedContents.append(setlist)
         }
     }
 }

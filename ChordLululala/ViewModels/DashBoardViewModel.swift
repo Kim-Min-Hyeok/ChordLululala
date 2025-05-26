@@ -11,6 +11,7 @@ import SwiftUI
 enum DashboardContents {
     case score
     case setlist
+    case createSetlist
     case trashCan
     case myPage
 }
@@ -27,6 +28,11 @@ enum SortOption: String, CaseIterable, Identifiable {
     case name = "이름순"
     
     var id: String { rawValue }
+}
+
+enum SortDirection {
+    case ascending
+    case descending
 }
 
 final class DashBoardViewModel: ObservableObject {
@@ -79,6 +85,7 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 필터링 관련
     @Published var currentFilter: ToggleFilter = .all
     @Published var selectedSort: SortOption = .date
+    @Published var sortDirection: SortDirection = .ascending
     @Published var dashboardContents: DashboardContents = .score {
         didSet {
             currentFilter = .all
@@ -90,16 +97,20 @@ final class DashBoardViewModel: ObservableObject {
                     currentParent = scoreBase
                 }
             case .setlist:
-                if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    currentParent = songListBase
-                }
+                        if !preserveCurrentParent,
+                           let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                            currentParent = songListBase
+                        }
             case .trashCan:
                 if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
             case .myPage:
                 break
+            case .createSetlist:
+                break
             }
+            preserveCurrentParent = false
             loadContents()
             loadMoveDestinations()
         }
@@ -110,11 +121,14 @@ final class DashBoardViewModel: ObservableObject {
     // MARK: - 리스트/그리드 관련
     @Published var isListView: Bool = false
     
-    // MARK: - 파일/폴더 생성 버튼 관련
+    // MARK: - 파일/셋리스트/폴더 생성 버튼 관련
     @Published var isFloatingMenuVisible: Bool = false
     @Published var isAlbumPickerVisible: Bool = false
     @Published var isPDFPickerVisible: Bool = false
+    @Published var isCreateSetlistModalVisible: Bool = false
     @Published var isCreateFolderModalVisible: Bool = false
+    @Published var nameOfSetlistCreating: String = ""
+    private var preserveCurrentParent: Bool = false
     
     // MARK: - 편집&삭제 모달 관련
     @Published var isRenameModalVisible: Bool = false
@@ -149,9 +163,16 @@ final class DashBoardViewModel: ObservableObject {
             }
         case .myPage:
             break
+        case .createSetlist:
+            break
         }
         loadContents()
         loadMoveDestinations()
+    }
+    
+    func goToSetlistPreservingFolder() {
+        preserveCurrentParent = true
+        dashboardContents = .setlist
     }
     
     // 파일 이동 가능 폴더 가져오기
@@ -170,30 +191,45 @@ final class DashBoardViewModel: ObservableObject {
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                 destinations = [base] + ContentCoreDataManager.shared.fetchChildrenModels(for: base.cid)
             }
+        case .createSetlist:
+            destinations = []
         case .myPage:
             destinations = []
         }
+        
         // 폴더 타입만 남기기
         moveDestinations = destinations.filter { $0.type == .folder }
     }
     
     // MARK: - 폴더 및 파일 정렬
+    func toggleSortOption(_ option: SortOption) {
+        if selectedSort == option {
+            // 같은 옵션이면 방향만 바꾸기
+            sortDirection = (sortDirection == .ascending) ? .descending : .ascending
+        } else {
+            // 새 옵션 선택 시 오름차순으로 초기화
+            selectedSort = option
+            sortDirection = .ascending
+        }
+    }
+    
     var sortedContents: [ContentModel] {
         let filtered = contents.filter { content in
             switch currentFilter {
-            case .all:
-                return true
-            case .star:
-                return content.isStared
+            case .all: return true
+            case .star: return content.isStared
             }
         }
-        
+
+        let sorted: [ContentModel]
         switch selectedSort {
         case .date:
-            return filtered.sorted { $0.modifiedAt > $1.modifiedAt }
+            sorted = filtered.sorted { $0.modifiedAt < $1.modifiedAt }
         case .name:
-            return filtered.sorted { $0.name < $1.name }
+            sorted = filtered.sorted { $0.name < $1.name }
         }
+
+        return sortDirection == .ascending ? sorted : sorted.reversed()
     }
     
     // MARK: - 폴더 간 이동
@@ -217,7 +253,7 @@ final class DashBoardViewModel: ObservableObject {
                 print("현재 폴더 \(current.name)에는 부모 폴더가 없습니다. 뒤로 갈 수 없습니다.")
                 return
             }
-            if let parentFolder = ContentManager.shared.fetchContentModel(with: parent) {
+            if let parentFolder = ContentManager.shared.fetchContentModel(with: parent.cid) {
             currentParent = parentFolder
         } else {
             print("부모 폴더를 찾지 못했습니다. 뒤로 갈 수 없습니다.")
@@ -234,6 +270,8 @@ final class DashBoardViewModel: ObservableObject {
                 if let trashCanBase = ContentManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
                 }
+            case .createSetlist:
+                break
             case .myPage:
                 break
             }
@@ -302,6 +340,7 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func renameContent(_ content: ContentModel, newName: String) {
+        print("newName: \(newName)")
         ContentManager.shared.renameContent(content, newName: newName)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
@@ -418,7 +457,7 @@ final class DashBoardViewModel: ObservableObject {
     
     func getParentName(of content: ContentModel) -> String {
         guard
-            let pid = content.parentContent,
+            let pid = content.parentContent?.cid,
             let parent = ContentCoreDataManager.shared.fetchContentModel(with: pid)
         else {
             return "전체 폴더"
