@@ -95,7 +95,7 @@ struct FileListCellView: View {
             if viewModel.dashboardContents == .trashCan {
                 DeleteModalView(content: file)
             } else {
-                ModifyModalView(content: file)
+                FileContextMenuView(content: file)
             }
         }
     }

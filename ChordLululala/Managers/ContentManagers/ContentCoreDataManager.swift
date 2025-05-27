@@ -23,9 +23,9 @@ final class ContentCoreDataManager {
         newEntity.update(from: model)
         
         // 부모 관계 설정
-        if let parentID = model.parentContent {
+        if let parentModel = model.parentContent {
             let req: NSFetchRequest<Content> = Content.fetchRequest()
-            req.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
+            req.predicate = NSPredicate(format: "cid == %@", parentModel.cid as CVarArg)
             newEntity.parentContent = (try? context.fetch(req).first)
         } else {
             newEntity.parentContent = nil
@@ -40,8 +40,8 @@ final class ContentCoreDataManager {
     func createContent(name: String,
                        path: String? = nil,
                        type: Int16,
-                       parent: UUID? = nil,
-                       scoreDetail: UUID? = nil) -> ContentModel {
+                       parent: ContentModel? = nil,
+                       scoreDetail: ScoreDetailModel? = nil) -> ContentModel {
         let now = Date()
         let model = ContentModel(
             cid: UUID(),
@@ -53,10 +53,11 @@ final class ContentCoreDataManager {
             modifiedAt: now,
             lastAccessedAt: now,
             deletedAt: nil,
-            originalParentId: parent,
+            originalParentId: parent?.cid,
             syncStatus: false,
             isStared: false,
-            scoreDetail: scoreDetail
+            scoreDetail: scoreDetail,
+            scores: []
         )
         return createContent(model: model)
     }
@@ -184,6 +185,8 @@ final class ContentCoreDataManager {
                 } else {
                     predicate = NSPredicate(value: false)
                 }
+            case .createSetlist:
+                predicate = NSPredicate(value: false)
             case .myPage:
                 predicate = NSPredicate(value: false)
             }
@@ -197,14 +200,16 @@ final class ContentCoreDataManager {
     func updateContent(model: ContentModel) {
         let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
+        
         do {
             if let coreEntity = try context.fetch(fetchRequest).first {
+                // 기본 값 업데이트
                 coreEntity.update(from: model)
                 
-                // 부모 관계 업데이트
-                if let parentID = model.parentContent {
+                // 부모 관계 업데이트 (기존 UUID → model 객체로 변경됨)
+                if let parentModel = model.parentContent {
                     let parentRequest: NSFetchRequest<Content> = Content.fetchRequest()
-                    parentRequest.predicate = NSPredicate(format: "cid == %@", parentID as CVarArg)
+                    parentRequest.predicate = NSPredicate(format: "cid == %@", parentModel.cid as CVarArg)
                     if let parentEntity = try? context.fetch(parentRequest).first {
                         coreEntity.parentContent = parentEntity
                     } else {
@@ -221,14 +226,14 @@ final class ContentCoreDataManager {
         }
     }
     
-    // 휴지통 이동
     func moveContentToTrash(_ model: inout ContentModel) {
         model.modifiedAt = Date()
         model.lastAccessedAt = Date()
         model.deletedAt = Date()
         
         if let trashBase = fetchBaseDirectory(named: "Trash_Can") {
-            model.parentContent = trashBase.cid
+            model.parentContent = trashBase
+            model.originalParentId = model.originalParentId ?? model.parentContent?.cid
         }
         
         updateContent(model: model)
@@ -268,5 +273,9 @@ final class ContentCoreDataManager {
         } catch {
             print("즐겨찾기 토글 중 오류 발생: \(error)")
         }
+    }
+    
+    private func saveContext() {
+        CoreDataManager.shared.saveContext()
     }
 }

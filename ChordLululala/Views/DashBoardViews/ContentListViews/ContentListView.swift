@@ -35,10 +35,15 @@ struct ContentListView: View {
                 if isListView {
                     VStack(spacing: 8) {
                         ForEach(viewModel.sortedContents, id: \.cid) { content in
-                            if content.type == .folder {
+                            switch content.type {
+                            case .folder:
                                 FolderListCellView(folder: content)
-                            } else {
+                            case .score:
                                 FileListCellView(file: content)
+                            case .setlist:
+                                SetlistListCellView(setlist: content)
+                            default:
+                                EmptyView()
                             }
                         }
                     }
@@ -46,10 +51,15 @@ struct ContentListView: View {
                     let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
                     LazyVGrid(columns: columns, spacing: 18) {
                         ForEach(viewModel.sortedContents, id: \.cid) { content in
-                            if content.type == .folder {
+                            switch content.type {
+                            case .folder:
                                 FolderGridCellView(folder: content)
-                            } else {
+                            case .score:
                                 FileGridCellView(file: content)
+                            case .setlist:
+                                SetlistGridCellView(setlist: content)
+                            default:
+                                EmptyView()
                             }
                         }
                     }

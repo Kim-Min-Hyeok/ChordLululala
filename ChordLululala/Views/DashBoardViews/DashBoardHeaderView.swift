@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct HeaderView: View {
+struct DashBoardHeaderView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @FocusState private var isSearchFieldFocused: Bool
     var body: some View {
@@ -137,7 +137,7 @@ struct HeaderView: View {
                         }
                         .padding(.top, 44)
                         
-                        SortToggleView(selectedSort: $viewModel.selectedSort)
+                        SortToggleView()
                             .padding(.top, 29)
                     }
                     else {

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ModifyModalView: View {
+struct FileContextMenuView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     
     let content: ContentModel
