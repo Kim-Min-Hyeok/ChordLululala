@@ -32,6 +32,7 @@
         <relationship name="scorePage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScorePage" inverseName="scoreChords" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreDetail" representedClassName="ScoreDetail" syncable="YES" codeGenerationType="class">
+        <attribute name="isSharp" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="s_did" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="t_key" optional="YES" attributeType="String"/>

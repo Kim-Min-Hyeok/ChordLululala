@@ -41,7 +41,7 @@ final class ScoreDetailManager {
                 print("❌ ScoreDetail 생성 오류:", error)
                 // 실패해도 빈 모델 반환하기보다, 에러 로그 후 빈 detailModel은 막아야 합니다.
                 // 여기서는 대체로 fallback으로 새 UUID로만듭니다.
-                let fallback = ScoreDetailModel(s_did: UUID(), key: "", t_key: "", scorePages: [])
+                let fallback = ScoreDetailModel(s_did: UUID(), key: "", t_key: "", isSharp: true, scorePages: [])
                 promise(.success(fallback))
             }
         }
@@ -84,5 +84,15 @@ final class ScoreDetailManager {
         
         // 3) 도큐먼트 디렉터리 + 상대 경로를 결합해 절대 URL 생성
         return docsURL.appendingPathComponent(relPath)
+    }
+    
+    func update(detailModel: ScoreDetailModel) {
+        let req: NSFetchRequest<ScoreDetail> = ScoreDetail.fetchRequest()
+        req.predicate = NSPredicate(format: "s_did == %@", detailModel.s_did as CVarArg)
+        
+        if let entity = try? context.fetch(req).first {
+            entity.update(from: detailModel)
+            CoreDataManager.shared.saveContext()
+        }
     }
 }

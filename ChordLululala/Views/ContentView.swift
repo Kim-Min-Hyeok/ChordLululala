@@ -29,18 +29,27 @@ struct ContentView: View {
                     case "/score":
                         if let content = route.arguments as? [ContentModel],
                            let first = content.first{
-                                ScoreView(content: first)
-                            } else {
-                                Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
-                            }
+                            ScoreView(content: first)
+                        } else {
+                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                        }
                     case "/chordreconize":
                         if let args = route.arguments as? [ContentModel],
-                               let file = args.first {
-                                ChordReconizeView(file: file)
-                                    .environmentObject(router)
-                            } else {
-                                Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
-                            }
+                           let file = args.first {
+                            ChordReconizeView(file: file)
+                                .environmentObject(router)
+                        } else {
+                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                        }
+                    case "/chordConfirm":
+                        if let args = route.arguments as? [ContentModel],
+                           let file = args.first {
+                            ChordConfirmView(file: file)
+                                .environmentObject(router)
+                        } else {
+                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                        }
+                        
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }

@@ -66,9 +66,10 @@ final class ChordRecognizeManager {
     }
 
     private func isValidChord(_ text: String) -> Bool {
-        let p = "^[A-G][#b]?(m|maj|min|dim|aug|sus|add)?[0-9]*/?[A-G]?[#b]?$"
+        let p = #"^[A-G](?:[#b])?(?:(?:maj7|maj|min|dim|aug|sus2|sus4|add2|add9|m|M|5|7|6|9|11|13|b5|#9|b9|#11|b13)*)?(?:/[A-G](?:[#b])?)?$"#
         return text.range(of: p, options: .regularExpression) != nil
     }
+    
     private func splitText(_ text: String, in box: CGRect) -> [(String, CGRect)] {
         let parts = text.split(separator: " ").map(String.init)
         guard parts.count > 1 else { return [(text, box)] }

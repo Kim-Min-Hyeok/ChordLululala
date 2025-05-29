@@ -11,6 +11,7 @@ final class ScoreDetailModel: Hashable, Identifiable {
     let s_did: UUID
     var key: String         // 원래 키
     var t_key: String       // 변환될 키
+    var isSharp: Bool // 장조/단조
     var scorePages: [ScorePageModel]
 
     // MARK: - 생성자
@@ -18,11 +19,13 @@ final class ScoreDetailModel: Hashable, Identifiable {
         s_did: UUID = UUID(),
         key: String,
         t_key: String,
+        isSharp: Bool,
         scorePages: [ScorePageModel] = []
     ) {
         self.s_did = s_did
         self.key = key
         self.t_key = t_key
+        self.isSharp = isSharp
         self.scorePages = scorePages
     }
 
@@ -33,6 +36,7 @@ final class ScoreDetailModel: Hashable, Identifiable {
             s_did: entity.s_did ?? UUID(),
             key: entity.key ?? "",
             t_key: entity.t_key ?? "",
+            isSharp: entity.isSharp,
             scorePages: pageModels
         )
     }
@@ -52,5 +56,6 @@ extension ScoreDetail {
         self.s_did = model.s_did
         self.key = model.key
         self.t_key = model.t_key
+        self.isSharp = model.isSharp
     }
 }
