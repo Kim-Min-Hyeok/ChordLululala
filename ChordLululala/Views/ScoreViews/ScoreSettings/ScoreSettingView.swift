@@ -22,8 +22,8 @@ struct ScoreSettingView : View {
                 .background(Color.primaryBaseWhite)
             
             Divider()
-                .frame(height: 0.41)
                 .background(Color.primaryGray400)
+
             
             ScoreSettingRowView(
                 settingImageName: "score_single",
@@ -33,12 +33,11 @@ struct ScoreSettingView : View {
                     settingVM.toggle()
                 }
             )
-            
+            .background(Color.primaryGray50)
+    
             Divider()
-                .frame(height: 0.41)
                 .background(Color.primaryGray400)
-            
-            
+
             ScoreSettingRowView(
                 settingImageName: "score_multi",
                 settingMessege: "여러 페이지 보기",
@@ -47,9 +46,10 @@ struct ScoreSettingView : View {
                     settingVM.toggle()
                 }
             )
+            .background(Color.primaryGray100)
+
         }
         .frame(width: 210)
-        .background(Color.primaryGray50) 
         .cornerRadius(9)
         .shadow(color: Color.primaryBaseBlack.opacity(0.15) , radius: 10)
     }

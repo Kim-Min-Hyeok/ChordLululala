@@ -20,14 +20,14 @@ struct ScoreSettingRowView: View {
                     .frame(width: 19, height: 19)
                     .padding(.leading, 12.97)
                     .padding(.trailing, 19)
+                    .foregroundColor(Color.primaryBaseBlack)
                 Text(settingMessege)
                     .textStyle(.bodyTextXLMedium)
+                    .foregroundColor(Color.primaryBaseBlack)
             }
-            .foregroundColor(Color.primaryBaseBlack)
             .padding(.vertical, 8.84)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color.primaryGray100)
     }
 }
 

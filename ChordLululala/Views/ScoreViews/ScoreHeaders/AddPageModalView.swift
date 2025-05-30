@@ -22,7 +22,7 @@ struct AddPageModalView: View {
                 .padding(.top, 8)
                 .padding(.bottom,8)
             }
-//            .frame(height: 36)
+            .frame(height: 36)
             .background(Color.primaryGray50)
             .padding(.bottom, 15)
             
