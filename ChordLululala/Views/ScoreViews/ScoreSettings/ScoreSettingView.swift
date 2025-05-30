@@ -9,6 +9,8 @@ import SwiftUI
 
 /// 힌페이지 or 두 페이지씩 보기 설정 UI
 struct ScoreSettingView : View {
+    @EnvironmentObject var settingVM : ScoreSettingViewModel
+    
     var body: some View {
         
         VStack(spacing: 0){
@@ -25,7 +27,11 @@ struct ScoreSettingView : View {
             
             ScoreSettingRowView(
                 settingImageName: "score_single",
-                settingMessege: "한 페이지 보기"
+                settingMessege: "한 페이지 보기",
+                action: {
+                    settingVM.selectSinglePage()
+                    settingVM.toggle()
+                }
             )
             
             Divider()
@@ -35,7 +41,11 @@ struct ScoreSettingView : View {
             
             ScoreSettingRowView(
                 settingImageName: "score_multi",
-                settingMessege: "여러 페이지 보기"
+                settingMessege: "여러 페이지 보기",
+                action:  {
+                    settingVM.selectMultiPage()
+                    settingVM.toggle()
+                }
             )
         }
         .frame(width: 210)

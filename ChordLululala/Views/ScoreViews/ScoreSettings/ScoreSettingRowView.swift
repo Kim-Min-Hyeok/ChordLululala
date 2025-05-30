@@ -11,13 +11,9 @@ struct ScoreSettingRowView: View {
     @EnvironmentObject var viewModel : ScoreSettingViewModel
     let settingImageName : String
     let settingMessege : String
-    
+    let action : () -> Void
     var body: some View {
-        Button(action: {
-            // TODO: 한장씩 보기, 두 장씩 보기 기능 추가
-            viewModel.toggle()
-        }
-        ){
+        Button(action: action){
             HStack(){
                 Image(settingImageName)
                     .resizable()
@@ -31,7 +27,7 @@ struct ScoreSettingRowView: View {
             .padding(.vertical, 8.84)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .background(Color.primaryGray100) // TODO: 디자인 시스템 적용되면 바꾸기
+        .background(Color.primaryGray100)
     }
 }
 

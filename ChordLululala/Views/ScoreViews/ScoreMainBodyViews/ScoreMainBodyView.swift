@@ -11,38 +11,61 @@ struct ScoreMainBodyView: View {
     @EnvironmentObject var overViewVM : ScorePageOverViewModel
     @EnvironmentObject var zoomVM : ImageZoomViewModel
     
+    /// 한 페이지 모드면 [[img]], 두 페이지 모드면 [[img1, img2], [img3, img4], …]
+    private var pages: [[UIImage]] {
+        let imgs = pdfViewModel.images
+        if settingVM.isSinglePage {
+            return imgs.map { [$0] }
+        } else {
+            return stride(from: 0, to: imgs.count, by: 2).map { start in
+                let end = min(start + 2, imgs.count)
+                return Array(imgs[start..<end])
+            }
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color.primaryGray50
                 .edgesIgnoringSafeArea(.all)
             
             TabView(selection: $pageNavViewModel.currentPage) {
-                ForEach(Array(pdfViewModel.images.enumerated()), id: \.offset) { index, image in
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFit()
-                        .scaleEffect(zoomVM.scale)
-                        .offset(zoomVM.offset)
-                        .frame(width: UIScreen.main.bounds.width *
-                               (playmodeViewModel.isOn ? 1.0 : 0.9))
-                        .shadow(radius: 4)
-                        .padding(.vertical)
-                        .tag(index)       // 페이지 태그 지정
-                        .gesture(
-                            SimultaneousGesture( // 화면 확대 축소 기능
-                                MagnificationGesture()
-                                    .onChanged(zoomVM.onPinchChanged)
-                                    .onEnded(zoomVM.onPinchEnded),
-                                DragGesture()
-                                    .onChanged(zoomVM.onDragChanged)
-                                    .onEnded(zoomVM.onDragEnded)
-                                               )
-                        )
-                        .onTapGesture(count:2) { // 두번 탭하면 원래 크기로 돌아가기
-                            withAnimation(.easeInOut) {
-                                zoomVM.reset()
-                            }
+                ForEach(Array(pages.enumerated()), id: \.offset) { pageIndex, pageImgs in
+                    HStack(spacing: 12) {
+                        ForEach(pageImgs, id: \.self) { uiImage in
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .scaleEffect(zoomVM.scale)
+                                .offset(zoomVM.offset)
+                                .frame(
+                                    width: UIScreen.main.bounds.width *
+                                    CGFloat(
+                                        settingVM.isSinglePage
+                                        ? (playmodeViewModel.isOn ? 1.0 : 0.9)
+                                        : (playmodeViewModel.isOn ? 0.5 : 0.45)
+                                    )
+                                )
+                                .shadow(radius: 4)
+                                .padding(.vertical)
+                                .gesture(
+                                    SimultaneousGesture(
+                                        MagnificationGesture()
+                                            .onChanged(zoomVM.onPinchChanged)
+                                            .onEnded(zoomVM.onPinchEnded),
+                                        DragGesture()
+                                            .onChanged(zoomVM.onDragChanged)
+                                            .onEnded(zoomVM.onDragEnded)
+                                    )
+                                )
+                                .onTapGesture(count: 2) {
+                                    withAnimation(.easeInOut) {
+                                        zoomVM.reset()
+                                    }
+                                }
                         }
+                    }
+                    .tag(pageIndex)
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -136,7 +159,6 @@ struct ScoreMainBodyView: View {
         }
         
         
-        
         .onChange(of: pageNavViewModel.currentPage){ newPage in
             annotationVM.load()
         }
@@ -147,7 +169,3 @@ struct ScoreMainBodyView: View {
         
     }
 }
-
-
-
-
