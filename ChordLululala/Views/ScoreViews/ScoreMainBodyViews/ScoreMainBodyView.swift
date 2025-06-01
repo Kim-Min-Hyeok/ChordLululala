@@ -135,6 +135,28 @@ struct ScoreMainBodyView: View {
                     showToolbar: true
                 )
                 .ignoresSafeArea()
+                /// 필기모드 실행 중에도 화면 넘기기 위한 코드
+                .allowsHitTesting(true)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture()
+                        .onEnded{ gesture in
+                            let threshold: CGFloat = 50
+                            if gesture.translation.width > threshold{
+                                // 왼쪽으로 넘길때
+                                if pageNavViewModel.currentPage > 0 {
+                                    pageNavViewModel.currentPage -= 1
+                                }
+                            } else if gesture.translation.width < -threshold {
+                                // 오른쪽으로 넘길떄
+                                if pageNavViewModel.currentPage < pdfViewModel.images.count - 1 {
+                                    pageNavViewModel.currentPage += 1
+                                }
+                            }
+                            
+                        }
+                )
+                
             } else {
                 /// 필기 모드가 아닐 때도 필기 표시
                 CanvasView(
@@ -160,7 +182,6 @@ struct ScoreMainBodyView: View {
         
         
         .onChange(of: pageNavViewModel.currentPage){ newPage in
-//            annotationVM.load()
             if newPage < annotationVM.pageModels.count {
                 let pageModel = annotationVM.pageModels[newPage]
                 annotationVM.switchToPage(pageId: pageModel.s_pid)
