@@ -160,10 +160,16 @@ struct ScoreMainBodyView: View {
         
         
         .onChange(of: pageNavViewModel.currentPage){ newPage in
-            annotationVM.load()
+//            annotationVM.load()
+            if newPage < annotationVM.pageModels.count {
+                let pageModel = annotationVM.pageModels[newPage]
+                annotationVM.switchToPage(pageId: pageModel.s_pid)
+            }
         }
         .onDisappear {
-            annotationVM.save()
+            if let currentPageModel = annotationVM.pageModels.first(where: {$0.s_pid == annotationVM.currentPageId}){
+                annotationVM.save(for: currentPageModel)
+            }
         }
         
         

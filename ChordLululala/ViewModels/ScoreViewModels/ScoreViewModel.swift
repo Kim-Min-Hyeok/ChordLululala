@@ -28,35 +28,37 @@ final class ScoreViewModel: ObservableObject{
         self.pdfViewModel    = ScorePDFViewModel()
         self.pageAdditionViewModel = PageAdditionViewModel(pdfViewModel: pdfViewModel)
         self.pageNavViewModel = PageNavigationViewModel(pdfViewModel: pdfViewModel)
-        let context = CoreDataManager.shared.context
-        if let content = content {
-            // 기존 ScorePage 찾기 또는 새로 생성
-            let fetchRequest: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "s_pid == %@", content.cid as CVarArg)
-            
-            let pageEntity: ScorePage
-            if let existingPage = try? context.fetch(fetchRequest).first {
-                print("📂 [ScoreViewModel.init] Found existing ScorePage for content:", content.cid)   // 📍 init 로깅
-                pageEntity = existingPage
-            } else {
-                print("🆕 [ScoreViewModel.init] Creating new ScorePage for content:", content.cid)    // 📍 init 로깅
-                pageEntity = ScorePage(context: context)
-                pageEntity.s_pid = content.cid
-                pageEntity.rotation = 0
-                try? context.save()
-            }
-            
-            self.annotationViewModel = ScoreAnnotationViewModel(pageModel: ScorePageModel(entity: pageEntity))
-        } else {
-            // 새로운 ScorePage 생성
-            print("🆕 [ScoreViewModel.init] Content is nil, creating blank ScorePage")              // 📍 init 로깅
-            let pageEntity = ScorePage(context: context)
-            pageEntity.s_pid = UUID()
-            pageEntity.rotation = 0
-            try? context.save()
-            
-            self.annotationViewModel = ScoreAnnotationViewModel(pageModel: ScorePageModel(entity: pageEntity))
-        }
+//        let context = CoreDataManager.shared.context
+        self.annotationViewModel = ScoreAnnotationViewModel(content: content)
+        
+//        if let content = content {
+//            // 기존 ScorePage 찾기 또는 새로 생성
+//            let fetchRequest: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
+//            fetchRequest.predicate = NSPredicate(format: "s_pid == %@", content.cid as CVarArg)
+//            
+//            let pageEntity: ScorePage
+//            if let existingPage = try? context.fetch(fetchRequest).first {
+//                print("📂 [ScoreViewModel.init] Found existing ScorePage for content:", content.cid)   // 📍 init 로깅
+//                pageEntity = existingPage
+//            } else {
+//                print("🆕 [ScoreViewModel.init] Creating new ScorePage for content:", content.cid)    // 📍 init 로깅
+//                pageEntity = ScorePage(context: context)
+//                pageEntity.s_pid = content.cid
+//                pageEntity.rotation = 0
+//                try? context.save()
+//            }
+//            
+//            self.annotationViewModel = ScoreAnnotationViewModel(pageModel: ScorePageModel(entity: pageEntity))
+//        } else {
+//            // 새로운 ScorePage 생성
+//            print("🆕 [ScoreViewModel.init] Content is nil, creating blank ScorePage")              // 📍 init 로깅
+//            let pageEntity = ScorePage(context: context)
+//            pageEntity.s_pid = UUID()
+//            pageEntity.rotation = 0
+//            try? context.save()
+//            
+//            self.annotationViewModel = ScoreAnnotationViewModel(pageModel: ScorePageModel(entity: pageEntity))
+//        }
         
         // 2) Combine 파이프라인 설정
         // content.name → headerViewModel.title
@@ -102,10 +104,14 @@ final class ScoreViewModel: ObservableObject{
         pageNavViewModel.$currentPage
             .sink { [weak self] newPage in
                 guard let self = self else { return }
-                print("🔄 [ScoreViewModel] Page changed to", newPage, "— saving annotation")       // 📍 페이지 전환 로깅
-                self.annotationViewModel.save()
-                print("🔄 [ScoreViewModel] Page changed to", newPage, "— saving annotation")       // 📍 페이지 전환 로깅
-                self.annotationViewModel.load()
+//                print("🔄 [ScoreViewModel] Page changed to", newPage, "— saving annotation")        📍 페이지 전환 로깅
+//                self.annotationViewModel.save()
+//                print("🔄 [ScoreViewModel] Page changed to", newPage, "— saving annotation")        📍 페이지 전환 로깅
+//                self.annotationViewModel.load()
+                if newPage < self.annotationViewModel.pageModels.count {
+                    let pageModels = self.annotationViewModel.pageModels[newPage]
+                    self.annotationViewModel.switchToPage(pageId: pageModels.s_pid)
+                }
             }
             .store(in: &cancellables)
         
