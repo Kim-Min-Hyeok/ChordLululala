@@ -11,11 +11,11 @@ import Combine
 import CoreData
 
 final class ScoreAnnotationViewModel: ObservableObject {
-    @Published var currentDrawing: PKDrawing = PKDrawing()
-    @Published var isEditing: Bool = false
+    @Published var currentDrawing: PKDrawing = PKDrawing() //현재 필기
+    @Published var isEditing: Bool = false // 편집모드
     
-    // 페이지별 필기 데이터를 저장할 배열
-    @Published var pageDrawings: [UUID: PKDrawing] = [:]
+
+    @Published var pageDrawings: [UUID: PKDrawing] = [:] // 페이지별 필기 데이터 
     @Published var pageModels: [ScorePageModel] = [] /// 페이지별로 저장하기 위해 배열로 저장
     
     private let annotationManager = ScoreAnnotationManager.shared
