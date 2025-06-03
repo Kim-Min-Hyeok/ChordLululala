@@ -49,4 +49,20 @@ final class ScoreAnnotationManager2 {
         }
         return set.map(ScoreAnnotationModel.init(entity:))
     }
+    
+    func clone(from annotations: [ScoreAnnotationModel], to page: ScorePageModel) {
+            let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
+            req.predicate = NSPredicate(format: "s_pid == %@", page.s_pid as CVarArg)
+
+            guard let pageEntity = try? context.fetch(req).first else { return }
+
+            for annotation in annotations {
+                let annotationEntity = ScoreAnnotation(context: context)
+                annotationEntity.s_aid = UUID()
+                annotationEntity.strokeData = annotation.strokeData
+                annotationEntity.scorePage = pageEntity
+            }
+
+            try? context.save()
+        }
 }

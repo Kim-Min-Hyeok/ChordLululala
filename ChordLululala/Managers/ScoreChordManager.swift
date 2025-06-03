@@ -53,4 +53,24 @@ final class ScoreChordManager {
         }
         return set.map(ScoreChordModel.init(entity:))
     }
+    
+    func clone(from chords: [ScoreChordModel], to page: ScorePageModel) {
+            let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
+            req.predicate = NSPredicate(format: "s_pid == %@", page.s_pid as CVarArg)
+
+            guard let pageEntity = try? context.fetch(req).first else { return }
+
+            for chord in chords {
+                let ent = ScoreChord(context: context)
+                ent.s_cid = UUID()
+                ent.chord = chord.chord
+                ent.x = chord.x
+                ent.y = chord.y
+                ent.width = chord.width
+                ent.height = chord.height
+                ent.scorePage = pageEntity
+            }
+
+            try? context.save()
+        }
 }

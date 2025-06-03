@@ -352,6 +352,11 @@ final class DashBoardViewModel: ObservableObject {
     
     func duplicateContent(_ content: ContentModel) {
         ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+            .flatMap { [weak self] cloned -> AnyPublisher<Void, Never> in
+                print("✅ 클론 생성됨: \(cloned.name)")
+                guard let self else { return Just(()).eraseToAnyPublisher() }
+                return self.cloneHierarchyIfNeeded(original: content, cloned: cloned)
+            }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.loadContents()
@@ -359,12 +364,17 @@ final class DashBoardViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-    
+
     func duplicateSelectedContents() {
-        let publishers = selectedContents.map { content in
-            ContentManager.shared.duplicateContent(content, dashboardContents: dashboardContents)
+        let tasks = selectedContents.map { original in
+            ContentManager.shared.duplicateContent(original, dashboardContents: dashboardContents)
+                .flatMap { [weak self] cloned -> AnyPublisher<Void, Never> in
+                    guard let self else { return Just(()).eraseToAnyPublisher() }
+                    return self.cloneHierarchyIfNeeded(original: original, cloned: cloned)
+                }
         }
-        Publishers.MergeMany(publishers)
+        
+        Publishers.MergeMany(tasks)
             .collect()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -373,6 +383,57 @@ final class DashBoardViewModel: ObservableObject {
                 self?.loadMoveDestinations()
             }
             .store(in: &cancellables)
+    }
+    
+    private func cloneHierarchyIfNeeded(original: ContentModel, cloned: ContentModel) -> AnyPublisher<Void, Never> {
+        switch cloned.type {
+        case .score, .scoresOfSetlist:
+            return Future<Void, Never> { promise in
+                guard let originalDetail = ScoreDetailManager.shared.fetchScoreDetailModel(for: original) else {
+                    promise(.success(()))
+                    return
+                }
+
+                guard let newDetail = ScoreDetailManager.shared.clone(from: originalDetail, to: cloned) else {
+                    promise(.success(()))
+                    return
+                }
+
+                let originalPages = ScorePageManager.shared.fetchPageModels(for: originalDetail)
+                let newPages = ScorePageManager.shared.clone(from: originalPages, to: newDetail)
+
+                for (origPage, newPage) in zip(originalPages, newPages) {
+                    let chords = ScoreChordManager.shared.fetch(for: origPage)
+                    let annots = ScoreAnnotationManager2.shared.fetch(for: origPage)
+
+                    ScoreChordManager.shared.clone(from: chords, to: newPage)
+                    ScoreAnnotationManager2.shared.clone(from: annots, to: newPage)
+                }
+
+                promise(.success(()))
+            }
+            .eraseToAnyPublisher()
+
+        case .setlist:
+            guard let originalScores = original.scores,
+                  let clonedScores = cloned.scores,
+                  originalScores.count == clonedScores.count
+            else {
+                return Just(()).eraseToAnyPublisher()
+            }
+
+            let tasks = zip(originalScores, clonedScores).map { orig, clone in
+                cloneHierarchyIfNeeded(original: orig, cloned: clone)
+            }
+
+            return Publishers.MergeMany(tasks)
+                .collect()
+                .map { _ in () }
+                .eraseToAnyPublisher()
+
+        default:
+            return Just(()).eraseToAnyPublisher()
+        }
     }
     
     func moveContentToTrash(_ content: ContentModel) {

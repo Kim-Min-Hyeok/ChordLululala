@@ -20,7 +20,7 @@ final class ContentNamer {
         return newName
     }
     
-    func generateDuplicateFolderName(for model: ContentModel) -> String {
+    func generateDuplicateFolderAndSetlistName(for model: ContentModel) -> String {
         return "Copy of \(model.name)"
     }
 }

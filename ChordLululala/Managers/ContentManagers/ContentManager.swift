@@ -395,103 +395,38 @@ struct ContentManager {
     
     // 복제 – 작업 완료 시 Void 발행
     func duplicateContent(
-        _ model: ContentModel,
-        newParent: ContentModel? = nil,
-        dashboardContents: DashboardContents
-    ) -> AnyPublisher<Void, Never> {
-        Future<Void, Never> { promise in
-            let parentModel = newParent ?? model.parentContent
-            let newCID = UUID()
-            
+            _ model: ContentModel,
+            newParent: ContentModel? = nil,
+            dashboardContents: DashboardContents
+        ) -> AnyPublisher<ContentModel, Never> {
             switch model.type {
-            case .setlist:
-                break
-//                let newName = "Copy of " + model.name
-//                let newModel = ContentModel(
-//                    cid:               newCID,
-//                    name:              newName,
-//                    path:              nil,
-//                    type:              .setlist,
-//                    parentContent:     parentModel,
-//                    createdAt:         Date(),
-//                    modifiedAt:        Date(),
-//                    lastAccessedAt:    Date(),
-//                    deletedAt:         nil,
-//                    originalParentId:  parentModel?.cid,
-//                    syncStatus:        false,
-//                    isStared:          false,
-//                    scoreDetail:       nil,
-//                    scores:            model.scores
-//                )
-//                ContentCoreDataManager.shared.createContent(model: newModel)
-                
+            case .score, .scoresOfSetlist:
+                return duplicateScore(model, newParent: newParent, dashboardContents: dashboardContents)
             case .folder:
-                let newName = (newParent == nil)
-                ? ContentNamer.shared.generateDuplicateFolderName(for: model)
-                : model.name
-                
+                return duplicateFolder(model, newParent: newParent, dashboardContents: dashboardContents)
+            case .setlist:
+                return duplicateSetlist(model, newParent: newParent, dashboardContents: dashboardContents)
+            }
+        }
+
+        private func duplicateScore(
+            _ model: ContentModel,
+            newParent: ContentModel? = nil,
+            dashboardContents: DashboardContents
+        ) -> AnyPublisher<ContentModel, Never> {
+            Future { promise in
+                let newCID = UUID()
+                let parentModel = newParent ?? model.parentContent
+                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFileName(for: model, dashboardContents: dashboardContents) : model.name
+
                 guard let oldPath = model.path else {
-                    promise(.success(()))
-                    return
-                }
-                
+                            promise(.success(model))
+                            return
+                        }
+
                 let parentRel = parentModel?.path
-                
-                switch ContentFileManagerManager.shared.duplicateFolder(
-                    oldFolderPath: oldPath,
-                    newFolderName: newName,
-                    newParentRelativePath: parentRel,
-                    dashboardContents: dashboardContents
-                ) {
-                case .success(let newURL):
-                    guard let newRel = FileManagerManager.shared.relativePath(for: newURL.path) else {
-                        promise(.success(()))
-                        return
-                    }
-                    
-                    let newModel = ContentModel(
-                        cid:               newCID,
-                        name:              newName,
-                        path:              newRel,
-                        type:              .folder,
-                        parentContent:     parentModel,
-                        createdAt:         model.modifiedAt,
-                        modifiedAt:        model.modifiedAt,
-                        lastAccessedAt:    model.modifiedAt,
-                        deletedAt:         nil,
-                        originalParentId:  parentModel?.cid,
-                        syncStatus:        false,
-                        isStared:          false,
-                        scoreDetail:       nil,
-                        scores:            []
-                    )
-                    ContentCoreDataManager.shared.createContent(model: newModel)
-                    
-                    let children = ContentCoreDataManager.shared
-                        .fetchChildrenModels(for: model.cid)
-                    children.forEach { child in
-                        _ = duplicateContent(child,
-                                             newParent: newModel,
-                                             dashboardContents: dashboardContents)
-                        .sink { }
-                    }
-                    
-                case .failure(let error):
-                    print("폴더 복제 실패:", error)
-                }
-                
-            case .score:
-                let newName = (newParent == nil)
-                ? ContentNamer.shared.generateDuplicateFileName(for: model, dashboardContents: dashboardContents)
-                : model.name
-                
-                guard let oldPath = model.path else {
-                    promise(.success(()))
-                    return
-                }
-                
-                let parentRel = parentModel?.path
-                
+
+
                 switch ContentFileManagerManager.shared.duplicateFile(
                     oldFilePath: oldPath,
                     newFileName: newName,
@@ -500,39 +435,145 @@ struct ContentManager {
                 ) {
                 case .success(let destURL):
                     guard let newRel = FileManagerManager.shared.relativePath(for: destURL.path) else {
-                        promise(.success(()))
+                        promise(.success(model))
                         return
                     }
-                    
+
                     let newModel = ContentModel(
-                        cid:               newCID,
-                        name:              newName,
-                        path:              newRel,
-                        type:              model.type,
-                        parentContent:     parentModel,
-                        createdAt:         model.modifiedAt,
-                        modifiedAt:        model.modifiedAt,
-                        lastAccessedAt:    model.modifiedAt,
-                        deletedAt:         nil,
-                        originalParentId:  parentModel?.cid,
-                        syncStatus:        false,
-                        isStared:          false,
-                        scoreDetail:       nil,
-                        scores:            []
+                        cid: newCID,
+                        name: newName,
+                        path: newRel,
+                        type: model.type,
+                        parentContent: parentModel,
+                        createdAt: model.modifiedAt,
+                        modifiedAt: model.modifiedAt,
+                        lastAccessedAt: model.modifiedAt,
+                        deletedAt: nil,
+                        originalParentId: parentModel?.cid,
+                        syncStatus: false,
+                        isStared: false,
+                        scoreDetail: nil,
+                        scores: []
                     )
-                    ContentCoreDataManager.shared.createContent(model: newModel)
-                    
-                case .failure(let error):
-                    print("파일 복제 실패:", error)
+
+                    let created = ContentCoreDataManager.shared.createContent(model: newModel)
+                    promise(.success(created))
+
+                case .failure:
+                    promise(.success(model))
                 }
-            case .scoresOfSetlist:
-                break
-            }
-            
-            promise(.success(()))
+            }.eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
-    }
+
+        private func duplicateFolder(
+            _ model: ContentModel,
+            newParent: ContentModel? = nil,
+            dashboardContents: DashboardContents
+        ) -> AnyPublisher<ContentModel, Never> {
+            Future { promise in
+                let newCID = UUID()
+                let parentModel = newParent ?? model.parentContent
+                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFolderAndSetlistName(for: model) : model.name
+
+                guard let oldPath = model.path else {
+                            promise(.success(model))
+                            return
+                        }
+
+                let parentRel = parentModel?.path
+
+                switch ContentFileManagerManager.shared.duplicateFolder(
+                    oldFolderPath: oldPath,
+                    newFolderName: newName,
+                    newParentRelativePath: parentRel,
+                    dashboardContents: dashboardContents
+                ) {
+                case .success(let newURL):
+                    guard let newRel = FileManagerManager.shared.relativePath(for: newURL.path) else {
+                        promise(.success(model))
+                        return
+                    }
+
+                    let newModel = ContentModel(
+                        cid: newCID,
+                        name: newName,
+                        path: newRel,
+                        type: .folder,
+                        parentContent: parentModel,
+                        createdAt: model.modifiedAt,
+                        modifiedAt: model.modifiedAt,
+                        lastAccessedAt: model.modifiedAt,
+                        deletedAt: nil,
+                        originalParentId: newParent?.cid,
+                        syncStatus: false,
+                        isStared: false,
+                        scoreDetail: nil,
+                        scores: []
+                    )
+
+                    let created = ContentCoreDataManager.shared.createContent(model: newModel)
+                    let children = ContentCoreDataManager.shared.fetchChildrenModels(for: model.cid)
+
+                    children.forEach { child in
+                        _ = duplicateContent(child, newParent: created, dashboardContents: dashboardContents)
+                            .sink { _ in }
+                    }
+
+                    promise(.success(created))
+
+                case .failure:
+                    promise(.success(model))
+                }
+            }.eraseToAnyPublisher()
+        }
+
+        private func duplicateSetlist(
+            _ model: ContentModel,
+            newParent: ContentModel? = nil,
+            dashboardContents: DashboardContents
+        ) -> AnyPublisher<ContentModel, Never> {
+            Future { promise in
+                let newCID = UUID()
+                let parentModel = newParent ?? model.parentContent
+                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFolderAndSetlistName(for: model) : model.name
+
+                let newModel = ContentModel(
+                    cid: newCID,
+                    name: newName,
+                    path: nil,
+                    type: .setlist,
+                    parentContent: parentModel,
+                    createdAt: model.modifiedAt,
+                    modifiedAt: model.modifiedAt,
+                    lastAccessedAt: model.modifiedAt,
+                    deletedAt: nil,
+                    originalParentId: newParent?.cid,
+                    syncStatus: false,
+                    isStared: false,
+                    scoreDetail: nil,
+                    scores: []
+                )
+
+                let created = ContentCoreDataManager.shared.createContent(model: newModel)
+
+                        guard let originalScores = model.scores else {
+                            promise(.success(created))
+                            return
+                        }
+
+                        let cloneTasks = originalScores.map { score in
+                            self.duplicateScore(score, newParent: created, dashboardContents: dashboardContents)
+                        }
+
+                _ = Publishers.MergeMany(cloneTasks)
+                            .collect()
+                            .sink { clonedScores in
+                                created.scores = clonedScores
+                                promise(.success(created))
+                            }
+                    }
+                    .eraseToAnyPublisher()
+        }
     
     // 삭제 – 작업 완료 시 Void 발행
     func deleteContent(_ content: ContentModel) -> AnyPublisher<Void, Never> {

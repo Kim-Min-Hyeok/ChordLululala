@@ -61,6 +61,25 @@ final class ScoreDetailManager {
         return ScoreDetailModel(entity: detailEntity)
     }
     
+    func clone(from original: ScoreDetailModel, to content: ContentModel) -> ScoreDetailModel? {
+            let req: NSFetchRequest<Content> = Content.fetchRequest()
+            req.predicate = NSPredicate(format: "cid == %@", content.cid as CVarArg)
+            guard let contentEntity = try? context.fetch(req).first else {
+                print("❌ 복제 대상 Content 미발견")
+                return nil
+            }
+
+            let newDetail = ScoreDetail(context: context)
+            newDetail.s_did = UUID()
+            newDetail.key = original.key
+            newDetail.t_key = original.t_key
+            newDetail.content = contentEntity
+            contentEntity.scoreDetail = newDetail
+
+            try? context.save()
+            return ScoreDetailModel(entity: newDetail)
+        }
+    
     /// 주어진 ScoreDetailModel에 연결된 Content의 파일 URL 반환
     func getContentURL(for detail: ScoreDetailModel) -> URL? {
         // 1) Core Data에서 해당 ScoreDetail에 연결된 Content 엔티티를 찾고

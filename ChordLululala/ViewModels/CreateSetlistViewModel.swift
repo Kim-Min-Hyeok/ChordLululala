@@ -90,7 +90,11 @@ final class CreateSetlistViewModel: ObservableObject {
         return true
     }
     
-    func createSetlist(_ name: String, currentParent: ContentModel, completion: @escaping () -> Void) {
+    func createSetlist(
+        _ name: String,
+        currentParent: ContentModel,
+        completion: @escaping () -> Void
+    ) {
         let scoresToClone = selectedContents
 
         ContentManager.shared
@@ -102,26 +106,26 @@ final class CreateSetlistViewModel: ObservableObject {
             )
             .flatMap { setlist -> AnyPublisher<Void, Never> in
                 let tasks = zip(scoresToClone, setlist.scores ?? []).map { originalScore, newScore in
-                    return ScoreDetailManager.shared.createScoreDetail(for: newScore)
-                        .handleEvents(receiveOutput: { newDetail in
-                            // 1. 페이지 복제
-                            guard let originalDetail = ScoreDetailManager.shared.fetchScoreDetailModel(for: originalScore) else { return }
+                    Future<Void, Never> { promise in
+                        guard let originalDetail = ScoreDetailManager.shared.fetchScoreDetailModel(for: originalScore),
+                              let newDetail = ScoreDetailManager.shared.clone(from: originalDetail, to: newScore) else {
+                            promise(.success(()))
+                            return
+                        }
 
-                            let originalPages = ScorePageManager.shared.fetchPageModels(for: originalDetail)
-                            ScorePageManager.shared.clonePages(from: originalPages, to: newDetail)
+                        let originalPages = ScorePageManager.shared.fetchPageModels(for: originalDetail)
+                        let newPages = ScorePageManager.shared.clone(from: originalPages, to: newDetail)
 
-                            // 2. 페이지별 Chord & Annotation 복제
-                            let newPages = ScorePageManager.shared.fetchPageModels(for: newDetail)
-                            for (origPage, newPage) in zip(originalPages, newPages) {
-                                let origChords = ScoreChordManager.shared.fetch(for: origPage)
-                                let origAnnotations = ScoreAnnotationManager2.shared.fetch(for: origPage)
+                        for (origPage, newPage) in zip(originalPages, newPages) {
+                            let chords = ScoreChordManager.shared.fetch(for: origPage)
+                            let annots = ScoreAnnotationManager2.shared.fetch(for: origPage)
+                            ScoreChordManager.shared.clone(from: chords, to: newPage)
+                            ScoreAnnotationManager2.shared.clone(from: annots, to: newPage)
+                        }
 
-                                ScoreChordManager.shared.save(chords: origChords, for: newPage)
-                                ScoreAnnotationManager2.shared.save(annotations: origAnnotations, for: newPage)
-                            }
-                        })
-                        .map { _ in () }
-                        .eraseToAnyPublisher()
+                        promise(.success(()))
+                    }
+                    .eraseToAnyPublisher()
                 }
 
                 return Publishers.MergeMany(tasks)
