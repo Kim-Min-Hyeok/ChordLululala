@@ -13,6 +13,7 @@ enum RecognitionState {
     case keyFixing
     case chordFixing
     case keyTranspostion
+//    case keyFixingAndTransposition
 }
 
 final class ChordRecognizeViewModel: ObservableObject {
@@ -31,6 +32,9 @@ final class ChordRecognizeViewModel: ObservableObject {
     
     @Published var selectedPage = 0
     @Published var editingChord: ScoreChordModel? = nil
+    
+    // 키 인식되면, 바로 모달띄워야 하므로 viewModel로 관리
+    @Published var showKeyTranspositionModal: Bool = false
     
     let sharpKeys: [String: Int] = [
         "C": 0, "G": 1, "D": 2, "A": 3, "E": 4, "B": 5, "F#": 6, "C#": 7
@@ -53,12 +57,18 @@ final class ChordRecognizeViewModel: ObservableObject {
         
         // 이미 코드 인식을 했으면 (이미 key 및 t_key가 존재하면 바로 chordFixing으로 이동)
         if !detail.key.isEmpty && !detail.t_key.isEmpty {
-            self.state = .chordFixing
+            // MARK: Plan B Start
+            self.state = .keyTranspostion
+            self.showKeyTranspositionModal = true
+            // MARK: Plan B End
+            // MARK: Plan A Start
+//            self.state = .keyFixingAndTransposition
+            // MARK: Plan A End
 
             DispatchQueue.main.async {
                 self.key = detail.key
                 self.t_key = detail.t_key
-                self.isSharp = detail.isSharp
+                self.isSharp = self.sharpKeys.keys.contains(detail.t_key)
 
                 // ✅ 수정된 부분
                 if self.isSharp {
@@ -148,14 +158,14 @@ final class ChordRecognizeViewModel: ObservableObject {
         
         detail.key = key
         detail.t_key = t_key
-        detail.isSharp = isSharp
+        isSharp = sharpKeys.keys.contains(t_key)
         ScoreDetailManager.shared.update(detailModel: detail)
     }
     
     func applyTransposedKey(for file: ContentModel) {
         guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: file) else { return }
         detail.t_key = t_key
-        detail.isSharp = isSharp
+        isSharp = sharpKeys.keys.contains(t_key)
         ScoreDetailManager.shared.update(detailModel: detail)
     }
     
@@ -200,9 +210,6 @@ final class ChordRecognizeViewModel: ObservableObject {
     func transposedChord(for original: String) -> String {
         guard key != t_key else { return original }
 
-        // 12음계는 고정
-        let semitoneMap = ["C", "C#", "D", "D#", "E", "F",
-                           "F#", "G", "G#", "A", "A#", "B"]
         let enharmonicMap: [String: Int] = [
             "C": 0, "B#": 0,
             "C#": 1, "Db": 1,
@@ -217,13 +224,13 @@ final class ChordRecognizeViewModel: ObservableObject {
             "A#": 10, "Bb": 10,
             "B": 11, "Cb": 11
         ]
+        
         let displayMapSharp = ["C", "C#", "D", "D#", "E", "F",
                                "F#", "G", "G#", "A", "A#", "B"]
         let displayMapFlat  = ["C", "Db", "D", "Eb", "E", "F",
                                "Gb", "G", "Ab", "A", "Bb", "B"]
-
+        
         func rootIndex(of chord: String) -> (index: Int, matched: String)? {
-            // "Abm7" → "Ab"
             let candidates = enharmonicMap.keys.filter { chord.starts(with: $0) }
             guard let match = candidates.max(by: { $0.count < $1.count }),
                   let index = enharmonicMap[match] else { return nil }
@@ -234,9 +241,10 @@ final class ChordRecognizeViewModel: ObservableObject {
               let to   = enharmonicMap[t_key] else { return original }
 
         let diff = (to - from + 12) % 12
+        let useSharp = sharpKeys.keys.contains(t_key)
 
         if let (idx, matched) = rootIndex(of: original) {
-            let displayMap = isSharp ? displayMapSharp : displayMapFlat
+            let displayMap = useSharp ? displayMapSharp : displayMapFlat
             let newRoot = displayMap[(idx + diff) % 12]
             let suffix = original.dropFirst(matched.count)
             return newRoot + suffix
@@ -262,11 +270,12 @@ final class ChordRecognizeViewModel: ObservableObject {
             "A#": 10, "Bb": 10,
             "B": 11, "Cb": 11
         ]
+        
         let displayMapSharp = ["C", "C#", "D", "D#", "E", "F",
                                "F#", "G", "G#", "A", "A#", "B"]
         let displayMapFlat  = ["C", "Db", "D", "Eb", "E", "F",
                                "Gb", "G", "Ab", "A", "Bb", "B"]
-
+        
         func rootIndex(of chord: String) -> (index: Int, matched: String)? {
             let candidates = enharmonicMap.keys.filter { chord.starts(with: $0) }
             guard let match = candidates.max(by: { $0.count < $1.count }),
@@ -278,9 +287,10 @@ final class ChordRecognizeViewModel: ObservableObject {
               let to   = enharmonicMap[key] else { return transposed }
 
         let diff = (to - from + 12) % 12
+        let useSharp = sharpKeys.keys.contains(key)
 
         if let (idx, matched) = rootIndex(of: transposed) {
-            let displayMap = isSharp ? displayMapSharp : displayMapFlat
+            let displayMap = useSharp ? displayMapSharp : displayMapFlat
             let newRoot = displayMap[(idx + diff) % 12]
             let suffix = transposed.dropFirst(matched.count)
             return newRoot + suffix

@@ -22,7 +22,7 @@ private struct PageOffsetKey: PreferenceKey {
 struct ChordRecognizeResultView: View {
     @EnvironmentObject var viewModel: ChordRecognizeViewModel
     @State private var isProgrammaticScroll = false
-    @State private var orientationToggle = false
+    @State private var isLandscape = UIDevice.current.orientation.isLandscape
     
     var body: some View {
         ZStack(alignment: .top) {
@@ -110,16 +110,16 @@ struct ChordRecognizeResultView: View {
                                                             }
                                                         }
                                                     }
-                                                    .id(orientationToggle)
+                                                    .id(viewModel.t_key)
                                                 }
                                             }
                                         }
                                         .frame(
-                                            width: outerGeo.size.height * img.size.width / img.size.height,
-                                            height: outerGeo.size.height
+                                            width: isLandscape ? outerGeo.size.height * img.size.width / img.size.height: (outerGeo.size.width - 200),
+                                            height: isLandscape ? outerGeo.size.height : img.size.height / img.size.width * (outerGeo.size.width - 200)
                                         )
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .center) // 중앙 정렬
+                                    .frame(maxWidth: .infinity, alignment: .top) // 중앙 정렬
                                     .id(idx)
                                     .background(
                                         GeometryReader { geo2 in
@@ -150,9 +150,12 @@ struct ChordRecognizeResultView: View {
                                 viewModel.selectedPage = nearest.index
                             }
                         }
-                        // 회전 감지 → orientationToggle 토글
+                        // 회전 감지
                         .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                            orientationToggle.toggle()
+                            let orientation = UIDevice.current.orientation
+                            if orientation.isValidInterfaceOrientation {
+                                isLandscape = orientation.isLandscape
+                            }
                         }
                     }
                 }

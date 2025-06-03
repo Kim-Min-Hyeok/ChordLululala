@@ -41,7 +41,7 @@ final class ScoreDetailManager {
                 print("❌ ScoreDetail 생성 오류:", error)
                 // 실패해도 빈 모델 반환하기보다, 에러 로그 후 빈 detailModel은 막아야 합니다.
                 // 여기서는 대체로 fallback으로 새 UUID로만듭니다.
-                let fallback = ScoreDetailModel(s_did: UUID(), key: "", t_key: "", isSharp: true, scorePages: [])
+                let fallback = ScoreDetailModel(s_did: UUID(), key: "", t_key: "", scorePages: [])
                 promise(.success(fallback))
             }
         }

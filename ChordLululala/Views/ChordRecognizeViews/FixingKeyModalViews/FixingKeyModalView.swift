@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct FixingKeyModalView: View {
-    let onConfirm: (_ keyText: String, _ isSharp: Bool, _ transposeAmount: Int) -> Void
+    let onConfirm: (_ keyText: String, _ transposeAmount: Int) -> Void
     let onCancel: () -> Void
     let title: String
     let description: String
@@ -160,7 +160,7 @@ struct FixingKeyModalView: View {
             .padding(.top, 8)
             
             Button(action: {
-                onConfirm(keyText, isSharp, transposeAmount)
+                onConfirm(keyText, transposeAmount)
             }) {
                 VStack(spacing: 0) {
                     Divider()

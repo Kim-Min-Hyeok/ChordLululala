@@ -14,7 +14,7 @@ struct ChordReconizeView: View {
     
     @State private var showAddingModal = false
     @State private var showFixingKeyModal = false
-    @State private var showKeyTranspositionModal = false
+    @State private var showKeyFixingAndTransposeModal = false
     
     var body: some View {
         ZStack {
@@ -26,7 +26,16 @@ struct ChordReconizeView: View {
                     state: vm.state,
                     onBack: { router.back() },
                     onFixingKey: {
-                        showFixingKeyModal = true
+                        // MARK: Plan B Start
+                        if vm.state == .keyFixing {
+                            showFixingKeyModal = true
+                        }
+                        // MARK: Plan B End
+                        // MARK: Plan A Start
+//                        if vm.state == .keyFixingAndTransposition {
+//                            showKeyFixingAndTransposeModal = true
+//                        }
+                        // MARK: Plan A End
                     },
                     onCreateBox: {
                         vm.editingChord = nil
@@ -34,7 +43,7 @@ struct ChordReconizeView: View {
                     },
                     onFinalize: {
                         vm.state = .keyTranspostion
-                        showKeyTranspositionModal = true
+                        vm.showKeyTranspositionModal = true
                     }
                 )
                 
@@ -47,12 +56,17 @@ struct ChordReconizeView: View {
                         .onReceive(vm.$doneCount) { done in
                             if vm.state == .recognition,
                                vm.totalCount > 0, done >= vm.totalCount {
+                                // MARK: Plan B Start
                                 vm.state = .keyFixing
+                                // MARK: Plan B End
+                                // MARK: Plan A Start
+//                                vm.state = .keyFixingAndTransposition
+                                // MARK: Plan A Start
                                 vm.findKey()
                                 showFixingKeyModal = true
                             }
                         }
-                case .keyFixing, .chordFixing, .keyTranspostion:
+                case .keyFixing, .chordFixing, .keyTranspostion: /*.keyFixingAndTransposition:*/
                     ChordRecognizeResultView()
                         .environmentObject(vm)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -70,11 +84,10 @@ struct ChordReconizeView: View {
                         }
                     
                     FixingKeyModalView(
-                        onConfirm: { keyText, isSharp, transposeAmount in
+                        onConfirm: { keyText, transposeAmount in
                             // 여기에서 ViewModel 업데이트 등 처리
                             vm.key = keyText
                             vm.t_key = keyText
-                            vm.isSharp = isSharp
                             vm.transposeAmount = transposeAmount
                             vm.fixingKey(for: file)
                             withAnimation {
@@ -144,13 +157,13 @@ struct ChordReconizeView: View {
                 }
                 .zIndex(1)
             }
-            if vm.state == .keyTranspostion && showKeyTranspositionModal {
+            if vm.state == .keyTranspostion && vm.showKeyTranspositionModal {
                 ZStack {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation {
-                                showKeyTranspositionModal = false
+                                vm.showKeyTranspositionModal = false
                             }
                         }
                     
@@ -173,14 +186,13 @@ struct ChordReconizeView: View {
 //                        }
 //                    )
                     FixingKeyModalView(
-                        onConfirm: { keyText, isSharp, transposeAmount in
+                        onConfirm: { keyText, transposeAmount in
                             // 여기에서 ViewModel 업데이트 등 처리
                             vm.t_key = keyText
-                            vm.isSharp = isSharp
                             vm.transposeAmount = transposeAmount
                             vm.applyTransposedKey(for: file)
                             withAnimation {
-                                showKeyTranspositionModal = false
+                                vm.showKeyTranspositionModal = false
                                 vm.finalizeChordRecognition {
                                     router.offNamed("/chordConfirm", arguments: [file])
                                 }
@@ -188,7 +200,7 @@ struct ChordReconizeView: View {
                         },
                         onCancel: {
                             withAnimation {
-                                showKeyTranspositionModal = false
+                                vm.showKeyTranspositionModal = false
                                 vm.state = .chordFixing
                             }
                         },
@@ -204,6 +216,43 @@ struct ChordReconizeView: View {
                 }
                 .zIndex(2)
             }
+//            if vm.state == .keyFixingAndTransposition && showKeyFixingAndTransposeModal {
+//                ZStack {
+//                    Color.black.opacity(0.001)
+//                        .ignoresSafeArea()
+//                        .onTapGesture {
+//                            withAnimation {
+//                                showKeyFixingAndTransposeModal = false
+//                            }
+//                        }
+//                    
+//                    // 모달 뷰 자체
+//                    KeyFixingAndTranspositionModalView(
+//                        onConfirm: { originalKey, transposeKey in
+//                            vm.key = originalKey
+//                            vm.t_key = transposeKey
+//                            vm.fixingKey(for: file)
+//                            withAnimation {
+//                                vm.state = .chordFixing
+//                                showKeyTranspositionModal = false
+//                                
+//                            }
+//                        },
+//                        onCancel: {
+//                            withAnimation {
+//                                showKeyFixingAndTransposeModal = false
+//                            }
+//                        },
+//                        initialKey: vm.key,
+//                        initialIsSharp: vm.isSharp,
+//                        initialTransposeAmount: vm.transposeAmount
+//                        
+//                    )
+//                    .transition(.move(edge: .bottom))
+//                    .zIndex(2)
+//                }
+//                .zIndex(2)
+//            }
         }
         .onAppear() {
             print("원래 키:", vm.key, "변환될 키:", vm.t_key, "isSharp:", vm.isSharp)

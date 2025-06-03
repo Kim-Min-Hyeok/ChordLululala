@@ -26,7 +26,7 @@ struct ChordRecognizeHeaderView: View {
             Spacer()
 
             // 오른쪽 버튼들
-            if state == .keyFixing {
+            if state == .keyFixing /*|| state == .keyFixingAndTransposition*/ {
                 Button(action: onFixingKey) {
                     HStack(alignment: .center, spacing: 6) {
                         Text("변환 진행하기")
