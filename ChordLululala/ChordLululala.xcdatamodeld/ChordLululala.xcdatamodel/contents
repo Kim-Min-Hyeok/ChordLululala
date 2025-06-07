@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="24F74" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
     <entity name="Content" representedClassName="Content" syncable="YES" codeGenerationType="class">
         <attribute name="cid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -39,6 +39,9 @@
         <relationship name="scorePages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScorePage" inverseName="scoreDetail" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScorePage" representedClassName="ScorePage" syncable="YES" codeGenerationType="class">
+        <attribute name="displayOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="originalPageIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="pageType" optional="YES" attributeType="String"/>
         <attribute name="rotation" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="s_pid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="scoreAnnotations" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreAnnotation" inverseName="scorePage" inverseEntity="ScoreAnnotation"/>
