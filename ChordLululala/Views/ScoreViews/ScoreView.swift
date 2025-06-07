@@ -60,6 +60,7 @@ struct ScoreView : View {
         .environmentObject(viewModel.pdfViewModel)
         .environmentObject(zoomVM)
         .navigationBarHidden(true)
+    
         
     }
     
