@@ -9,9 +9,21 @@ import Foundation
 
 final class ScoreSettingViewModel: ObservableObject {
     @Published var isSetting : Bool = false
+    @Published var isSinglePage : Bool = true
+    
     
     func toggle(){
         isSetting.toggle()
     }
+    
+    
+    func selectSinglePage(){
+        isSinglePage = true
+    }
+    
+    func selectMultiPage(){
+        isSinglePage = false
+    }
+    
     
 }
