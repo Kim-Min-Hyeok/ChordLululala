@@ -22,7 +22,6 @@ final class ScoreAnnotationManager {
         // 기존 필기 삭제
         if let existing = pageEntity.scoreAnnotations as?  Set<ScoreAnnotation> {
             print("🗑️ [ScoreAnnotationManager.save] deleting existing annotations count:", existing.count)
-            
             existing.forEach(context.delete)
         }
         // 새 필기 삽입
@@ -46,7 +45,6 @@ final class ScoreAnnotationManager {
     /// 불러오기
     func fetch(for pageModel: ScorePageModel) -> [ScoreAnnotationModel]{
         print("▶️ [ScoreAnnotationManager.fetch] called for pageID:", pageModel.s_pid)
-        
         let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
         req.predicate = NSPredicate(format: "s_pid == %@", pageModel.s_pid as CVarArg)
         
