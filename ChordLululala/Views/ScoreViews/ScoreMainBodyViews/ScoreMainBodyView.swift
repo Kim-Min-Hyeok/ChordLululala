@@ -139,7 +139,7 @@ struct ScoreMainBodyView: View {
             
             .overlay(
                 PageIndicatorView(
-                    current: viewModel.currentPage + 1,
+                    current: viewModel.isSinglePageMode ? viewModel.currentPage + 1 : viewModel.currentPage + 2,
                     total: viewModel.pages.count
                 )
                 .offset(x: 22, y: -26),
