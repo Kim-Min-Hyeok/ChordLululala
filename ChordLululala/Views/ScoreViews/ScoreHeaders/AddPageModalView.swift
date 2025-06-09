@@ -2,9 +2,11 @@
 import SwiftUI
 
 struct AddPageModalView: View {
-    let onSelect: (PageType) -> Void
+    @ObservedObject var viewModel: PageAdditionViewModel
     @State private var selectedType: PageType? = nil
-    @ObservedObject var pageAdditionVM: PageAdditionViewModel
+    
+    let onSelect: () -> Void
+    let onClose: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -12,7 +14,7 @@ struct AddPageModalView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    pageAdditionVM.isSheetPresented = false
+                    onClose()
                 }) {
                     Text("닫기")
                         .textStyle(.headingSmMedium)
@@ -60,8 +62,13 @@ struct AddPageModalView: View {
             
             Button(action: {
                 if let type = selectedType {
-                    onSelect(type)
-                    pageAdditionVM.isSheetPresented = false
+                    viewModel.addPage(type: type) { success in
+                        if success {
+                            onSelect()
+                        } else {
+                            onClose()
+                        }
+                    }
                 }
             }) {
                 HStack {

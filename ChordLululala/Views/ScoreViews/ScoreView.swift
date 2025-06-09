@@ -7,8 +7,8 @@ import SwiftUI
 struct ScoreView : View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel: ScoreViewModel
-    @StateObject var zoomVM: ImageZoomViewModel = ImageZoomViewModel()
-    init(content: ContentModel?) {
+    
+    init(content: ContentModel) {
         _viewModel = StateObject(wrappedValue: ScoreViewModel(content: content))
     }
     
@@ -16,55 +16,61 @@ struct ScoreView : View {
         ZStack{
             VStack{
                 /// 악보 헤더부분
-                if !viewModel.playmodeViewModel.isOn {
-                    ScoreHeaderView(viewModel: viewModel.headerViewModel,
-                                    annotationVM: viewModel.annotationViewModel,
-                                    isTransposing: viewModel.isTransposingViewModel,
-                                    pageAdditionVM: viewModel.pageAdditionViewModel,
-                                    file: viewModel.content
-                                    
+                if !viewModel.isPlayMode {
+                    ScoreHeaderView(
+                        file: viewModel.content,
+                        toggleAnnotationMode: {
+                            viewModel.isAnnotationMode.toggle()
+                        },
+                        presentAddPageModal: {
+                            viewModel.isAdditionModalView = true
+                        },
+                        presentOverViewModal: {
+                            viewModel.isOverViewModalView = true
+                        },
+                        presentSettingViewModal: {
+                            viewModel.isSettingModalView = true
+                        }
                     )
                     .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
                 }
                 
                 /// 악보 바디 뷰
                 ScoreMainBodyView(
-                    playmodeViewModel: viewModel.playmodeViewModel,
-                    pageNavViewModel: viewModel.pageNavViewModel,
-                    annotationVM: viewModel.annotationViewModel,
-                    isTransposing: viewModel.isTransposingViewModel,
-                    chordBoxViewModel: viewModel.chordBoxViewModel
+                    zoomViewModel: viewModel.imageZoomeViewModel,
+                    chordBoxViewModel: viewModel.chordBoxViewModel,
+                    annotationViewModel: viewModel.annotationViewModel
                 )
-                
             }
             
             /// 페이지 추가 버튼 눌렀을때 뜨는 모달창
-            if viewModel.pageAdditionViewModel.isSheetPresented  {
+            if viewModel.isAdditionModalView  {
                 Color.clear.ignoresSafeArea()
                 ZStack{
                     AddPageModalView(
-                        onSelect: { type in
-                            viewModel.pageAdditionViewModel.addPage(type)
-                        }, pageAdditionVM: viewModel.pageAdditionViewModel
+                        viewModel: viewModel.pageAdditionViewModel,
+                        onSelect: {
+                            // TODO: 페이지 추가 시, 필요한 업데이트
+                            viewModel.isAdditionModalView = false
+                        },
+                        onClose: {
+                            viewModel.isAdditionModalView = false
+                        }
                     )
-                    
                 }
             }
         }
         .overlay {
             if(viewModel.scorePageOverViewModel.isPageOver) {
-                ScorePageOverView()
+                ScorePageOverView(pages: viewModel.pages)
             }
         }
-        .environmentObject(viewModel.scoreSettingViewModel)
-        .environmentObject(viewModel.scorePageOverViewModel)
-        .environmentObject(viewModel.pdfViewModel)
-        .environmentObject(zoomVM)
+        .onDisappear {
+            viewModel.saveAnnotations()
+        }
+        .environmentObject(viewModel)
         .navigationBarHidden(true)
-    
-        
     }
-    
 }
 
 

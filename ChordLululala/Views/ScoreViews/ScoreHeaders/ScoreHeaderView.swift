@@ -9,16 +9,17 @@ import SwiftUI
 
 
 struct ScoreHeaderView: View {
-    @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
-    @ObservedObject var annotationVM : ScoreAnnotationViewModel
-    @ObservedObject var isTransposing: IsTransposingViewModel
-    @ObservedObject var pageAdditionVM : PageAdditionViewModel
-    @EnvironmentObject var settingVM : ScoreSettingViewModel
-    @EnvironmentObject var overViewVM : ScorePageOverViewModel
     
-    let file : ContentModel?
+    @State var isAnnotationMode: Bool = false
     
+    // Pararameter
+    let file : ContentModel
+    
+    let toggleAnnotationMode: () -> Void
+    let presentAddPageModal: () -> Void
+    let presentOverViewModal: () -> Void
+    let presentSettingViewModal: () -> Void
     
     var body: some View {
         GeometryReader { geo in
@@ -39,9 +40,11 @@ struct ScoreHeaderView: View {
                 }
                 
                 Spacer().frame(width: leftSpacerWidth)
-                
+        
                 /// 제목
-                Text(viewModel.truncatedTitle)
+                Text(file.name.count > 10
+                     ? "\(file.name.prefix(10))…"
+                     : file.name)
                     .foregroundColor(Color.primaryGray900)
                     .textStyle(.headingLgSemiBold)
                     .layoutPriority(1)
@@ -51,9 +54,10 @@ struct ScoreHeaderView: View {
                 HStack(spacing: 7){
                     /// 펜슬
                     Button(action:{
-                        annotationVM.isEditing.toggle()
+                        isAnnotationMode.toggle()
+                        toggleAnnotationMode()
                     }){
-                        Image(annotationVM.isEditing ? "scoreheader_pencil_fill" : "scoreheader_pencil")
+                        Image(isAnnotationMode ? "scoreheader_pencil_fill" : "scoreheader_pencil")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 36, height: 36)
@@ -63,7 +67,7 @@ struct ScoreHeaderView: View {
                     
                     /// 페이지 추가버튼
                     Button(action:{
-                        pageAdditionVM.presentSheet()
+                        presentAddPageModal()
                     }){
                         Image("scoreheader_page_add")
                             .resizable()
@@ -74,7 +78,6 @@ struct ScoreHeaderView: View {
                     
                     /// 키변환
                     Button(action:{
-                        guard let file = file else {return}
                         router.offNamed("/chordreconize", arguments: [ file ])
                         
                     }){
@@ -96,7 +99,7 @@ struct ScoreHeaderView: View {
                     
                     ///전체 페이지 보기
                     Button(action:{
-                        overViewVM.toggle()
+                        presentOverViewModal()
                     }){
                         Image("scoreheader_page_list")
                             .resizable()
@@ -108,7 +111,7 @@ struct ScoreHeaderView: View {
                     
                     ///설정
                     Button(action:{
-                        settingVM.toggle()
+                        presentSettingViewModal()
                         print("설정 보기 클릭") //TODO: 기능 추가해야함
                     }){
                         Image("scoreheader_setting")
@@ -119,9 +122,6 @@ struct ScoreHeaderView: View {
                         
                     }
                 }
-                
-                
-                
                 
             }
             .padding(.horizontal, 22)

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import Combine
 
 enum PageType{
     case blank // 빈종이
@@ -14,39 +15,24 @@ enum PageType{
 }
 
 final class PageAdditionViewModel: ObservableObject{
-    @Published var isSheetPresented: Bool = false
     @Published var isBlankPage: Bool = true
+    @Published var currentPage: Int = 0
     
-    private let pdfViewModel: ScorePDFViewModel
-    private let pageNavViewModel: PageNavigationViewModel
     private var content: ContentModel?
     
     private let pageManager = ScorePageManager.shared
     private let detailManager = ScoreDetailManager.shared
-    
-    init(pdfViewModel: ScorePDFViewModel, pageNavViewModel: PageNavigationViewModel){
-        self.pdfViewModel = pdfViewModel
-        self.pageNavViewModel = pageNavViewModel
-    }
-    
     
     /// Content 설정
     func setContent(_ content: ContentModel?){
         self.content = content
     }
     
-    /// “페이지 추가” 버튼 눌렀을 때 호출
-    func presentSheet() {
-        isSheetPresented = true
-        print("페이지 추가 버튼 눌림")
-    }
-    
     /// 모달에서 선택된 타입으로 실제 페이지 추가
-    func addPage(_ type: PageType) {
+    func addPage(type: PageType, completion: @escaping (Bool) -> Void) {
         
         guard let content = content else {
             print(#fileID,#function,#line, "content 없음")
-            isSheetPresented = false
             return
         }
         
@@ -57,24 +43,16 @@ final class PageAdditionViewModel: ObservableObject{
         } else {
             guard let created = createScoreDetailSync(for: content) else {
                 print(#fileID,#function,#line, "❌ ScoreDetail 생성 실패")
-                isSheetPresented = false
                 return
             }
             scoreDetail = created
         }
         
-        
-        let currentIndex = pageNavViewModel.currentPage
-        pdfViewModel.addPageNextIndex(type, afterIndex: currentIndex)
-        
-        if let newPageModel = pageManager.addPage(for: scoreDetail, afterIndex: currentIndex, type: type) {
+        if let newPageModel = pageManager.addPage(for: scoreDetail, afterIndex: currentPage, type: type) {
             print("✅ 페이지 추가 완료: \(type), 페이지 ID: \(newPageModel.s_pid)")
-            
         } else {
             print("❌ CoreData 페이지 저장 실패")
         }
-        
-        isSheetPresented = false
     }
     
     
@@ -102,6 +80,4 @@ final class PageAdditionViewModel: ObservableObject{
             return nil
         }
     }
-    
-    
 }

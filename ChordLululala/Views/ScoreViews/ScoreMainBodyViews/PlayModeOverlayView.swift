@@ -2,7 +2,11 @@ import SwiftUI
 
 ///화면 이동할때 누르는 투명한 뷰
 struct PlayModeOverlayView: View {
-    @ObservedObject var pageNavViewModel: PageNavigationViewModel
+    
+    let goToFirstPage: () -> Void
+    let goToLastPage: () -> Void
+    let goToPreviousPage: () -> Void
+    let goToNextPage: () -> Void
     
     var body: some View {
         GeometryReader { geo in
@@ -22,7 +26,7 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * topRatio)
                             .contentShape(Rectangle())
-                            .onTapGesture { pageNavViewModel.goToFirstPage() }
+                            .onTapGesture { goToFirstPage() }
                         
                         Spacer()
                         
@@ -30,7 +34,7 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * topRatio)
                             .contentShape(Rectangle())
-                            .onTapGesture { pageNavViewModel.goToLastPage() }
+                            .onTapGesture { goToLastPage() }
                     }
                     Spacer()
                 }
@@ -42,7 +46,7 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * bottomRatio )
                             .contentShape(Rectangle())
-                            .onTapGesture { pageNavViewModel.goToPreviousPage() }
+                            .onTapGesture { goToPreviousPage() }
                         
                         Spacer()
                         
@@ -50,7 +54,7 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * bottomRatio)
                             .contentShape(Rectangle())
-                            .onTapGesture { pageNavViewModel.goToNextPage() }
+                            .onTapGesture { goToNextPage() }
                     }
                     Spacer()
                 }

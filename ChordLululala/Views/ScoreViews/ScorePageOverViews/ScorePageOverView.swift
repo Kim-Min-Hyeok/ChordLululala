@@ -10,7 +10,8 @@ import SwiftUI
 
 struct ScorePageOverView: View {
     @EnvironmentObject var vm : ScorePageOverViewModel
-    @EnvironmentObject var pageVM : ScorePDFViewModel
+    
+    var pages: [UIImage]
     
     private let columns = [
         GridItem(.adaptive(minimum: 160), spacing: 16)
@@ -37,11 +38,11 @@ struct ScorePageOverView: View {
             
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 30){
-                    ForEach(pageVM.images.indices , id: \.self) { idx in
+                    ForEach(pages.indices , id: \.self) { idx in
                         VStack {
                             ScorePageOverContentView(
                                 pageIndex: idx+1,
-                                image: pageVM.images[idx]
+                                image: pages[idx]
                             )
                         }
                     }

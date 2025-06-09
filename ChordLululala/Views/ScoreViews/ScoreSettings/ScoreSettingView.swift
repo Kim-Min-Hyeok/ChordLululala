@@ -9,7 +9,8 @@ import SwiftUI
 
 /// 힌페이지 or 두 페이지씩 보기 설정 UI
 struct ScoreSettingView : View {
-    @EnvironmentObject var settingVM : ScoreSettingViewModel
+    let showSinglePage: () -> Void
+    let showMultiPages: () -> Void
     
     var body: some View {
         
@@ -29,8 +30,7 @@ struct ScoreSettingView : View {
                 settingImageName: "score_single",
                 settingMessege: "한 페이지 보기",
                 action: {
-                    settingVM.selectSinglePage()
-                    settingVM.toggle()
+                    showSinglePage()
                 }
             )
             .background(Color.primaryGray50)
@@ -42,8 +42,7 @@ struct ScoreSettingView : View {
                 settingImageName: "score_multi",
                 settingMessege: "여러 페이지 보기",
                 action:  {
-                    settingVM.selectMultiPage()
-                    settingVM.toggle()
+                    showMultiPages()
                 }
             )
             .background(Color.primaryGray100)

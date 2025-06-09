@@ -19,11 +19,12 @@ final class ChordBoxViewModel: ObservableObject {
     
     init(content: ContentModel?) {
         if let content = content {
-            load(for: content)
+            load(content)
         }
     }
 
-    func load(for content: ContentModel) {
+    func load(_ content: ContentModel?) {
+        guard let content = content else { return }
         guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
 
         key = detail.key

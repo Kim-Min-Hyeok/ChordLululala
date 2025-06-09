@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct ScoreSettingRowView: View {
-    @EnvironmentObject var viewModel : ScoreSettingViewModel
     let settingImageName : String
     let settingMessege : String
     let action : () -> Void
