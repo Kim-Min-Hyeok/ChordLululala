@@ -75,7 +75,7 @@ struct ScoreHeaderView: View {
                     /// 키변환
                     Button(action:{
                         guard let file = file else {return}
-                        router.toNamed("/chordreconize", arguments: [ file ])
+                        router.offNamed("/chordreconize", arguments: [ file ])
                         
                     }){
                         HStack{

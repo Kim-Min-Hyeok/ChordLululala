@@ -32,7 +32,8 @@ struct ScoreView : View {
                     playmodeViewModel: viewModel.playmodeViewModel,
                     pageNavViewModel: viewModel.pageNavViewModel,
                     annotationVM: viewModel.annotationViewModel,
-                    isTransposing: viewModel.isTransposingViewModel
+                    isTransposing: viewModel.isTransposingViewModel,
+                    chordBoxViewModel: viewModel.chordBoxViewModel
                 )
                 
             }

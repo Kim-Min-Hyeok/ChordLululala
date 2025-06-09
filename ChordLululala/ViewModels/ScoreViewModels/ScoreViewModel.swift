@@ -17,6 +17,7 @@ final class ScoreViewModel: ObservableObject{
     let isTransposingViewModel = IsTransposingViewModel()
     let scoreSettingViewModel = ScoreSettingViewModel()
     let scorePageOverViewModel = ScorePageOverViewModel()
+    let chordBoxViewModel: ChordBoxViewModel
     // 현재 페이지 인덱스
     @Published var currentPage: Int = 0
 
@@ -29,7 +30,7 @@ final class ScoreViewModel: ObservableObject{
         self.pageNavViewModel = PageNavigationViewModel(pdfViewModel: pdfViewModel)
         self.pageAdditionViewModel = PageAdditionViewModel(pdfViewModel: pdfViewModel, pageNavViewModel: pageNavViewModel)
         self.annotationViewModel = ScoreAnnotationViewModel(content: content)
-
+        self.chordBoxViewModel = ChordBoxViewModel(content: content)
         
         self.pageAdditionViewModel.setContent(content)
         

@@ -10,6 +10,7 @@ struct ScoreMainBodyView: View {
     @EnvironmentObject var settingVM: ScoreSettingViewModel
     @EnvironmentObject var overViewVM : ScorePageOverViewModel
     @EnvironmentObject var zoomVM : ImageZoomViewModel
+    @ObservedObject var chordBoxViewModel: ChordBoxViewModel
     
     /// 한 페이지 모드면 [[img]], 두 페이지 모드면 [[img1, img2], [img3, img4], …]
     private var pages: [[UIImage]] {
@@ -33,101 +34,134 @@ struct ScoreMainBodyView: View {
                 ForEach(Array(pages.enumerated()), id: \.offset) { pageIndex, pageImgs in
                     HStack(spacing: 12) {
                         ForEach(pageImgs, id: \.self) { uiImage in
-                            ZStack {
-                                Image(uiImage: uiImage)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .scaleEffect(zoomVM.scale)
-                                    .offset(zoomVM.offset)
-                                    .frame(
-                                        width: UIScreen.main.bounds.width *
-                                        CGFloat(
-                                            settingVM.isSinglePage
-                                            ? (playmodeViewModel.isOn ? 1.0 : 0.9)
-                                            : (playmodeViewModel.isOn ? 0.5 : 0.45)
-                                        )
-                                    )
-                                    .shadow(radius: 4)
-                                    .padding(.vertical)
-                                    .gesture(
-                                        SimultaneousGesture(
-                                            MagnificationGesture()
-                                                .onChanged(zoomVM.onPinchChanged)
-                                                .onEnded(zoomVM.onPinchEnded),
-                                            DragGesture()
-                                                .onChanged(zoomVM.onDragChanged)
-                                                .onEnded(zoomVM.onDragEnded)
-                                        )
-                                    )
-                                    .onTapGesture(count: 2) {
-                                        withAnimation(.easeInOut) {
-                                            zoomVM.reset()
-                                        }
-                                    }
-                                
-                                
-                                
-                                
-                                /// 필기 모드 실행
-                                if annotationVM.isEditing {
-                                    CanvasView(
-                                        drawing: $annotationVM.currentDrawing,
-                                        isEditable: true,
-                                        showToolbar: true
-                                    )
-                                    .frame(
-                                        width: UIScreen.main.bounds.width *
-                                        CGFloat(
-                                            settingVM.isSinglePage
-                                            ? (playmodeViewModel.isOn ? 1.0 : 0.9)
-                                            : (playmodeViewModel.isOn ? 0.5 : 0.45)
-                                        )
-                                    )
-                                    .scaleEffect(zoomVM.scale)
-                                    .offset(zoomVM.offset)
-                                    /// 필기모드 실행 중에도 화면 넘기기 위한 코드
-                                    .allowsHitTesting(true)
-                                    .contentShape(Rectangle())
-                                    .gesture(
-                                        DragGesture()
-                                            .onEnded{ gesture in
-                                                let threshold: CGFloat = 50
-                                                if gesture.translation.width > threshold{
-                                                    // 왼쪽으로 넘길때
-                                                    if pageNavViewModel.currentPage > 0 {
-                                                        pageNavViewModel.currentPage -= 1
+                                ZStack {
+                                    GeometryReader { geo in
+                                        let imageAspectRatio = uiImage.size.width / uiImage.size.height
+                                        let containerAspectRatio = geo.size.width / geo.size.height
+
+                                        let displayedImageSize: CGSize = {
+                                            if imageAspectRatio > containerAspectRatio {
+                                                let width = geo.size.width
+                                                let height = width / imageAspectRatio
+                                                return CGSize(width: width, height: height)
+                                            } else {
+                                                let height = geo.size.height - 31 // 21(top) + 10(bottom)
+                                                let width = height * imageAspectRatio
+                                                return CGSize(width: width, height: height)
+                                            }
+                                        }()
+
+                                        VStack(spacing: 0) {
+                                            Spacer().frame(height: 21) // ✅ 상단 여백
+                                            ZStack {
+                                                // 이미지
+                                                Image(uiImage: uiImage)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: displayedImageSize.width, height: displayedImageSize.height)
+                                                    .scaleEffect(zoomVM.scale)
+                                                    .offset(zoomVM.offset)
+                                                    .shadow(radius: 4)
+                                                    .gesture(
+                                                        SimultaneousGesture(
+                                                            MagnificationGesture()
+                                                                .onChanged(zoomVM.onPinchChanged)
+                                                                .onEnded(zoomVM.onPinchEnded),
+                                                            DragGesture()
+                                                                .onChanged(zoomVM.onDragChanged)
+                                                                .onEnded(zoomVM.onDragEnded)
+                                                        )
+                                                    )
+                                                    .onTapGesture(count: 2) {
+                                                        withAnimation(.easeInOut) {
+                                                            zoomVM.reset()
+                                                        }
                                                     }
-                                                } else if gesture.translation.width < -threshold {
-                                                    // 오른쪽으로 넘길떄
-                                                    if pageNavViewModel.currentPage < pdfViewModel.images.count - 1 {
-                                                        pageNavViewModel.currentPage += 1
+
+                                                // 코드 박스
+                                                if chordBoxViewModel.chordsForPages.indices.contains(pageIndex) {
+                                                    ForEach(chordBoxViewModel.chordsForPages[pageIndex], id: \.s_cid) { chord in
+                                                        ChordBoxView(
+                                                            chord: chord,
+                                                            originalSize: uiImage.size,
+                                                            displaySize: displayedImageSize,
+                                                            transposedText: chordBoxViewModel.transposedChord(for: chord.chord),
+                                                            onDelete: nil,
+                                                            onMove: nil
+                                                        )
+                                                        .scaleEffect(zoomVM.scale)
+                                                        .offset(zoomVM.offset)
                                                     }
                                                 }
-                                                
                                             }
-                                    )
+                                            .frame(width: displayedImageSize.width, height: displayedImageSize.height)
+                                            Spacer().frame(height: 10) // ✅ 하단 여백
+                                        }
+                                        .frame(width: geo.size.width, height: geo.size.height)
+                                    }
+                                        
                                     
-                                } else {
-                                    /// 필기 모드가 아닐 때도 필기 표시
-                                    CanvasView(
-                                        drawing: Binding(
-                                            get: { annotationVM.currentDrawing },
-                                            set: { _ in }  // 편집 모드가 아닐 때는 변경 불가
-                                        ),
-                                        isEditable: false,
-                                        showToolbar: false
-                                    ) .frame(
-                                        width: UIScreen.main.bounds.width *
-                                        CGFloat(
-                                            settingVM.isSinglePage
-                                            ? (playmodeViewModel.isOn ? 1.0 : 0.9)
-                                            : (playmodeViewModel.isOn ? 0.5 : 0.45)
+                                    /// 필기 모드 실행
+                                    if annotationVM.isEditing {
+                                        CanvasView(
+                                            drawing: $annotationVM.currentDrawing,
+                                            isEditable: true,
+                                            showToolbar: true
                                         )
-                                    )
-                                    .scaleEffect(zoomVM.scale)
-                                    .offset(zoomVM.offset)
-                                    .animation(.easeInOut, value: annotationVM.isEditing)
-                                }
+                                        .frame(
+                                            width: UIScreen.main.bounds.width *
+                                            CGFloat(
+                                                settingVM.isSinglePage
+                                                ? (playmodeViewModel.isOn ? 1.0 : 0.9)
+                                                : (playmodeViewModel.isOn ? 0.5 : 0.45)
+                                            )
+                                        )
+                                        .scaleEffect(zoomVM.scale)
+                                        .offset(zoomVM.offset)
+                                        /// 필기모드 실행 중에도 화면 넘기기 위한 코드
+                                        .allowsHitTesting(true)
+                                        .contentShape(Rectangle())
+                                        .gesture(
+                                            DragGesture()
+                                                .onEnded{ gesture in
+                                                    let threshold: CGFloat = 50
+                                                    if gesture.translation.width > threshold{
+                                                        // 왼쪽으로 넘길때
+                                                        if pageNavViewModel.currentPage > 0 {
+                                                            pageNavViewModel.currentPage -= 1
+                                                        }
+                                                    } else if gesture.translation.width < -threshold {
+                                                        // 오른쪽으로 넘길떄
+                                                        if pageNavViewModel.currentPage < pdfViewModel.images.count - 1 {
+                                                            pageNavViewModel.currentPage += 1
+                                                        }
+                                                    }
+                                                    
+                                                }
+                                        )
+                                        
+                                    } else {
+                                        /// 필기 모드가 아닐 때도 필기 표시
+                                        CanvasView(
+                                            drawing: Binding(
+                                                get: { annotationVM.currentDrawing },
+                                                set: { _ in }  // 편집 모드가 아닐 때는 변경 불가
+                                            ),
+                                            isEditable: false,
+                                            showToolbar: false
+                                        ) .frame(
+                                            width: UIScreen.main.bounds.width *
+                                            CGFloat(
+                                                settingVM.isSinglePage
+                                                ? (playmodeViewModel.isOn ? 1.0 : 0.9)
+                                                : (playmodeViewModel.isOn ? 0.5 : 0.45)
+                                            )
+                                        )
+                                        .scaleEffect(zoomVM.scale)
+                                        .offset(zoomVM.offset)
+                                        .animation(.easeInOut, value: annotationVM.isEditing)
+                                    }
+                                
                             }
                         }
                     }
@@ -216,8 +250,6 @@ struct ScoreMainBodyView: View {
                 annotationVM.save(for: currentPageModel)
             }
         }
-        
-        
     }
 }
 

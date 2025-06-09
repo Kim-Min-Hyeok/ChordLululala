@@ -38,7 +38,7 @@ struct ChordConfirmView: View {
             Spacer()
 
             Button(action: {
-                router.back()
+                router.offNamed("/score", arguments: [file])
             }) {
                 Text("해당 악보 바로 시작하기")
                     .textStyle(.headingMdSemiBold)
