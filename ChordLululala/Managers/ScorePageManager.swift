@@ -71,14 +71,14 @@ final class ScorePageManager {
     func clone(from originalPages: [ScorePageModel], to detail: ScoreDetailModel) -> [ScorePageModel] {
         let req: NSFetchRequest<ScoreDetail> = ScoreDetail.fetchRequest()
         req.predicate = NSPredicate(format: "s_did == %@", detail.s_did as CVarArg)
-
+        
         guard let detailEntity = try? context.fetch(req).first else {
             print("❌ 복사 대상 ScoreDetail 못찾음")
             return []
         }
-
+        
         var result: [ScorePageModel] = []
-
+        
         for page in originalPages {
             let newPage = ScorePage(context: context)
             newPage.s_pid = UUID()
@@ -87,7 +87,7 @@ final class ScorePageManager {
             detailEntity.addToScorePages(newPage)
             result.append(ScorePageModel(entity: newPage))
         }
-
+        
         try? context.save()
         return result
     }
@@ -175,6 +175,41 @@ final class ScorePageManager {
         } catch {
             print("❌ rotatePage 실패:", error)
             return false
+        }
+    }
+    
+    // 하나의 Content 내의 특정 페이지 복제
+    func duplicatePage(for detail: ScoreDetailModel, at index: Int) -> ScorePageModel? {
+        // 1) Core Data 엔티티 가져오기
+        let entities = fetchPageEntities(for: detail)
+        guard let original = entities.first(where: { Int($0.displayOrder) == index }) else {
+            print("❌ duplicatePage: 원본 페이지 엔티티 못찾음 at \(index)")
+            return nil
+        }
+        
+        // 2) 새 엔티티 생성 & 속성 복사
+        let newEntity = ScorePage(context: context)
+        newEntity.s_pid            = UUID()
+        newEntity.rotation         = original.rotation
+        newEntity.pageType         = original.pageType
+        newEntity.originalPageIndex = original.originalPageIndex
+        newEntity.scoreDetail      = original.scoreDetail
+        
+        // 3) displayOrder 조정: 원본 바로 뒤에 삽입
+        let newOrder: Int16 = original.displayOrder + 1
+        newEntity.displayOrder = newOrder
+        // (원본 뒤 페이지들 순서 한 칸씩 뒤로 밀기)
+        for page in entities where page.displayOrder >= newOrder {
+            page.displayOrder += 1
+        }
+        
+        // 4) 저장
+        do {
+            try context.save()
+            return ScorePageModel(entity: newEntity)
+        } catch {
+            print("❌ duplicatePage 저장 실패:", error)
+            return nil
         }
     }
 }

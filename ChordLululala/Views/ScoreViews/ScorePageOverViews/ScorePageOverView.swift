@@ -11,6 +11,7 @@ import SwiftUI
 struct ScorePageOverView: View {
     @ObservedObject var viewModel: ScorePageOverViewModel
     var pages: [UIImage]
+    var rotations: [Int]
     
     let onClose: () -> Void
     
@@ -71,6 +72,7 @@ struct ScorePageOverView: View {
                             ScorePageOverContentView(
                                 pageIndex: idx,
                                 image: pages[idx],
+                                rotate: rotations[idx],
                                 onToggleOptions: { i in
                                     isAddPageOptions = false
                                     selectedIndex = (selectedIndex == i ? nil : i)

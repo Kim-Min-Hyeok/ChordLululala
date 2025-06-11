@@ -200,6 +200,31 @@ final class ScoreViewModel: ObservableObject{
         }
     }
     
+    func duplicatePage(at index: Int) {
+        // 1) ScoreDetailModel 조회
+        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+        
+        // 2) 원본 PageModel, Annotation, Chord 모델들 가져오기
+        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
+        let originalPage = pageModels[index]
+        let annotations = ScoreAnnotationManager2.shared.fetch(for: originalPage)
+        let chords      = ScoreChordManager.shared.fetch(for: originalPage)
+        
+        // 3) Core Data에 페이지 복제
+        guard let newPageModel = ScorePageManager.shared.duplicatePage(for: detail, at: index) else { return }
+        
+        // 4) 필기·코드 복제
+        ScoreAnnotationManager2.shared.clone(from: annotations, to: newPageModel)
+        ScoreChordManager.shared.clone(from: chords, to: newPageModel)
+        
+        // 5) 화면 갱신 & 커서 이동
+        DispatchQueue.main.async {
+            self.loadPages(self.content)
+            // 복제된 페이지로 이동
+            self.currentPage = index + 1
+        }
+    }
+    
     func saveAnnotations() {
         annotationViewModel.saveAll(for: content)
     }

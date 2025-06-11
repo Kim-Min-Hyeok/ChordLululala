@@ -20,14 +20,29 @@ import SwiftUI
 struct ScorePageOverContentView: View {
     let pageIndex: Int
     let image: UIImage
-    let onToggleOptions: (Int) -> Void        // parent callback
+    let rotate: Int
+    let onToggleOptions: (Int) -> Void
+    
+    private var imageSize: CGSize {
+        if rotate % 2 == 0 {
+            // 0°, 180° → portrait
+            return CGSize(width: 99, height: 135)
+        } else {
+            // 90°, 270° → landscape
+            return CGSize(width: 135, height: 99)
+        }
+    }
 
     var body: some View {
         VStack(spacing: 8) {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 99, height: 135)
+                .frame(width: imageSize.width, height: imageSize.height)
+                .rotationEffect(
+                    Angle(degrees: Double(rotate) * 90),
+                    anchor: .center
+                )
                 .cornerRadius(1)
                 .shadow(color: Color.primaryBaseBlack.opacity(0.25), radius: 3.24, x: 0, y: 3.24)
             

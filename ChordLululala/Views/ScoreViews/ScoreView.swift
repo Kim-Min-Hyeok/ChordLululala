@@ -80,6 +80,7 @@ struct ScoreView : View {
                     ScorePageOverView(
                         viewModel: viewModel.scorePageOverViewModel,
                         pages: viewModel.pages,
+                        rotations: viewModel.rotations,
                         onClose: {
                             viewModel.isOverViewModalView = false
                         },
@@ -87,7 +88,7 @@ struct ScoreView : View {
                             viewModel.deletePage(at: index)
                         },
                         duplicatePage: { index in
-                            
+                            viewModel.duplicatePage(at: index)
                         },
                         addImage: {
                             
