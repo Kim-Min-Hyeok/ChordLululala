@@ -111,11 +111,17 @@ struct ScoreView : View {
                             viewModel.isSettingModalView = false
                         },
                         rotateWithClockwise: {
-                            
-                        },
-                        rotateWithCounterClockwise: {
-                            
-                        }
+                                DispatchQueue.main.async {
+                                    viewModel.rotatePage(clockwise: true)
+                                    viewModel.isSettingModalView = false
+                                }
+                            },
+                            rotateWithCounterClockwise: {
+                                DispatchQueue.main.async {
+                                    viewModel.rotatePage(clockwise: false)
+                                    viewModel.isSettingModalView = false
+                                }
+                            }
                     )
                     .padding(.top, 100)
                     .padding(.trailing, 26)

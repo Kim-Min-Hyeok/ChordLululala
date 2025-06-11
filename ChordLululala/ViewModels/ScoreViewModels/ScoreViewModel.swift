@@ -21,6 +21,9 @@ final class ScoreViewModel: ObservableObject{
     @Published var isPlayMode: Bool = false
     @Published var isSinglePageMode = true
     
+    // MARK: 페이지 설정
+    @Published private(set) var rotations: [Int] = []
+    
     let pageAdditionViewModel = PageAdditionViewModel()
     let imageZoomeViewModel = ImageZoomViewModel()
     let scorePageOverViewModel = ScorePageOverViewModel()
@@ -48,67 +51,77 @@ final class ScoreViewModel: ObservableObject{
     }
     
     // MARK: 페이지로드
-    private func loadPages(_ content: ContentModel){
-        
-        /// ScoreDetail 불러오기
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content),
-              let path = content.path,
-              let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    private func loadPages(_ content: ContentModel) {
+        guard
+            let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content),
+            let path   = content.path,
+            let docs   = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
         else {
-            DispatchQueue.main.async { self.pages = [] }
+            DispatchQueue.main.async {
+                self.pages = []
+                self.annotationViewModel.pageDrawings = []
+                self.chordBoxViewModel.chordsForPages = []
+            }
             return
         }
-        
-        let fileURL = docs.appendingPathComponent(path)
-        
-        guard let pdf = PDFDocument(url: fileURL) else {
-            DispatchQueue.main.async { self.pages = [] }
-            return
-        }
-        
-        /// ScorePageModel 불러오기
+
+        let fileURL    = docs.appendingPathComponent(path)
         let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-        print(#fileID,#function,#line, "\(pageModels)")
+        let newRotations = pageModels.map { $0.rotation }
         
+        // 1) 이미지 렌더링
         var newImages: [UIImage] = []
-        let pageSize = pdf.page(at: 0)?.bounds(for: .mediaBox).size ?? CGSize(width: 539, height: 697)
-        
+        let pageSize = PDFDocument(url: fileURL)?
+            .page(at: 0)?
+            .bounds(for: .mediaBox).size
+            ?? CGSize(width: 539, height: 697)
+
+        let pdf = PDFDocument(url: fileURL)
         for pageModel in pageModels {
-            if pageModel.pageType == "pdf" { // 원본 pdf 파일인 경우
-                
-                guard let page = pdf.page(at: Int(pageModel.originalPageIndex ?? 0 )) else { continue }
-                let bounds = page.bounds(for: .mediaBox)
+            let base: UIImage
+            if pageModel.pageType == "pdf", let page = pdf?.page(at: Int(pageModel.originalPageIndex ?? 0)) {
+                let bounds   = page.bounds(for: .mediaBox)
                 let renderer = UIGraphicsImageRenderer(size: bounds.size)
-                let img = renderer.image { ctx in
-                    UIColor.white.setFill()
-                    ctx.fill(bounds)
+                base = renderer.image { ctx in
+                    UIColor.white.setFill(); ctx.fill(bounds)
                     ctx.cgContext.translateBy(x: 0, y: bounds.height)
                     ctx.cgContext.scaleBy(x: 1, y: -1)
                     page.draw(with: .mediaBox, to: ctx.cgContext)
                 }
-                newImages.append(img)
-            } else {                 // 백지 또는 오선지인 경우
+            } else {
                 let renderer = UIGraphicsImageRenderer(size: pageSize)
-                let img = renderer.image { ctx in
-                    // 백지인 경우
+                base = renderer.image { ctx in
                     UIColor.white.setFill()
                     ctx.fill(CGRect(origin: .zero, size: pageSize))
-                    
-                    // 오선지인 경우
-                    if pageModel.pageType == "staff" {
-                        if let template = UIImage(named: "staff_template"){
-                            template.draw(in: CGRect(origin: .zero, size:   pageSize))
-                        }
+                    if pageModel.pageType == "staff",
+                       let tpl = UIImage(named: "staff_template") {
+                        tpl.draw(in: CGRect(origin: .zero, size: pageSize))
                     }
                 }
-                newImages.append(img)
             }
+            newImages.append(base)
         }
-        
+
+        // 2) Annotation & Chord 뷰모델 동기화
+        //    ScoreAnnotationModel 에는 strokeData(Data)가, ScoreChordModel 에는 chord 정보가 들어 있다고 가정
+        let drawings: [PKDrawing] = pageModels.map { pm in
+            guard
+                let annData = pm.scoreAnnotations.first?.strokeData,
+                let drawing = try? PKDrawing(data: annData)
+            else {
+                return PKDrawing()
+            }
+            return drawing
+        }
+        let chords: [[ScoreChordModel]] = pageModels.map { $0.scoreChords }
+
+        // 3) 메인스레드에서 한 번에 갱신
         DispatchQueue.main.async {
             self.pages = newImages
+            self.rotations = newRotations
+            self.annotationViewModel.pageDrawings = drawings
+            self.chordBoxViewModel.chordsForPages = chords
         }
-        
     }
     
     // MARK: 페이지 이동 관련
@@ -135,35 +148,47 @@ final class ScoreViewModel: ObservableObject{
     }
     
     func addPage(type: PageType) {
-        let newPageIndex = self.currentPage + 1
-        annotationViewModel.pageDrawings.insert(PKDrawing(), at: newPageIndex)
-        chordBoxViewModel.chordsForPages.insert([], at: newPageIndex)
-        loadPages(self.content)
-        currentPage = newPageIndex
+        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+        let newIndex = currentPage + 1
+        
+        // 1) Core Data에 페이지 추가
+        _ = ScorePageManager.shared.addPage(for: detail, afterIndex: currentPage, type: type)
+        
+        // 2) 뷰 업데이트가 끝난 뒤 전체 다시 로드
+        DispatchQueue.main.async {
+            self.loadPages(self.content)
+            self.currentPage = newIndex
+        }
     }
     
     func deletePage(at index: Int) {
-        // 1) Core Data에서 삭제
         guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-        let modelToDelete = pageModels[index]
-        ScorePageManager.shared.deletePage(with: modelToDelete.s_pid)
-
-        // 2) 뷰 업데이트가 끝난 뒤에 배열 변경
+        let models = ScorePageManager.shared.fetchPageModels(for: detail)
+        let modelToDelete = models[index]
+        
+        // 1) Core Data에서 삭제
+        guard ScorePageManager.shared.deletePage(with: modelToDelete.s_pid) else { return }
+        
+        // 2) 뷰 업데이트가 끝난 뒤 전체 다시 로드
         DispatchQueue.main.async {
-            // 이미지, 필기, 코드 배열에서 동기 제거
-            self.pages.remove(at: index)
-            self.annotationViewModel.pageDrawings.remove(at: index)
-            self.chordBoxViewModel.chordsForPages.remove(at: index)
-
-            // currentPage 보정
+            self.loadPages(self.content)
             self.currentPage = max(0, min(self.currentPage, self.pages.count - 1))
         }
     }
     
-    func deletePage(_ displayOrder: Int) {
-        
-    }
+    func rotatePage(clockwise: Bool) {
+            guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+            let models = ScorePageManager.shared.fetchPageModels(for: detail)
+            let currentModel = models[currentPage]
+
+            // Core Data에 rotation 값 저장
+            guard ScorePageManager.shared.rotatePage(with: currentModel.s_pid, clockwise: clockwise) else { return }
+
+            // 뷰 업데이트가 끝난 뒤 전체 페이지 다시 로드
+            DispatchQueue.main.async {
+                self.loadPages(self.content)
+            }
+        }
     
     func saveAnnotations() {
         annotationViewModel.saveAll(for: content)

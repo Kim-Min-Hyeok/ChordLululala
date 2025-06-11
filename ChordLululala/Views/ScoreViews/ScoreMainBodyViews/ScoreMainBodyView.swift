@@ -46,6 +46,9 @@ struct ScoreMainBodyView: View {
                             
                             ZStack {
                                 GeometryReader { geo in
+                                    let rot = viewModel.rotations[viewModel.currentPage]
+                                    let angle = Angle(degrees: Double(rot) * 90)
+                                    
                                     let imageAspect = uiImage.size.width / uiImage.size.height
                                     let containerAspect = geo.size.width / geo.size.height
                                     let displaySize: CGSize = {
@@ -125,6 +128,7 @@ struct ScoreMainBodyView: View {
                                         .offset(zoomViewModel.offset)
                                         Spacer().frame(height: 10)
                                     }
+                                    .rotationEffect(angle)
                                     .frame(width: geo.size.width, height: geo.size.height)
                                     .clipped()
                                 }

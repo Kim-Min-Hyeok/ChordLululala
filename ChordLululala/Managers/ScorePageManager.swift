@@ -157,4 +157,24 @@ final class ScorePageManager {
             return false
         }
     }
+    
+    @discardableResult
+    func rotatePage(with s_pid: UUID, clockwise: Bool) -> Bool {
+        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
+        req.predicate = NSPredicate(format: "s_pid == %@", s_pid as CVarArg)
+        do {
+            guard let page = try context.fetch(req).first else { return false }
+            // rotation은 0…3 까지, 1은 +90°, 2는 180°, 3은 270°
+            let delta: Int16 = clockwise ? 1 : -1
+            var newRot = page.rotation + delta
+            if newRot < 0 { newRot = 3 }
+            newRot = newRot % 4
+            page.rotation = newRot
+            try context.save()
+            return true
+        } catch {
+            print("❌ rotatePage 실패:", error)
+            return false
+        }
+    }
 }
