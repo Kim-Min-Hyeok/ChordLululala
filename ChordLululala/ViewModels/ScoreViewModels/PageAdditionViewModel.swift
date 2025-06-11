@@ -29,10 +29,10 @@ final class PageAdditionViewModel: ObservableObject{
     }
     
     /// 모달에서 선택된 타입으로 실제 페이지 추가
-    func addPage(type: PageType, completion: @escaping (Bool) -> Void) {
-        
+    func addPage(type: PageType, completion: @escaping (Bool)->Void) {
         guard let content = content else {
-            print(#fileID,#function,#line, "content 없음")
+            print("content 없음")
+            completion(false)
             return
         }
         
@@ -48,10 +48,14 @@ final class PageAdditionViewModel: ObservableObject{
             scoreDetail = created
         }
         
-        if let newPageModel = pageManager.addPage(for: scoreDetail, afterIndex: currentPage, type: type) {
-            print("✅ 페이지 추가 완료: \(type), 페이지 ID: \(newPageModel.s_pid)")
+        if let newPageModel = pageManager.addPage(for: scoreDetail,
+                                                  afterIndex: currentPage,
+                                                  type: type) {
+            print("✅ 페이지 추가 완료")
+            completion(true)
         } else {
             print("❌ CoreData 페이지 저장 실패")
+            completion(false)
         }
     }
     

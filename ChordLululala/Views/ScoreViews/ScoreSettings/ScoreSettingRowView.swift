@@ -23,9 +23,16 @@ struct ScoreSettingRowView: View {
                 Text(settingMessege)
                     .textStyle(.bodyTextXLMedium)
                     .foregroundColor(Color.primaryBaseBlack)
+                Spacer()
+                
+                if settingMessege == "페이지 레이아웃" || settingMessege == "페이지 회전" {
+                    Image("arrow_right")
+                        .resizable()
+                        .frame(width: 19, height: 19)
+                        .padding(.trailing, 12.97)
+                }
             }
-            .padding(.vertical, 8.84)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, maxHeight: 36)
         }
     }
 }

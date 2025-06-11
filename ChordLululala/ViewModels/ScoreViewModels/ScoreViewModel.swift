@@ -3,6 +3,7 @@
 import Combine
 import SwiftUI
 import PDFKit
+import PencilKit
 
 final class ScoreViewModel: ObservableObject{
     @Published var content: ContentModel
@@ -18,29 +19,32 @@ final class ScoreViewModel: ObservableObject{
     // MARK: 각종 모드
     @Published var isAnnotationMode: Bool = false
     @Published var isPlayMode: Bool = false
-    @Published var isSinglePageMode = false
-
+    @Published var isSinglePageMode = true
+    
     let pageAdditionViewModel = PageAdditionViewModel()
     let imageZoomeViewModel = ImageZoomViewModel()
     let scorePageOverViewModel = ScorePageOverViewModel()
     
     let chordBoxViewModel: ChordBoxViewModel
     let annotationViewModel: ScoreAnnotationViewModel
-
+    
     private var cancellables = Set<AnyCancellable>()
-
+    
     init(content: ContentModel) {
         self.content = content
         self.chordBoxViewModel = ChordBoxViewModel(content: content)
         self.annotationViewModel = ScoreAnnotationViewModel(content: content)
         
-        setupBindings()
         loadPages(content)
-    }
-    
-    // 하위 ViewModel 동기화
-    private func setupBindings() {
         
+        $isAdditionModalView
+            .filter { $0 }
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.pageAdditionViewModel.setContent(self.content)
+                self.pageAdditionViewModel.currentPage = self.currentPage
+            }
+            .store(in: &cancellables)
     }
     
     // MARK: 페이지로드
@@ -128,6 +132,14 @@ final class ScoreViewModel: ObservableObject{
     func goToNextPage() {
         guard currentPage < pages.count - 1 else { return }
         currentPage += 1
+    }
+    
+    func addPage(type: PageType) {
+        let newPageIndex = self.currentPage + 1
+        annotationViewModel.pageDrawings.insert(PKDrawing(), at: newPageIndex)
+        chordBoxViewModel.chordsForPages.insert([], at: newPageIndex)
+        loadPages(self.content)
+        currentPage = newPageIndex
     }
     
     func saveAnnotations() {

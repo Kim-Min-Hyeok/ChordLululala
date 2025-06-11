@@ -65,8 +65,6 @@ struct ScoreMainBodyView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: displaySize.width, height: displaySize.height)
-                                                .scaleEffect(zoomViewModel.scale)
-                                                .offset(zoomViewModel.offset)
                                                 .shadow(radius: 4)
                                                 .gesture(
                                                         MagnificationGesture()
@@ -99,8 +97,6 @@ struct ScoreMainBodyView: View {
                                                         onDelete: nil,
                                                         onMove: nil
                                                     )
-                                                    .scaleEffect(zoomViewModel.scale)
-                                                    .offset(zoomViewModel.offset)
                                                 }
                                             }
                                             
@@ -116,14 +112,17 @@ struct ScoreMainBodyView: View {
                                                     }
                                                 ),
                                                 isAnnotationMode: viewModel.isAnnotationMode,
-                                                sharedToolPicker: toolPicker // ✅ 주입
+                                                sharedToolPicker: toolPicker,
+                                                originalSize: uiImage.size,
+                                                displaySize: displaySize
                                             )
                                             .frame(width: displaySize.width, height: displaySize.height)
-                                            .scaleEffect(zoomViewModel.scale)
-                                            .offset(zoomViewModel.offset)
                                             .allowsHitTesting(viewModel.isAnnotationMode)
                                         }
                                         .frame(width: displaySize.width, height: displaySize.height)
+                                        
+                                        .scaleEffect(zoomViewModel.scale)
+                                        .offset(zoomViewModel.offset)
                                         Spacer().frame(height: 10)
                                     }
                                     .frame(width: geo.size.width, height: geo.size.height)
@@ -184,23 +183,6 @@ struct ScoreMainBodyView: View {
                     goToPreviousPage: viewModel.goToPreviousPage,
                     goToNextPage: viewModel.goToNextPage
                 )
-            }
-        }
-        
-        .overlay(alignment: .topTrailing) {
-            if viewModel.isSettingModalView {
-                ScoreSettingView(
-                    showSinglePage: {
-                        viewModel.isSinglePageMode = true
-                        viewModel.isSettingModalView = false
-                    },
-                    showMultiPages: {
-                        viewModel.isSinglePageMode = false
-                        viewModel.isSettingModalView = false
-                    }
-                )
-                .padding(.top, 6)
-                .padding(.trailing, 26)
             }
         }
     }

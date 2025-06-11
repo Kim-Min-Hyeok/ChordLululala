@@ -19,7 +19,7 @@ struct ScoreHeaderView: View {
     let toggleAnnotationMode: () -> Void
     let presentAddPageModal: () -> Void
     let presentOverViewModal: () -> Void
-    let presentSettingViewModal: () -> Void
+    let toggleSettingViewModal: () -> Void
     
     var body: some View {
         GeometryReader { geo in
@@ -111,7 +111,7 @@ struct ScoreHeaderView: View {
                     
                     ///설정
                     Button(action:{
-                        presentSettingViewModal()
+                        toggleSettingViewModal()
                         print("설정 보기 클릭") //TODO: 기능 추가해야함
                     }){
                         Image("scoreheader_setting")

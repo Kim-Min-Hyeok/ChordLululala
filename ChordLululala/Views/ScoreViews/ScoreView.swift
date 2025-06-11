@@ -28,8 +28,8 @@ struct ScoreView : View {
                         presentOverViewModal: {
                             viewModel.isOverViewModalView = true
                         },
-                        presentSettingViewModal: {
-                            viewModel.isSettingModalView = true
+                        toggleSettingViewModal: {
+                            viewModel.isSettingModalView.toggle()
                         }
                     )
                     .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
@@ -45,25 +45,87 @@ struct ScoreView : View {
             
             /// 페이지 추가 버튼 눌렀을때 뜨는 모달창
             if viewModel.isAdditionModalView  {
-                Color.clear.ignoresSafeArea()
-                ZStack{
+                ZStack {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isAdditionModalView = false
+                        }
+                    
                     AddPageModalView(
                         viewModel: viewModel.pageAdditionViewModel,
-                        onSelect: {
-                            // TODO: 페이지 추가 시, 필요한 업데이트
+                        onSelect: { type in
+                            viewModel.addPage(type: type)
                             viewModel.isAdditionModalView = false
                         },
                         onClose: {
                             viewModel.isAdditionModalView = false
                         }
                     )
+                    .zIndex(1)
+                }
+                .zIndex(1)
+            }
+            if viewModel.isOverViewModalView {
+                ZStack {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isOverViewModalView = false
+                        }
+                    
+                    ScorePageOverView(
+                        viewModel: viewModel.scorePageOverViewModel,
+                        onClose: {
+                            viewModel.isOverViewModalView = false
+                        },
+                        pages: viewModel.pages
+                    )
+                    .zIndex(1)
+                }
+                .zIndex(1)
+            }
+            if viewModel.isSettingModalView {
+                ZStack(alignment: .topTrailing) {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isSettingModalView = false
+                        }
+                    ScoreSettingView(
+                        deletePage: {
+                            
+                        },
+                        showSinglePage: {
+                            viewModel.isSinglePageMode = true
+                            viewModel.isSettingModalView = false
+                        },
+                        showMultiPages: {
+                            viewModel.isSinglePageMode = false
+                            viewModel.isSettingModalView = false
+                        },
+                        rotateWithClockwise: {
+                            
+                        },
+                        rotateWithCounterClockwise: {
+                            
+                        }
+                    )
+                    .padding(.top, 100)
+                    .padding(.trailing, 26)
                 }
             }
         }
-        .overlay {
-            if(viewModel.scorePageOverViewModel.isPageOver) {
-                ScorePageOverView(pages: viewModel.pages)
+        .onChange(of: viewModel.isAnnotationMode) {
+          if !viewModel.isAnnotationMode {
+            NotificationCenter.default.post(name: .endAnnotation, object: nil)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+              viewModel.saveAnnotations()
             }
+          }
         }
         .onDisappear {
             viewModel.saveAnnotations()
@@ -72,7 +134,3 @@ struct ScoreView : View {
         .navigationBarHidden(true)
     }
 }
-
-
-
-
