@@ -61,13 +61,10 @@ struct AddPageModalView: View {
             
             Button(action: {
                 if let type = selectedType {
-                    viewModel.addPage(type: type) { success in
-                        if success {
-                            onSelect(type)
-                        } else {
-                            onClose()
-                        }
-                    }
+                    onSelect(type)
+                }
+                else {
+                    onClose()
                 }
             }) {
                 HStack {

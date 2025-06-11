@@ -56,8 +56,9 @@ struct ScoreView : View {
                     AddPageModalView(
                         viewModel: viewModel.pageAdditionViewModel,
                         onSelect: { type in
-                            viewModel.addPage(type: type)
-                            viewModel.isAdditionModalView = false
+                            if viewModel.addPage(at: viewModel.currentPage, type: type) {
+                                viewModel.isAdditionModalView = false
+                            }
                         },
                         onClose: {
                             viewModel.isAdditionModalView = false
@@ -78,10 +79,28 @@ struct ScoreView : View {
                     
                     ScorePageOverView(
                         viewModel: viewModel.scorePageOverViewModel,
+                        pages: viewModel.pages,
                         onClose: {
                             viewModel.isOverViewModalView = false
                         },
-                        pages: viewModel.pages
+                        deletePage: { index in
+                            viewModel.deletePage(at: index)
+                        },
+                        duplicatePage: { index in
+                            
+                        },
+                        addImage: {
+                            
+                        },
+                        addFile: {
+                            
+                        },
+                        addBlank: {
+                                viewModel.addPage(at: viewModel.pages.count-1, type: .blank)
+                        },
+                        addStaff: {
+                                viewModel.addPage(at: viewModel.pages.count-1, type: .staff)
+                        }
                     )
                     .zIndex(1)
                 }
@@ -97,10 +116,10 @@ struct ScoreView : View {
                         }
                     ScoreSettingView(
                         deletePage: {
-                               DispatchQueue.main.async {
-                                   viewModel.deletePage(at: viewModel.currentPage)
-                                   viewModel.isSettingModalView = false
-                               }
+                            DispatchQueue.main.async {
+                                viewModel.deletePage(at: viewModel.currentPage)
+                                viewModel.isSettingModalView = false
+                            }
                         },
                         showSinglePage: {
                             viewModel.isSinglePageMode = true
@@ -111,17 +130,17 @@ struct ScoreView : View {
                             viewModel.isSettingModalView = false
                         },
                         rotateWithClockwise: {
-                                DispatchQueue.main.async {
-                                    viewModel.rotatePage(clockwise: true)
-                                    viewModel.isSettingModalView = false
-                                }
-                            },
-                            rotateWithCounterClockwise: {
-                                DispatchQueue.main.async {
-                                    viewModel.rotatePage(clockwise: false)
-                                    viewModel.isSettingModalView = false
-                                }
+                            DispatchQueue.main.async {
+                                viewModel.rotatePage(clockwise: true)
+                                viewModel.isSettingModalView = false
                             }
+                        },
+                        rotateWithCounterClockwise: {
+                            DispatchQueue.main.async {
+                                viewModel.rotatePage(clockwise: false)
+                                viewModel.isSettingModalView = false
+                            }
+                        }
                     )
                     .padding(.top, 100)
                     .padding(.trailing, 26)

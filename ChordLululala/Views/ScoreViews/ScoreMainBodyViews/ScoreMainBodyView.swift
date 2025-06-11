@@ -145,7 +145,7 @@ struct ScoreMainBodyView: View {
                     current: viewModel.isSinglePageMode ? viewModel.currentPage + 1 : viewModel.currentPage + 2,
                     total: viewModel.pages.count
                 )
-                .offset(x: 22, y: -26),
+                .offset(x: 22, y: -10),
                 alignment: .bottomLeading
             )
             

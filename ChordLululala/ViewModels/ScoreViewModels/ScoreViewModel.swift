@@ -64,7 +64,7 @@ final class ScoreViewModel: ObservableObject{
             }
             return
         }
-
+        
         let fileURL    = docs.appendingPathComponent(path)
         let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
         let newRotations = pageModels.map { $0.rotation }
@@ -74,8 +74,8 @@ final class ScoreViewModel: ObservableObject{
         let pageSize = PDFDocument(url: fileURL)?
             .page(at: 0)?
             .bounds(for: .mediaBox).size
-            ?? CGSize(width: 539, height: 697)
-
+        ?? CGSize(width: 539, height: 697)
+        
         let pdf = PDFDocument(url: fileURL)
         for pageModel in pageModels {
             let base: UIImage
@@ -101,7 +101,7 @@ final class ScoreViewModel: ObservableObject{
             }
             newImages.append(base)
         }
-
+        
         // 2) Annotation & Chord 뷰모델 동기화
         //    ScoreAnnotationModel 에는 strokeData(Data)가, ScoreChordModel 에는 chord 정보가 들어 있다고 가정
         let drawings: [PKDrawing] = pageModels.map { pm in
@@ -114,7 +114,7 @@ final class ScoreViewModel: ObservableObject{
             return drawing
         }
         let chords: [[ScoreChordModel]] = pageModels.map { $0.scoreChords }
-
+        
         // 3) 메인스레드에서 한 번에 갱신
         DispatchQueue.main.async {
             self.pages = newImages
@@ -147,18 +147,28 @@ final class ScoreViewModel: ObservableObject{
         currentPage += 1
     }
     
-    func addPage(type: PageType) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-        let newIndex = currentPage + 1
+    @discardableResult
+    func addPage(at index: Int, type: PageType) -> Bool {
+        // 1) Core Data에서 ScoreDetail 조회
+        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else {
+            return false
+        }
+        // 삽입 후 보여줄 새 페이지 인덱스
+        let newIndex = index + 1
         
-        // 1) Core Data에 페이지 추가
-        _ = ScorePageManager.shared.addPage(for: detail, afterIndex: currentPage, type: type)
+        // 2) Core Data에 페이지 추가 (afterIndex: index)
+        guard let _ = ScorePageManager.shared.addPage(for: detail, afterIndex: index, type: type) else {
+            return false
+        }
         
-        // 2) 뷰 업데이트가 끝난 뒤 전체 다시 로드
+        // 3) 뷰 업데이트가 끝난 뒤 전체 다시 로드
         DispatchQueue.main.async {
             self.loadPages(self.content)
-            self.currentPage = newIndex
+            if self.currentPage == index {
+                self.currentPage = newIndex
+            }
         }
+        return true
     }
     
     func deletePage(at index: Int) {
@@ -177,18 +187,18 @@ final class ScoreViewModel: ObservableObject{
     }
     
     func rotatePage(clockwise: Bool) {
-            guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-            let models = ScorePageManager.shared.fetchPageModels(for: detail)
-            let currentModel = models[currentPage]
-
-            // Core Data에 rotation 값 저장
-            guard ScorePageManager.shared.rotatePage(with: currentModel.s_pid, clockwise: clockwise) else { return }
-
-            // 뷰 업데이트가 끝난 뒤 전체 페이지 다시 로드
-            DispatchQueue.main.async {
-                self.loadPages(self.content)
-            }
+        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+        let models = ScorePageManager.shared.fetchPageModels(for: detail)
+        let currentModel = models[currentPage]
+        
+        // Core Data에 rotation 값 저장
+        guard ScorePageManager.shared.rotatePage(with: currentModel.s_pid, clockwise: clockwise) else { return }
+        
+        // 뷰 업데이트가 끝난 뒤 전체 페이지 다시 로드
+        DispatchQueue.main.async {
+            self.loadPages(self.content)
         }
+    }
     
     func saveAnnotations() {
         annotationViewModel.saveAll(for: content)

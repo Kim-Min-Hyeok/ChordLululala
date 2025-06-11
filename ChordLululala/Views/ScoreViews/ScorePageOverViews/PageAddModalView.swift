@@ -25,7 +25,7 @@ struct PageAddModalView: View {
             
             Rectangle()
                 .frame(height: 1)
-                .background(Color.primaryGray300)
+                .foregroundStyle(Color.primaryGray300)
             
             PageOverModalRowView(
                 ImageName: "upload_file",
@@ -37,7 +37,7 @@ struct PageAddModalView: View {
             
             Rectangle()
                 .frame(height: 1)
-                .background(Color.primaryGray300)
+                .foregroundStyle(Color.primaryGray300)
             
             PageOverModalRowView(
                 ImageName: "add_blank",
@@ -49,7 +49,7 @@ struct PageAddModalView: View {
             
             Rectangle()
                 .frame(height: 1)
-                .background(Color.primaryGray300)
+                .foregroundStyle(Color.primaryGray300)
             
             PageOverModalRowView(
                 ImageName: "add_staff",

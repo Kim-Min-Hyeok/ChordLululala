@@ -32,7 +32,7 @@ struct ScorePageOverContentView: View {
                 .shadow(color: Color.primaryBaseBlack.opacity(0.25), radius: 3.24, x: 0, y: 3.24)
             
             HStack {
-                Text("\(pageIndex)")
+                Text("\(pageIndex+1)")
                     .textStyle(.headingLgSemiBold)
                 Spacer()
                 Button {
@@ -53,7 +53,7 @@ struct ScorePageOverContentView: View {
                 Color.clear
                     .preference(
                         key: CellFrameKey.self,
-                        value: [pageIndex: geo.frame(in: .named("GridSpace"))]
+                        value: [pageIndex: geo.frame(in: .named("scrollArea"))]
                     )
             }
         }
