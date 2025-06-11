@@ -67,22 +67,22 @@ struct ScoreMainBodyView: View {
                                                 .frame(width: displaySize.width, height: displaySize.height)
                                                 .shadow(radius: 4)
                                                 .gesture(
-                                                        MagnificationGesture()
-                                                            .onChanged(zoomViewModel.onPinchChanged)
-                                                            .onEnded(zoomViewModel.onPinchEnded)
-                                                    )
-                                                    // 2) 드래그 제스처: scale != 1 인 경우에만 처리
-                                                    .simultaneousGesture(
-                                                        DragGesture()
-                                                            .onChanged { value in
-                                                                guard zoomViewModel.scale != 1 else { return }
-                                                                zoomViewModel.onDragChanged(value)
-                                                            }
-                                                            .onEnded { value in
-                                                                guard zoomViewModel.scale != 1 else { return }
-                                                                zoomViewModel.onDragEnded(value)
-                                                            }
-                                                    )
+                                                    MagnificationGesture()
+                                                        .onChanged(zoomViewModel.onPinchChanged)
+                                                        .onEnded(zoomViewModel.onPinchEnded)
+                                                )
+                                            // 2) 드래그 제스처: scale != 1 인 경우에만 처리
+                                                .simultaneousGesture(
+                                                    DragGesture()
+                                                        .onChanged { value in
+                                                            guard zoomViewModel.scale != 1 else { return }
+                                                            zoomViewModel.onDragChanged(value)
+                                                        }
+                                                        .onEnded { value in
+                                                            guard zoomViewModel.scale != 1 else { return }
+                                                            zoomViewModel.onDragEnded(value)
+                                                        }
+                                                )
                                                 .onTapGesture(count: 2) {
                                                     withAnimation { zoomViewModel.reset() }
                                                 }
@@ -147,17 +147,12 @@ struct ScoreMainBodyView: View {
             
             .overlay(
                 Button {
-                    withAnimation { viewModel.isPlayMode.toggle() }
+                    withAnimation {
+                        zoomViewModel.reset()
+                        viewModel.isPlayMode.toggle()
+                    }
                 } label: {
                     if viewModel.isPlayMode {
-                        Text("연주 모드 ON")
-                            .textStyle(.headingLgMedium)
-                            .frame(width: 131, height: 44)
-                            .background(Color.primaryGray800)
-                            .cornerRadius(8)
-                            .foregroundColor(.primaryGray50)
-                            .opacity(0.9)
-                    } else {
                         HStack(spacing: 3) {
                             Image("playmode_lock")
                                 .resizable()
@@ -170,9 +165,18 @@ struct ScoreMainBodyView: View {
                         .cornerRadius(32)
                         .foregroundColor(.primaryGray50)
                         .opacity(0.9)
+                        
+                    } else {
+                        Text("연주 모드 ON")
+                            .textStyle(.headingLgMedium)
+                            .frame(width: 131, height: 44)
+                            .background(Color.primaryGray800)
+                            .cornerRadius(8)
+                            .foregroundColor(.primaryGray50)
+                            .opacity(0.9)
                     }
                 }
-                    .offset(x: viewModel.isPlayMode ? -22 : -16, y: viewModel.isPlayMode ? -25 : -30),
+                    .offset(x: viewModel.isPlayMode ?  -25 : -22, y: viewModel.isPlayMode ? -14 : -9),
                 alignment: .bottomTrailing
             )
             

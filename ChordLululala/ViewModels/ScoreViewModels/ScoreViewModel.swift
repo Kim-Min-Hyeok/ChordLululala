@@ -142,6 +142,29 @@ final class ScoreViewModel: ObservableObject{
         currentPage = newPageIndex
     }
     
+    func deletePage(at index: Int) {
+        // 1) Core Data에서 삭제
+        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
+        let modelToDelete = pageModels[index]
+        ScorePageManager.shared.deletePage(with: modelToDelete.s_pid)
+
+        // 2) 뷰 업데이트가 끝난 뒤에 배열 변경
+        DispatchQueue.main.async {
+            // 이미지, 필기, 코드 배열에서 동기 제거
+            self.pages.remove(at: index)
+            self.annotationViewModel.pageDrawings.remove(at: index)
+            self.chordBoxViewModel.chordsForPages.remove(at: index)
+
+            // currentPage 보정
+            self.currentPage = max(0, min(self.currentPage, self.pages.count - 1))
+        }
+    }
+    
+    func deletePage(_ displayOrder: Int) {
+        
+    }
+    
     func saveAnnotations() {
         annotationViewModel.saveAll(for: content)
     }

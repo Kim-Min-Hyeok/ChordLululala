@@ -97,7 +97,10 @@ struct ScoreView : View {
                         }
                     ScoreSettingView(
                         deletePage: {
-                            
+                               DispatchQueue.main.async {
+                                   viewModel.deletePage(at: viewModel.currentPage)
+                                   viewModel.isSettingModalView = false
+                               }
                         },
                         showSinglePage: {
                             viewModel.isSinglePageMode = true
@@ -120,12 +123,12 @@ struct ScoreView : View {
             }
         }
         .onChange(of: viewModel.isAnnotationMode) {
-          if !viewModel.isAnnotationMode {
-            NotificationCenter.default.post(name: .endAnnotation, object: nil)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-              viewModel.saveAnnotations()
+            if !viewModel.isAnnotationMode {
+                NotificationCenter.default.post(name: .endAnnotation, object: nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    viewModel.saveAnnotations()
+                }
             }
-          }
         }
         .onDisappear {
             viewModel.saveAnnotations()

@@ -140,25 +140,21 @@ final class ScorePageManager {
     }
     
     ///페이지 삭제 기능
-    func deletePage(displayOrder: Int) -> Bool {
+    @discardableResult
+    func deletePage(with s_pid: UUID) -> Bool {
         let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-        req.predicate = NSPredicate(format: "s_pid == %@", displayOrder as CVarArg)
-        
-        guard let pageEntity = try? context.fetch(req).first else {
-            print(#fileID,#function,#line, "❌ ScoreDetail 엔티티를 찾을 수 없음")
-            return false
-        }
-        
-        // 페이지 삭제
-        context.delete(pageEntity)
-        
+        req.predicate = NSPredicate(format: "s_pid == %@", s_pid as CVarArg)
         do {
+            guard let pageEntity = try context.fetch(req).first else {
+                print("❌ deletePage: 엔티티 못찾음 \(s_pid)")
+                return false
+            }
+            context.delete(pageEntity)
             try context.save()
             return true
         } catch {
-            print(#fileID,#function,#line, "❌ ScorePageManager 삭제 실패")
+            print("❌ deletePage 저장 실패:", error)
             return false
         }
     }
-    
 }
