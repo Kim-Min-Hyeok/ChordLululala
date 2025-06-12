@@ -77,8 +77,7 @@ struct ContentManager {
         Future<ContentModel, Never> { promise in
             let now = Date()
 
-            // 1. Setlist 생성
-            let setlist = ContentModel(
+            let setlistModel = ContentModel(
                 cid: UUID(),
                 name: name,
                 path: nil,
@@ -92,15 +91,11 @@ struct ContentManager {
                 syncStatus: false,
                 isStared: false,
                 scoreDetail: nil,
-                scores: []
+                scores: nil
             )
 
-            // 2. CoreData에 Setlist 저장
-            let savedSetlist = ContentCoreDataManager.shared.createContent(model: setlist)
-
-            // 3. Setlist.scores에 score 복사본 추가 (parentContent는 nil 처리)
-            for score in originalScores {
-                let clonedScore = ContentModel(
+            let clonedScores: [ContentModel] = originalScores.map { score in
+                ContentModel(
                     cid: UUID(),
                     name: score.name,
                     path: score.path,
@@ -116,15 +111,9 @@ struct ContentManager {
                     scoreDetail: nil,
                     scores: nil
                 )
-
-                // CoreData 저장
-                let saved = ContentCoreDataManager.shared.createContent(model: clonedScore)
-
-                // Setlist 내부 연결 (메모리 상)
-                savedSetlist.scores?.append(saved)
             }
 
-            // 4. 결과 리턴
+            let savedSetlist = ContentCoreDataManager.shared.createSetlistWithScores(setlist: setlistModel, scores: clonedScores)
             promise(.success(savedSetlist))
         }
         .eraseToAnyPublisher()
@@ -606,6 +595,11 @@ struct ContentManager {
             promise(.success(()))
         }
         .eraseToAnyPublisher()
+    }
+    
+    // 셋리스트의 Contents 가져오기 (sync)
+    func fetchScoresFromSetlist(_ setlist: ContentModel) -> [ContentModel] {
+        return ContentCoreDataManager.shared.fetchScoresOfSetlist(for: setlist)
     }
     
     func toggleContentStared(_ content: ContentModel) -> AnyPublisher<Void, Never> {

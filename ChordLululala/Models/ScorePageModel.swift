@@ -5,6 +5,11 @@
 //  Created by Minhyeok Kim on 2/25/25.
 //
 
+enum PageType{
+    case blank // 빈종이
+    case staff // 오선지
+}
+
 import Foundation
 
 final class ScorePageModel: Hashable, Identifiable {

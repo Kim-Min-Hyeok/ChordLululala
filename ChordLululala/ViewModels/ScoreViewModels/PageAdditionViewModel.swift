@@ -9,11 +9,6 @@ import SwiftUI
 import CoreData
 import Combine
 
-enum PageType{
-    case blank // 빈종이
-    case staff // 오선지
-}
-
 final class PageAdditionViewModel: ObservableObject{
     @Published var isBlankPage: Bool = true
     @Published var currentPage: Int = 0

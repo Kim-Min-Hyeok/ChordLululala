@@ -35,6 +35,21 @@ final class ContentCoreDataManager {
         return model
     }
     
+    func createContentEntity(from model: ContentModel) -> Content {
+        let newEntity = Content(context: context)
+        newEntity.update(from: model)
+        
+        if let parentModel = model.parentContent {
+            let req: NSFetchRequest<Content> = Content.fetchRequest()
+            req.predicate = NSPredicate(format: "cid == %@", parentModel.cid as CVarArg)
+            newEntity.parentContent = (try? context.fetch(req).first)
+        } else {
+            newEntity.parentContent = nil
+        }
+
+        return newEntity
+    }
+    
     /// 이름·경로 등으로 모델 생성 → entity 저장 → 모델 리턴
     @discardableResult
     func createContent(name: String,
@@ -62,6 +77,25 @@ final class ContentCoreDataManager {
         return createContent(model: model)
     }
     
+    func createSetlistWithScores(setlist: ContentModel, scores: [ContentModel]) -> ContentModel {
+        let setlistEntity = createContentEntity(from: setlist)
+
+        let scoreEntities = scores.map { scoreModel -> Content in
+            let entity = createContentEntity(from: scoreModel)
+            entity.setlist = setlistEntity
+            return entity
+        }
+
+        setlistEntity.setlistScores = NSSet(array: scoreEntities)
+
+        saveContext()
+
+        guard let setlistCid = setlistEntity.cid else {
+            fatalError("❗️Setlist Entity의 cid가 nil입니다.")
+        }
+        return fetchContentModel(with: setlistCid)!
+    }
+    
     // 기본 디렉토리 초기화: Score, Song_List, Trash_Can 생성
     func initializeBaseDirectories() {
         let baseDirectories = ["Score",
@@ -81,6 +115,19 @@ final class ContentCoreDataManager {
     }
     
     // MARK: - Read
+    func fetchContentEntity(with cid: UUID) -> Content? {
+        let request: NSFetchRequest<Content> = Content.fetchRequest()
+        request.predicate = NSPredicate(format: "cid == %@", cid as CVarArg)
+        request.fetchLimit = 1
+
+        do {
+            return try context.fetch(request).first
+        } catch {
+            print("❌ Failed to fetch Content entity with cid: \(cid), error: \(error)")
+            return nil
+        }
+    }
+    
     // Fetch (비동기: 도메인 모델 반환)
     func fetchContentModelsPublisher(predicate: NSPredicate? = nil) -> AnyPublisher<[ContentModel], Error> {
         Future { promise in
@@ -150,6 +197,14 @@ final class ContentCoreDataManager {
             predicate = NSPredicate(format: "parentContent.cid == nil")
         }
         return fetchContentModelsSync(predicate: predicate)
+    }
+    
+    func fetchScoresOfSetlist(for setlistModel: ContentModel) -> [ContentModel] {
+        guard let entity = fetchContentEntity(with: setlistModel.cid),
+              let children = entity.setlistScores as? Set<Content> else {
+            return []
+        }
+        return children.map { ContentModel(entity: $0) }
     }
     
     // 기본 디렉토리 Content(Score, Song_List, Trash_Can) 가져오기

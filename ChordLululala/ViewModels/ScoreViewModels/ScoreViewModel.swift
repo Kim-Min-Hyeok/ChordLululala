@@ -50,79 +50,113 @@ final class ScoreViewModel: ObservableObject{
             .store(in: &cancellables)
     }
     
-    // MARK: 페이지로드
+    // MARK: 페이지로드 (Score · Setlist 모두 지원)
     private func loadPages(_ content: ContentModel) {
-        guard
-            let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content),
-            let path   = content.path,
-            let docs   = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        // 1) 도큐먼트 디렉토리 확보
+        guard let docs = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask)
+                .first
         else {
             DispatchQueue.main.async {
                 self.pages = []
+                self.rotations = []
                 self.annotationViewModel.pageDrawings = []
                 self.chordBoxViewModel.chordsForPages = []
             }
             return
         }
-        
-        let fileURL    = docs.appendingPathComponent(path)
-        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-        let newRotations = pageModels.map { $0.rotation }
-        
-        // 1) 이미지 렌더링
-        var newImages: [UIImage] = []
-        let pageSize = PDFDocument(url: fileURL)?
-            .page(at: 0)?
-            .bounds(for: .mediaBox).size
-        ?? CGSize(width: 539, height: 697)
-        
-        let pdf = PDFDocument(url: fileURL)
-        for pageModel in pageModels {
-            let base: UIImage
-            if pageModel.pageType == "pdf", let page = pdf?.page(at: Int(pageModel.originalPageIndex ?? 0)) {
-                let bounds   = page.bounds(for: .mediaBox)
-                let renderer = UIGraphicsImageRenderer(size: bounds.size)
-                base = renderer.image { ctx in
-                    UIColor.white.setFill(); ctx.fill(bounds)
-                    ctx.cgContext.translateBy(x: 0, y: bounds.height)
-                    ctx.cgContext.scaleBy(x: 1, y: -1)
-                    page.draw(with: .mediaBox, to: ctx.cgContext)
-                }
-            } else {
-                let renderer = UIGraphicsImageRenderer(size: pageSize)
-                base = renderer.image { ctx in
-                    UIColor.white.setFill()
-                    ctx.fill(CGRect(origin: .zero, size: pageSize))
-                    if pageModel.pageType == "staff",
-                       let tpl = UIImage(named: "staff_template") {
-                        tpl.draw(in: CGRect(origin: .zero, size: pageSize))
+
+        // 2) 로드할 ContentModel 결정
+        let contentModels: [ContentModel] = {
+            switch content.type {
+            case .score:
+                return [content]
+            case .setlist:
+                // Core Data에서 실제 자식 스코어들을 가져옴
+                return ContentManager.shared.fetchScoresFromSetlist(content)
+            default:
+                return []
+            }
+        }()
+        print("\(contentModels.count) 개의 스코어 로드 시작")
+
+        var newImages:    [UIImage]         = []
+        var newRotations: [Int]             = []
+        var newDrawings:  [PKDrawing]       = []
+        var newChords:    [[ScoreChordModel]] = []
+
+        // 3) 각 ContentModel → ScoreDetailModel → ScorePage 순회
+        for c in contentModels {
+            print("🎯 \(c.name) - scoreDetail=\(ScoreDetailManager.shared.fetchScoreDetailModel(for: c) != nil), path=\(c.path ?? "nil")")
+            guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: c),
+                  let relPath = c.path else {
+                print("❌ detail 또는 path 없음, skip")
+                continue
+            }
+
+            let fileURL = docs.appendingPathComponent(relPath)
+            let pdf     = PDFDocument(url: fileURL)
+            let pageSize = pdf?
+                .page(at: 0)?
+                .bounds(for: .mediaBox).size
+                ?? CGSize(width: 539, height: 697)
+
+            let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
+            print("📑 \(c.name) - 페이지 수: \(pageModels.count)")
+            for pm in pageModels {
+                // 4-a) 이미지 생성
+                let img: UIImage
+                if pm.pageType == "pdf",
+                   let idx  = pm.originalPageIndex,
+                   let page = pdf?.page(at: idx)
+                {
+                    let bounds   = page.bounds(for: .mediaBox)
+                    let renderer = UIGraphicsImageRenderer(size: bounds.size)
+                    img = renderer.image { ctx in
+                        UIColor.white.setFill(); ctx.fill(bounds)
+                        ctx.cgContext.translateBy(x: 0, y: bounds.height)
+                        ctx.cgContext.scaleBy(x: 1, y: -1)
+                        page.draw(with: .mediaBox, to: ctx.cgContext)
+                    }
+                } else {
+                    let renderer = UIGraphicsImageRenderer(size: pageSize)
+                    img = renderer.image { ctx in
+                        UIColor.white.setFill()
+                        ctx.fill(CGRect(origin: .zero, size: pageSize))
+                        if pm.pageType == "staff",
+                           let tpl = UIImage(named: "staff_template") {
+                            tpl.draw(in: CGRect(origin: .zero, size: pageSize))
+                        }
                     }
                 }
+                newImages.append(img)
+
+                // 4-b) rotation
+                newRotations.append(pm.rotation)
+
+                // 4-c) annotation
+                if let data = pm.scoreAnnotations.first?.strokeData,
+                   let drawing = try? PKDrawing(data: data)
+                {
+                    newDrawings.append(drawing)
+                } else {
+                    newDrawings.append(PKDrawing())
+                }
+
+                // 4-d) chords
+                newChords.append(pm.scoreChords)
             }
-            newImages.append(base)
         }
-        
-        // 2) Annotation & Chord 뷰모델 동기화
-        //    ScoreAnnotationModel 에는 strokeData(Data)가, ScoreChordModel 에는 chord 정보가 들어 있다고 가정
-        let drawings: [PKDrawing] = pageModels.map { pm in
-            guard
-                let annData = pm.scoreAnnotations.first?.strokeData,
-                let drawing = try? PKDrawing(data: annData)
-            else {
-                return PKDrawing()
-            }
-            return drawing
-        }
-        let chords: [[ScoreChordModel]] = pageModels.map { $0.scoreChords }
-        
-        // 3) 메인스레드에서 한 번에 갱신
+
+        // 5) 메인스레드에서 한 번에 갱신
         DispatchQueue.main.async {
             self.pages = newImages
             self.rotations = newRotations
-            self.annotationViewModel.pageDrawings = drawings
-            self.chordBoxViewModel.chordsForPages = chords
+            self.annotationViewModel.pageDrawings = newDrawings
+            self.chordBoxViewModel.chordsForPages = newChords
         }
     }
+
     
     // MARK: 페이지 이동 관련
     /// 맨 앞으로

@@ -19,6 +19,9 @@ struct PageOptionView: View {
                     case .staff:
                         Image("staff_mini_template")
                             .resizable()
+                    default:
+                        Image("blank_template")
+                            .resizable()
                     }
                 }
                 .frame(width: 106, height: 134)

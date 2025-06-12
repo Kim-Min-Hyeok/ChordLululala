@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SetlistGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
+    @EnvironmentObject var router: NavigationRouter
     @State private var cellFrame: CGRect = .zero
     
     let setlist: ContentModel
@@ -63,7 +64,7 @@ struct SetlistGridCellView: View {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
             } else {
-                // 셋리스트 들어가기
+                router.toNamed("/score", arguments: [setlist])
             }
         }
         .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {

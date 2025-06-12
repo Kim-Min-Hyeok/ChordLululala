@@ -15,7 +15,8 @@
         <relationship name="childContent" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="parentContent" inverseEntity="Content"/>
         <relationship name="parentContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="childContent" inverseEntity="Content"/>
         <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ScoreDetail" inverseName="content" inverseEntity="ScoreDetail"/>
-        <relationship name="scores" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="scores" inverseEntity="Content"/>
+        <relationship name="setlist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="setlistScores" inverseEntity="Content"/>
+        <relationship name="setlistScores" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="setlist" inverseEntity="Content"/>
     </entity>
     <entity name="ScoreAnnotation" representedClassName="ScoreAnnotation" syncable="YES" codeGenerationType="class">
         <attribute name="s_aid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>

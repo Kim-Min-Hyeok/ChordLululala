@@ -28,6 +28,9 @@ struct ScorePageOverView: View {
     
     @State private var isAddPageOptions: Bool = false
     
+    @State private var isShowingImagePicker = false
+    @State private var pickerSelectedImage: UIImage? = nil
+    
     private let columns = [
         GridItem(.adaptive(minimum: 160, maximum: 160), spacing: 0)
     ]
@@ -88,10 +91,10 @@ struct ScorePageOverView: View {
                                 if isAddPageOptions && selectedIndex == nil {
                                     PageAddModalView(
                                         addImage: {
-                                            addImage()
+                                            
                                         },
                                         addFile: {
-                                            addFile()
+                                            
                                         },
                                         addBlank: {
                                             addBlank()

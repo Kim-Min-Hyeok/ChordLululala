@@ -14,15 +14,13 @@ enum ContentType: Int16 {
     case scoresOfSetlist = 3
 }
 
-import Foundation
-
 // MARK: - 도메인 모델
-final class ContentModel: Hashable, Equatable, Identifiable {
+final class ContentModel: Hashable, Identifiable {
     let cid: UUID
     var name: String
     var path: String?
     var type: ContentType
-    var parentContent: ContentModel?
+    var parentContent: ContentModel?            // will not be set here
     var createdAt: Date
     var modifiedAt: Date
     var lastAccessedAt: Date
@@ -30,10 +28,9 @@ final class ContentModel: Hashable, Equatable, Identifiable {
     var originalParentId: UUID?
     var syncStatus: Bool
     var isStared: Bool
-    var scoreDetail: ScoreDetailModel?
-    var scores: [ContentModel]?
+    var scoreDetail: ScoreDetailModel?          // fetch lazily
+    var scores: [ContentModel]?                 // fetch via Core Data, not set here
 
-    // MARK: - 생성자
     init(
         cid: UUID = UUID(),
         name: String,
@@ -66,15 +63,14 @@ final class ContentModel: Hashable, Equatable, Identifiable {
         self.scores = scores
     }
 
-    // MARK: - Entity → Model 변환
+    // MARK: - Entity → Model (shallow, no recursion)
     convenience init(entity: Content) {
-        let scoresModels = (entity.scores as? Set<Content>)?.map { ContentModel(entity: $0) } ?? []
         self.init(
             cid: entity.cid ?? UUID(),
             name: entity.name ?? "Unnamed",
             path: entity.path,
             type: ContentType(rawValue: entity.type) ?? .score,
-            parentContent: entity.parentContent.map { ContentModel(entity: $0) },
+            parentContent: nil,                      // will fetch on demand
             createdAt: entity.createdAt ?? Date(),
             modifiedAt: entity.modifiedAt ?? Date(),
             lastAccessedAt: entity.lastAccessedAt ?? Date(),
@@ -82,14 +78,14 @@ final class ContentModel: Hashable, Equatable, Identifiable {
             originalParentId: entity.originalParentId,
             syncStatus: entity.syncStatus,
             isStared: entity.isStared,
-            scoreDetail: entity.scoreDetail.map { ScoreDetailModel(entity: $0) },
-            scores: scoresModels
+            scoreDetail: nil,                        // fetch via ScoreDetailManager
+            scores: nil                              // fetch via ContentManager.fetchScoresOfSetlist
         )
     }
 
     // MARK: - Equatable & Hashable
     static func == (lhs: ContentModel, rhs: ContentModel) -> Bool {
-        return lhs.cid == rhs.cid && lhs.name == rhs.name && lhs.isStared == rhs.isStared
+        return lhs.cid == rhs.cid
     }
 
     func hash(into hasher: inout Hasher) {
@@ -98,6 +94,7 @@ final class ContentModel: Hashable, Equatable, Identifiable {
 }
 
 extension Content {
+    /// updates only attributes; relationship changes must use addToScores()/removeFromScores()
     func update(from model: ContentModel) {
         self.cid = model.cid
         self.name = model.name

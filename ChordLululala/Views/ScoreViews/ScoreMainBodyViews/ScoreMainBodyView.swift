@@ -193,5 +193,8 @@ struct ScoreMainBodyView: View {
                 )
             }
         }
+        .onAppear() {
+            print("📄 viewModel.pages.count = \(viewModel.pages.count)")
+        }
     }
 }

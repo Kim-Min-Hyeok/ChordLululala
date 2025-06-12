@@ -78,7 +78,7 @@ final class ScoreDetailManager {
 
             try? context.save()
             return ScoreDetailModel(entity: newDetail)
-        }
+    }
     
     /// 주어진 ScoreDetailModel에 연결된 Content의 파일 URL 반환
     func getContentURL(for detail: ScoreDetailModel) -> URL? {
