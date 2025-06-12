@@ -2,13 +2,11 @@
 
 import SwiftUI
 
-
-
 struct ScoreView : View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel: ScoreViewModel
     
-    init(content: ContentModel) {
+    init(content: Content) {
         _viewModel = StateObject(wrappedValue: ScoreViewModel(content: content))
     }
     
@@ -32,7 +30,8 @@ struct ScoreView : View {
                             viewModel.isSettingModalView.toggle()
                         }
                     )
-                    .transition(.move(edge: .top).combined(with: .opacity)) // 슬라이드 인아웃 + 페이드 효과
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    // 슬라이드 인아웃 + 페이드 효과
                 }
                 
                 /// 악보 바디 뷰

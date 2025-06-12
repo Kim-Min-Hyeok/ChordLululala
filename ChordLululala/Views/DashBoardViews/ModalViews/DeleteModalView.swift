@@ -10,7 +10,7 @@ import SwiftUI
 struct DeleteModalView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     
-    let content: ContentModel
+    let content: Content
     
     var body: some View {
         VStack(spacing: 0) {

@@ -13,13 +13,13 @@ final class PageAdditionViewModel: ObservableObject{
     @Published var isBlankPage: Bool = true
     @Published var currentPage: Int = 0
     
-    private var content: ContentModel?
+    private var content: Content?
     
     private let pageManager = ScorePageManager.shared
     private let detailManager = ScoreDetailManager.shared
     
     /// Content 설정
-    func setContent(_ content: ContentModel?){
+    func setContent(_ content: Content?){
         self.content = content
     }
 }

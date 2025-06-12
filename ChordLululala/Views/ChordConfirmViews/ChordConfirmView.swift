@@ -11,7 +11,7 @@ struct ChordConfirmView: View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var vm = ChordConfirmViewModel()
     
-    let file: ContentModel
+    let file: Content
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,14 +23,14 @@ struct ChordConfirmView: View {
                 .foregroundColor(.primaryGray900)
 
             HStack(spacing: 16.64) {
-                ForEach(0..<min(3, vm.pagesImages.count), id: \.self) { idx in
-                    if idx < vm.chordLists.count {
-                        ChordPagePreviewView(
-                            image: vm.pagesImages[idx],
-                            chords: vm.chordLists[idx],
-                            transposed: vm.transposedChord(for:)
-                        )
-                    }
+                let previewCount = min(3, vm.pagesImages.count, vm.chordLists.count)
+                
+                ForEach(0..<previewCount, id: \.self) { idx in
+                    ChordPagePreviewView(
+                        image: vm.pagesImages[idx],
+                        chords: vm.chordLists[idx],
+                        transposed: vm.transposedChord(for:)
+                    )
                 }
             }
             .padding(.top, 62.33)

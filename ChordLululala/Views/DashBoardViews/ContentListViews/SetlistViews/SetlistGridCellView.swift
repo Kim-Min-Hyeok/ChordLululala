@@ -12,9 +12,9 @@ struct SetlistGridCellView: View {
     @EnvironmentObject var router: NavigationRouter
     @State private var cellFrame: CGRect = .zero
     
-    let setlist: ContentModel
+    let setlist: Content
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == setlist.cid }
+        viewModel.selectedContents.contains { $0.objectID == setlist.objectID }
     }
     
     var body: some View {
@@ -43,11 +43,10 @@ struct SetlistGridCellView: View {
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
             VStack (spacing: 3){
-                Text(setlist.name)
+                Text(setlist.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(setlist.modifiedAt.dateFormatForGrid())
-                    .textStyle(.bodyTextLgRegular)
+                Text(setlist.modifiedAt?.dateFormatForList() ?? "")
                     .foregroundStyle(Color.primaryGray600)
                 if viewModel.isSearching {
                     Text(viewModel.getParentName(of: setlist))
@@ -78,7 +77,7 @@ struct SetlistGridCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == setlist.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == setlist.objectID }
         } else {
             viewModel.selectedContents.append(setlist)
         }

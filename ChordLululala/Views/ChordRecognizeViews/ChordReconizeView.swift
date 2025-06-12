@@ -10,7 +10,7 @@ import SwiftUI
 struct ChordReconizeView: View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var vm = ChordRecognizeViewModel()
-    let file: ContentModel
+    let file: Content
     
     @State private var showAddingModal = false
     @State private var showFixingKeyModal = false
@@ -137,14 +137,10 @@ struct ChordReconizeView: View {
                             if text.isEmpty { return }
                             
                             if let editing = vm.editingChord {
-                                // 수정: 해당 모델 업데이트
-                                if let index = vm.chordLists[vm.selectedPage].firstIndex(where: { $0.s_cid == editing.s_cid }) {
-                                    vm.chordLists[vm.selectedPage][index].chord = text
+                                    vm.updateChord(editing: editing, newText: text)
+                                } else {
+                                    vm.addNewChord(text: text, to: vm.selectedPage, position: CGPoint(x: 100, y:100))
                                 }
-                            } else {
-                                // 생성: 기본 위치로 추가
-                                vm.addNewChord(text: text, to: vm.selectedPage, position: CGPoint(x: 100, y: 100))
-                            }
                             
                             withAnimation {
                                 showAddingModal = false

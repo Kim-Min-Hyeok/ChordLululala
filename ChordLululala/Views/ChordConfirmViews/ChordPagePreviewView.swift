@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChordPagePreviewView: View {
     let image: UIImage
-    let chords: [ScoreChordModel]
+    let chords: [ScoreChord]
     let transposed: (String) -> String
 
     var body: some View {
@@ -20,11 +20,11 @@ struct ChordPagePreviewView: View {
                     .scaledToFit()
                     .frame(width: geo.size.width, height: geo.size.height)
 
-                ForEach(chords, id: \.s_cid) { chord in
+                ForEach(chords, id: \.objectID) { chord in
                     let posX = CGFloat(chord.x) * geo.size.width / image.size.width
                     let posY = CGFloat(chord.y) * geo.size.height / image.size.height
 
-                    Text(transposed(chord.chord))
+                    Text(transposed(chord.chord ?? "C"))
                         .textStyle(.bodyTextLgRegular)
                         .foregroundColor(.primaryBaseBlack)
                         .position(x: posX, y: posY)

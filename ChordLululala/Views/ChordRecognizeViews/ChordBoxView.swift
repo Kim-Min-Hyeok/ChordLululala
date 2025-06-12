@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChordBoxView: View {
-    let chord: ScoreChordModel
+    let chord: ScoreChord
     let originalSize: CGSize
     let displaySize: CGSize
     let transposedText: String

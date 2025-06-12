@@ -10,8 +10,8 @@ import SwiftUI
 final class ContentNamer {
     static let shared = ContentNamer()
     
-    func generateDuplicateFileName(for model: ContentModel, dashboardContents: DashboardContents) -> String {
-        guard model.type != .folder, let originalName = model.name as String? else { return "Copy of Unnamed.pdf" }
+    func generateDuplicateFileName(for content: Content, dashboardContents: DashboardContents) -> String {
+        guard content.type != ContentType.folder.rawValue, let originalName = content.name as String? else { return "Copy of Unnamed.pdf" }
         
         let baseName = (originalName as NSString).deletingPathExtension
         let ext = (originalName as NSString).pathExtension
@@ -20,7 +20,7 @@ final class ContentNamer {
         return newName
     }
     
-    func generateDuplicateFolderAndSetlistName(for model: ContentModel) -> String {
-        return "Copy of \(model.name)"
+    func generateDuplicateFolderAndSetlistName(for content: Content) -> String {
+        return "Copy of \(String(describing: content.name))"
     }
 }

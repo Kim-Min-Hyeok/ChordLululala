@@ -13,64 +13,41 @@ final class ScoreChordManager {
     static let shared = ScoreChordManager()
     private let context = CoreDataManager.shared.context
     
-    func save(chords: [ScoreChordModel], for pageModel: ScorePageModel) {
-        // 1) s_pid 로 ScorePage 엔티티 조회
-        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-        req.predicate = NSPredicate(format: "s_pid == %@", pageModel.s_pid as CVarArg)
-        guard let pageEntity = (try? context.fetch(req))?.first else {
-            print("⚠️ Page entity not found for s_pid: \(pageModel.s_pid)")
-            return
+    func save(chords: [ScoreChord], for page: ScorePage) {
+        // 1) 기존 관계에 묶여 있던 코드 전부 삭제
+        let existing = (page.scoreChords as? Set<ScoreChord>) ?? []
+        existing.forEach(context.delete)
+
+        // 2) 스테이징된 ScoreChord 엔티티들에 다시 page 연결
+        chords.forEach { chord in
+            chord.scorePage = page
         }
-        
-        // 2) 기존 코드 삭제
-        if let existing = pageEntity.scoreChords as? Set<ScoreChord> {
-            existing.forEach(context.delete)
+
+        // 3) 한 번만 save()
+        do {
+            try context.save()
+            print("✅ save(chords:for:) 완료 – 총 \(chords.count)개 코드 저장")
+        } catch {
+            print("❌ save(chords:for:) 실패:", error)
         }
-        
-        // 3) 새 코드 저장
-        for m in chords {
-            let ent = ScoreChord(context: context)
-            ent.s_cid     = m.s_cid
-            ent.chord     = m.chord
-            ent.x         = m.x
-            ent.y         = m.y
-            ent.width     = m.width
-            ent.height    = m.height
-            ent.scorePage = pageEntity
-        }
-        
-        try? context.save()
     }
     
     /// 도메인 모델을 받아, 저장된 Core Data 코드를 모델로 변환해 반환합니다.
-    func fetch(for pageModel: ScorePageModel) -> [ScoreChordModel] {
-        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-        req.predicate = NSPredicate(format: "s_pid == %@", pageModel.s_pid as CVarArg)
-        guard let pageEntity = (try? context.fetch(req))?.first,
-              let set = pageEntity.scoreChords as? Set<ScoreChord>
-        else {
-            return []
-        }
-        return set.map(ScoreChordModel.init(entity:))
+    func fetchChords(for page: ScorePage) -> [ScoreChord] {
+        return Array(page.scoreChords as? Set<ScoreChord> ?? [])
     }
     
-    func clone(from chords: [ScoreChordModel], to page: ScorePageModel) {
-            let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-            req.predicate = NSPredicate(format: "s_pid == %@", page.s_pid as CVarArg)
-
-            guard let pageEntity = try? context.fetch(req).first else { return }
-
-            for chord in chords {
-                let ent = ScoreChord(context: context)
-                ent.s_cid = UUID()
-                ent.chord = chord.chord
-                ent.x = chord.x
-                ent.y = chord.y
-                ent.width = chord.width
-                ent.height = chord.height
-                ent.scorePage = pageEntity
-            }
-
-            try? context.save()
+    /// originalChords를 newPage로 복제
+    func cloneChords(_ originalChords: [ScoreChord], to newPage: ScorePage) {
+        for chord in originalChords {
+            let nc = ScoreChord(context: context)
+            nc.chord     = chord.chord
+            nc.x         = chord.x
+            nc.y         = chord.y
+            nc.width     = chord.width
+            nc.height    = chord.height
+            nc.scorePage = newPage
         }
+        try? context.save()
+    }
 }

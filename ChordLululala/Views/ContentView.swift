@@ -27,27 +27,27 @@ struct ContentView: View {
                     case "/termsofservice":
                         TermsOfServiceView()
                     case "/score":
-                        if let content = route.arguments as? [ContentModel],
+                        if let content = route.arguments as? [Content],
                            let first = content.first{
                             ScoreView(content: first)
                         } else {
-                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
                         }
                     case "/chordreconize":
-                        if let args = route.arguments as? [ContentModel],
+                        if let args = route.arguments as? [Content],
                            let file = args.first {
                             ChordReconizeView(file: file)
                                 .environmentObject(router)
                         } else {
-                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
                         }
                     case "/chordConfirm":
-                        if let args = route.arguments as? [ContentModel],
+                        if let args = route.arguments as? [Content],
                            let file = args.first {
                             ChordConfirmView(file: file)
                                 .environmentObject(router)
                         } else {
-                            Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
                         }
                         
                     default:

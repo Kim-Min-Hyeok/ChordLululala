@@ -92,12 +92,12 @@ struct ChordRecognizeResultView: View {
                                                 if [.chordFixing, .keyTranspostion].contains(viewModel.state) {
                                                     // 코드 박스
                                                     Group {
-                                                        ForEach(viewModel.chordLists[idx], id: \.s_cid) { chord in
+                                                        ForEach(viewModel.scoreChords[idx], id: \.objectID) { chord in
                                                             ChordBoxView(
                                                                 chord: chord,
                                                                 originalSize: img.size,
                                                                 displaySize: geo.size,
-                                                                transposedText: viewModel.transposedChord(for: chord.chord),
+                                                                transposedText: viewModel.transposedChord(for: chord.chord ?? "C"),
                                                                 onDelete: {
                                                                     viewModel.deleteChord(chord, pageIndex: idx)
                                                                 },

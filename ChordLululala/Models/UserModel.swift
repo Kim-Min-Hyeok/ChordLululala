@@ -2,7 +2,7 @@
 //  UserModel.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 2/25/25.
+//  Created by Minhyeok Kim on 6/12/25.
 //
 
 import Foundation

@@ -9,60 +9,64 @@ import UIKit
 import Vision
 import Combine
 
+struct RecognizedChord {
+  let text: String
+  let rect: CGRect
+}
+
 /// OpenCV 전처리 + Vision OCR
 final class ChordRecognizeManager {
     static let shared = ChordRecognizeManager()
     private init() {}
 
-    func recognize(image: UIImage) -> AnyPublisher<(UIImage, [ScoreChordModel]), Never> {
-        Future { promise in
-            // 1) OpenCV 전처리
-            let processed = CVWrapper.processScore(image)
-            guard let cg = processed.cgImage else {
-                promise(.success((processed, []))); return
-            }
-            // 2) OCR
-            let handler = VNImageRequestHandler(cgImage: cg, options: [:])
-            let request = VNRecognizeTextRequest { req, _ in
-                var detectedList: [(String, CGRect)] = []
-                if let obs = req.results as? [VNRecognizedTextObservation] {
-                    let sz = processed.size
-                    for o in obs {
-                        guard let c = o.topCandidates(1).first else { continue }
-                        let bb = o.boundingBox
-                        let rect = CGRect(
-                            x: bb.minX * sz.width,
-                            y: (1 - bb.maxY) * sz.height,
-                            width: bb.width * sz.width,
-                            height: bb.height * sz.height
-                        )
-                        detectedList.append(contentsOf: self.splitText(c.string, in: rect))
-                    }
-                }
-                // 필터링 & 정렬
-                let valid   = detectedList.filter { self.isValidChord($0.0) }
-                let sorted  = self.sortByPosition(valid)
-                // 모델 매핑
-                let chords = sorted.map { (text, r) in
-                    ScoreChordModel(
-                        s_cid: UUID(),
-                        chord: text,
-                        x: Double(r.origin.x),
-                        y: Double(r.origin.y),
-                        width: Double(r.width),
-                        height: Double(r.height)
-                    )
-                }
-                promise(.success((processed, chords)))
-            }
-            request.recognitionLevel = .accurate
-            request.usesLanguageCorrection = false
-            request.recognitionLanguages = ["en-US"]
-            DispatchQueue.global(qos: .userInitiated).async {
-                try? handler.perform([request])
-            }
+    func recognize(image: UIImage) -> AnyPublisher<(UIImage, [RecognizedChord]), Never> {
+      Future { promise in
+        // 1) OpenCV 전처리
+        let processed = CVWrapper.processScore(image)
+        guard let cg = processed.cgImage else {
+          promise(.success((processed, [])))
+          return
         }
-        .eraseToAnyPublisher()
+
+        // 2) OCR
+        let handler = VNImageRequestHandler(cgImage: cg, options: [:])
+        let request = VNRecognizeTextRequest { req, _ in
+          var detected: [(String, CGRect)] = []
+
+          if let obs = req.results as? [VNRecognizedTextObservation] {
+            let sz = processed.size
+            for o in obs {
+              guard let candidate = o.topCandidates(1).first else { continue }
+              let bb = o.boundingBox
+              let rect = CGRect(
+                x: bb.minX * sz.width,
+                y: (1 - bb.maxY) * sz.height,
+                width: bb.width * sz.width,
+                height: bb.height * sz.height
+              )
+              // splitText는 "Amaj7→ [("A","rect1"),("maj7","rect2")]" 처럼 나눠준다고 가정
+              detected.append(contentsOf: self.splitText(candidate.string, in: rect))
+            }
+          }
+
+          // 필터링 & 정렬
+          let valid   = detected.filter { self.isValidChord($0.0) }
+          let sorted  = self.sortByPosition(valid)
+
+          // RecognizedChord 배열로 변환
+          let chords = sorted.map { RecognizedChord(text: $0.0, rect: $0.1) }
+          promise(.success((processed, chords)))
+        }
+
+        request.recognitionLevel       = .accurate
+        request.usesLanguageCorrection = false
+        request.recognitionLanguages   = [ "en-US" ]
+
+        DispatchQueue.global(qos: .userInitiated).async {
+          try? handler.perform([request])
+        }
+      }
+      .eraseToAnyPublisher()
     }
 
     private func isValidChord(_ text: String) -> Bool {

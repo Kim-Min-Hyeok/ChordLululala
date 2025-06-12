@@ -11,149 +11,162 @@ import Combine
 struct ContentManager {
     static let shared = ContentManager()
     
-    func initializeBaseDirectories() ->  Void {
+    func initializeBaseDirectories() {
         ContentCoreDataManager.shared.initializeBaseDirectories()
     }
     
-    func fetchBaseDirectory(named name: String) -> ContentModel? {
+    func fetchBaseDirectory(named name: String) -> Content? {
         return ContentCoreDataManager.shared.fetchBaseDirectory(named: name)
     }
     
-    func fetchContentModel(with id: UUID) -> ContentModel? {
-        return ContentCoreDataManager.shared.fetchContentModel(with: id)
-    }
-    
-    func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
+    func loadContents(
+        forParent parent: Content?,
+        dashboardContents: DashboardContents
+    ) -> AnyPublisher<[Content], Error> {
+        // 1) predicate 생성
+        let predicate: NSPredicate
+        if let parent = parent {
+            predicate = NSPredicate(format: "parentContent == %@", parent)
+        } else {
+            switch dashboardContents {
+            case .score:
+                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
+                    predicate = NSPredicate(format: "parentContent == %@", scoreBase)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .setlist:
+                if let listBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
+                    predicate = NSPredicate(format: "parentContent == %@", listBase)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .trashCan:
+                if let trashBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
+                    predicate = NSPredicate(format: "parentContent == %@", trashBase)
+                } else {
+                    predicate = NSPredicate(value: false)
+                }
+            case .createSetlist, .myPage:
+                predicate = NSPredicate(value: false)
+            }
+        }
+        
+        // 2) CoreDataManager의 새 퍼블리셔 호출
         return ContentCoreDataManager.shared
-            .loadContentModels(forParent: parent, dashboardContents: dashboardContents)
+            .fetchContentsPublisher(predicate: predicate)
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
     
     // 파일 업로드 – 작업 완료 시 Void 발행
-    func uploadFile(
+    func createScore(
         with url: URL,
-        currentParent: ContentModel?,
+        currentParent: Content,
         dashboardContents: DashboardContents
-    ) -> AnyPublisher<ContentModel?, Never> {
-        // 1) Future를 명시적으로 변수에 담아 타입을 분명히 함
-        let future: Future<ContentModel?, Never> = Future { promise in
-            let rel = currentParent?.path
+    ) -> AnyPublisher<Content?, Never> {
+        Future<Content?, Never> { promise in
+            let relPath = currentParent.path
             ContentFileManagerManager.shared.uploadFile(
                 from: url,
                 to: dashboardContents,
-                relativeFolderPath: rel
+                relativeFolderPath: relPath
             ) { result in
                 switch result {
-                case .success((let destURL, let relPath)):
-                    // CoreData에 저장하고, 생성된 모델을 리턴
-                    let model = ContentCoreDataManager.shared.createContent(
+                case .success(let (destURL, newRelPath)):
+                    // CoreData에 바로 생성
+                    let newEntity = ContentCoreDataManager.shared.createContent(
                         name: destURL.lastPathComponent,
-                        path: relPath,
+                        path: newRelPath,
                         type: ContentType.score.rawValue,
-                        parent: currentParent,
-                        scoreDetail: nil
+                        parent: currentParent
                     )
-                    promise(.success(model))
+                    promise(.success(newEntity))
                 case .failure(let err):
                     print("파일 업로드 실패:", err)
                     promise(.success(nil))
                 }
             }
         }
-        
-        // 2) 명시적으로 eraseToAnyPublisher() 호출
-        return future
-            .eraseToAnyPublisher()
+        .eraseToAnyPublisher()
     }
     
     // 셋리스트 생성
     func createSetlist(
-        named name: String,
-        with originalScores: [ContentModel],
-        currentParent: ContentModel?,
-        dashboardContents: DashboardContents
-    ) -> AnyPublisher<ContentModel, Never> {
-        Future<ContentModel, Never> { promise in
-            let now = Date()
-
-            let setlistModel = ContentModel(
-                cid: UUID(),
-                name: name,
-                path: nil,
-                type: .setlist,
-                parentContent: currentParent,
-                createdAt: now,
-                modifiedAt: now,
-                lastAccessedAt: now,
-                deletedAt: nil,
-                originalParentId: currentParent?.cid,
-                syncStatus: false,
-                isStared: false,
-                scoreDetail: nil,
-                scores: nil
-            )
-
-            let clonedScores: [ContentModel] = originalScores.map { score in
-                ContentModel(
-                    cid: UUID(),
-                    name: score.name,
-                    path: score.path,
-                    type: .scoresOfSetlist,
-                    parentContent: nil,
-                    createdAt: now,
-                    modifiedAt: now,
-                    lastAccessedAt: now,
-                    deletedAt: nil,
-                    originalParentId: nil,
-                    syncStatus: false,
-                    isStared: false,
-                    scoreDetail: nil,
-                    scores: nil
+            named name: String,
+            with originalScores: [Content],
+            currentParent: Content?
+        ) -> AnyPublisher<Content, Never> {
+            Future<Content, Never> { promise in
+                let now = Date()
+                // 1) 셋리스트 엔티티 생성
+                let setlistEntity = ContentCoreDataManager.shared.createContent(
+                    name: name,
+                    path: nil,
+                    type: ContentType.setlist.rawValue,
+                    parent: currentParent
                 )
-            }
+                setlistEntity.createdAt      = now
+                setlistEntity.modifiedAt     = now
+                setlistEntity.lastAccessedAt = now
 
-            let savedSetlist = ContentCoreDataManager.shared.createSetlistWithScores(setlist: setlistModel, scores: clonedScores)
-            promise(.success(savedSetlist))
+                // 2) originalScores 각각을 scoresOfSetlist 타입으로 “연결” 복제
+                let scoreEntities: [Content] = originalScores.map { orig in
+                    let cloned = ContentCoreDataManager.shared.createContent(
+                        name: orig.name ?? "",
+                        path: orig.path,
+                        type: ContentType.scoresOfSetlist.rawValue,
+                        parent: nil
+                    )
+                    cloned.createdAt      = now
+                    cloned.modifiedAt     = now
+                    cloned.lastAccessedAt = now
+                    // 연관 관계 설정
+                    cloned.setlist = setlistEntity
+                    return cloned
+                }
+                setlistEntity.setlistScores = NSSet(array: scoreEntities)
+
+                // 3) Context 저장
+                CoreDataManager.shared.saveContext()
+
+                promise(.success(setlistEntity))
+            }
+            .eraseToAnyPublisher()
         }
-        .eraseToAnyPublisher()
-    }
     
     // 폴더 생성
-    func createFolder(folderName: String,
-                      currentParent: ContentModel?,
-                      dashboardContents: DashboardContents) -> AnyPublisher<Void, Never> {
+    func createFolder(
+        named folderName: String,
+        in parent: Content,
+        dashboardContents: DashboardContents
+    ) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            guard let currentParent = currentParent else {
-                promise(.success(()))
-                return
-            }
             if dashboardContents == .setlist {
-                ContentCoreDataManager.shared.createContent(
+                _ = ContentCoreDataManager.shared.createContent(
                     name: folderName,
-                    path: nil,                      // 파일 시스템 경로 없음
+                    path: nil,
                     type: ContentType.folder.rawValue,
-                    parent: currentParent,
-                    scoreDetail: nil
+                    parent: parent
                 )
-                promise(.success(()))
-                return
+                return promise(.success(()))
             }
-            ContentFileManagerManager.shared.createFolder(named: folderName,
-                                                          relativeTo: currentParent,
-                                                          dashboardContents: dashboardContents) { (result: Result<(folderURL: URL, relativePath: String), FileServiceError>) in
+            
+            ContentFileManagerManager.shared.createFolder(
+                named: folderName,
+                relativeTo: parent,
+                dashboardContents: dashboardContents
+            ) { result in
                 switch result {
-                case .success(let folderResult):
-                    // folderResult는 (folderURL, relativePath) 튜플로 반환됨
-                    let newRelativePath = folderResult.relativePath
-                    // 파일 시스템 작업이 성공하면 CoreData에 폴더 콘텐츠 생성
-                    ContentCoreDataManager.shared.createContent(name: folderName,
-                                                                path: newRelativePath,
-                                                                type: ContentType.folder.rawValue,
-                                                                parent: currentParent,
-                                                                scoreDetail: nil)
+                case .success(let (folderURL, relPath)):
+                    _ = ContentCoreDataManager.shared.createContent(
+                        name: folderName,
+                        path: relPath,
+                        type: ContentType.folder.rawValue,
+                        parent: parent
+                    )
                 case .failure(let error):
-                    print("폴더 생성 실패: \(error)")
+                    print("폴더 생성 실패:", error)
                 }
                 promise(.success(()))
             }
@@ -162,43 +175,49 @@ struct ContentManager {
     }
     
     // 이름 수정 – 작업 완료 시 Void 발행
-    func renameContent(_ model: ContentModel, newName: String) -> AnyPublisher<Void, Never> {
+    func renameContent(
+        _ entity: Content,
+        newName: String
+    ) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            let updatedModel = model
-            let fileExtension = (model.name as NSString).pathExtension
-            let isFile = updatedModel.type == .score
-
-            let updatedName = isFile && !fileExtension.isEmpty
-                ? newName + "." + fileExtension
-                : newName
-
-            updatedModel.name = updatedName
-            updatedModel.modifiedAt = Date()
-            updatedModel.lastAccessedAt = Date()
-
-            if model.type == .setlist {
-                ContentCoreDataManager.shared.updateContent(model: updatedModel)
-                promise(.success(()))
-                return
-            }
-
-            if let oldPath = updatedModel.path,
+            // 1) 파일 확장자 보존
+            let oldName = entity.name
+            let fileExt = (oldName as NSString? ?? "").pathExtension
+            let isFile = entity.type == ContentType.score.rawValue
+            
+            let updatedName: String = {
+                guard isFile, !fileExt.isEmpty else { return newName }
+                return newName + "." + fileExt
+            }()
+            
+            // 2) 엔티티 속성 갱신
+            entity.name           = updatedName
+            entity.modifiedAt     = Date()
+            entity.lastAccessedAt = Date()
+            
+            // 3) 파일이면 물리 경로도 리네임
+            if isFile,
+               let oldRel = entity.path,
                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let oldURL = docsURL.appendingPathComponent(oldPath)
-                let newURL = oldURL.deletingLastPathComponent().appendingPathComponent(updatedName)
-
+                
+                let oldURL = docsURL.appendingPathComponent(oldRel)
+                let newURL = oldURL
+                    .deletingLastPathComponent()
+                    .appendingPathComponent(updatedName)
+                
                 ContentFileManagerManager.shared.renameItem(at: oldURL, to: newURL) { result in
-                    switch result {
-                    case .success(let newRelativePath):
-                        updatedModel.path = newRelativePath
-                        ContentCoreDataManager.shared.updateContent(model: updatedModel)
-                    case .failure(let error):
-                        print("파일/폴더 이름 변경 실패: \(error)")
+                    if case .success(let newRel) = result {
+                        entity.path = newRel
+                    } else if case .failure(let err) = result {
+                        print("파일 이름 변경 실패:", err)
                     }
+                    // 4) Core Data 저장
+                    CoreDataManager.shared.saveContext()
                     promise(.success(()))
                 }
             } else {
-                ContentCoreDataManager.shared.updateContent(model: updatedModel)
+                // 폴더거나 파일 시스템 작업이 필요 없을 때
+                CoreDataManager.shared.saveContext()
                 promise(.success(()))
             }
         }
@@ -206,40 +225,41 @@ struct ContentManager {
     }
     
     // 파일 이동
-    func moveContent(_ content: ContentModel, to destination: ContentModel) -> AnyPublisher<Void, Never> {
+    func moveContent(
+        _ entity: Content,
+        to destination: Content
+    ) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            
+            // 1) 파일 시스템 경로(oldRel) 가져오기
             guard
-                let oldRel = content.path,
-                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+                let oldRel = entity.path,
+                let docsURL = FileManager.default
+                    .urls(for: .documentDirectory, in: .userDomainMask)
+                    .first
             else {
-                promise(.success(()))
-                return
+                // path가 없으면 Core Data만 업데이트
+                ContentCoreDataManager.shared.moveEntity(entity, to: destination)
+                return promise(.success(()))
             }
             
             let sourceURL = docsURL.appendingPathComponent(oldRel)
+            let destFolder = docsURL.appendingPathComponent(destination.path ?? "", isDirectory: true)
+            let newURL     = destFolder.appendingPathComponent(entity.name ?? "")
             
-            guard let destRel = destination.path else {
-                print("Destination path is nil")
-                promise(.success(()))
-                return
-            }
-            
-            let destFolderURL = docsURL.appendingPathComponent(destRel, isDirectory: true)
-            
-            let newURL = destFolderURL.appendingPathComponent(content.name)
-            
-            
+            // 2) 파일 시스템 이동
             ContentFileManagerManager.shared.moveItem(from: sourceURL, to: newURL) { result in
                 switch result {
                 case .success(let newRel):
-                    var updated = content
-                    updated.path = newRel
-                    updated.parentContent = destination
-                    updated.originalParentId = destination.cid
-                    ContentCoreDataManager.shared.updateContent(model: updated)
+                    // 3) Core Data 업데이트: path, parentContent, timestamps
+                    ContentCoreDataManager.shared.moveEntity(
+                        entity,
+                        to: destination,
+                        newRelativePath: newRel
+                    )
                 case .failure(let error):
-                    print("Move failed:", error)
+                    print("파일 이동 실패:", error)
+                    // 실패해도 Core Data 관계만 업데이트할지 결정할 수 있음
+                    ContentCoreDataManager.shared.moveEntity(entity, to: destination)
                 }
                 promise(.success(()))
             }
@@ -248,135 +268,104 @@ struct ContentManager {
     }
     
     // 휴지통 이동 – 작업 완료 시 Void 발행
-    func moveContentToTrash(_ model: ContentModel, performPhysicalMove: Bool = true) -> AnyPublisher<Void, Never> {
+    func moveContentToTrash(
+        _ entity: Content,
+        performPhysicalMove: Bool = true
+    ) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            var updatedModel = model
+            // 1) Core Data 상의 관계/타임스탬프 업데이트
+            ContentCoreDataManager.shared.moveContentToTrash(entity: entity)
             
-            ContentCoreDataManager.shared.moveContentToTrash(&updatedModel)
-            
-            if updatedModel.type == .setlist {
-                ContentCoreDataManager.shared.updateContent(model: updatedModel)
-                promise(.success(()))
-                return
+            // 2) setlist 타입(파일 시스템 기록 없음)인 경우
+            if entity.type == ContentType.setlist.rawValue {
+                CoreDataManager.shared.saveContext()
+                return promise(.success(()))
             }
             
-            guard let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
-                  let trashURL = ContentFileManagerManager.shared.trashURL()
-            else { promise(.success(())); return }
-            
-            if performPhysicalMove {
-                if !FileManager.default.fileExists(atPath: trashURL.path) {
-                    do {
-                        try FileManager.default.createDirectory(at: trashURL, withIntermediateDirectories: true, attributes: nil)
-                    } catch {
-                        print("Trash_Can 폴더 생성 실패: \(error)")
-                        promise(.success(()))
-                        return
-                    }
-                }
-                
-                if updatedModel.type == .folder {
-                    guard let oldPath = updatedModel.path else { promise(.success(())); return }
-                    let oldURL = docsURL.appendingPathComponent(oldPath)
-                    guard FileManager.default.fileExists(atPath: oldURL.path) else {
-                        print("원본 폴더가 존재하지 않습니다: \(oldURL.path)")
-                        promise(.success(()))
-                        return
-                    }
-                    let newURL = trashURL.appendingPathComponent(oldURL.lastPathComponent)
-                    do {
-                        if FileManager.default.fileExists(atPath: newURL.path) {
-                            try FileManager.default.removeItem(at: newURL)
-                        }
-                        try FileManager.default.moveItem(at: oldURL, to: newURL)
-                        if let newRelativePath = ContentFileManagerManager.shared.relativePath(for: newURL.path) {
-                            updatedModel.path = newRelativePath
-                        }
-                    } catch {
-                        print("폴더 휴지통 이동 실패: \(error)")
-                    }
-                } else {
-                    guard let oldPath = updatedModel.path else { promise(.success(())); return }
-                    let sourceURL = docsURL.appendingPathComponent(oldPath)
-                    guard FileManager.default.fileExists(atPath: sourceURL.path) else {
-                        print("원본 파일이 존재하지 않습니다: \(sourceURL.path)")
-                        promise(.success(()))
-                        return
-                    }
-                    let destinationURL = trashURL.appendingPathComponent(sourceURL.lastPathComponent)
-                    do {
-                        if FileManager.default.fileExists(atPath: destinationURL.path) {
-                            try FileManager.default.removeItem(at: destinationURL)
-                        }
-                        try FileManager.default.moveItem(at: sourceURL, to: destinationURL)
-                        if let newRelativePath = ContentFileManagerManager.shared.relativePath(for: destinationURL.path) {
-                            updatedModel.path = newRelativePath
-                        }
-                    } catch {
-                        print("파일 휴지통 이동 실패: \(error)")
-                    }
-                }
+            // 3) 파일 시스템 실제 이동
+            guard
+                performPhysicalMove,
+                let oldRel = entity.path,
+                let docsURL = FileManager.default
+                    .urls(for: .documentDirectory, in: .userDomainMask)
+                    .first,
+                let trashURL = ContentFileManagerManager.shared.trashURL()
+            else {
+                CoreDataManager.shared.saveContext()
+                return promise(.success(()))
             }
             
-            // 최상위 항목은 이미 CoreData 측에서 업데이트됨.
-            ContentCoreDataManager.shared.updateContent(model: updatedModel)
+            // 3a) Trash_Can 폴더 생성
+            if !FileManager.default.fileExists(atPath: trashURL.path) {
+                try? FileManager.default.createDirectory(
+                    at: trashURL,
+                    withIntermediateDirectories: true,
+                    attributes: nil
+                )
+            }
             
+            let sourceURL = docsURL.appendingPathComponent(oldRel)
+            let destinationURL = trashURL.appendingPathComponent(sourceURL.lastPathComponent)
+            
+            do {
+                // 덮어쓰기 방지
+                if FileManager.default.fileExists(atPath: destinationURL.path) {
+                    try FileManager.default.removeItem(at: destinationURL)
+                }
+                try FileManager.default.moveItem(at: sourceURL, to: destinationURL)
+                // 상대 경로 갱신
+                if let newRel = ContentFileManagerManager.shared.relativePath(for: destinationURL.path) {
+                    entity.path = newRel
+                }
+            } catch {
+                print("파일 시스템 휴지통 이동 실패:", error)
+            }
+            
+            // 4) 최종 Core Data 저장
+            CoreDataManager.shared.saveContext()
             promise(.success(()))
         }
         .eraseToAnyPublisher()
     }
     
     // 복구
-    func restoreContent(_ content: ContentModel) -> AnyPublisher<Void, Never> {
+    func restoreContent(_ entity: Content) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            // 원본 부모 모델을 미리 가져온다
-            guard let originalParentId = content.originalParentId,
-                  let originalParentContent = ContentCoreDataManager.shared.fetchContentModel(with: originalParentId),
-                  let parentFolderRelativePath = originalParentContent.path,
-                  !parentFolderRelativePath.isEmpty else {
-                print("복구할 원본 부모 정보 또는 경로가 없습니다.")
-                promise(.success(()))
-                return
+            // 1) Core Data 상에서 관계·타임스탬프 복원
+            ContentCoreDataManager.shared.restoreContent(entity: entity)
+            
+            // 2) setlist 타입은 물리 파일이 없으니 바로 종료
+            if entity.type == ContentType.setlist.rawValue {
+                CoreDataManager.shared.saveContext()
+                return promise(.success(()))
             }
-
-            // 1. 도메인 모델 업데이트
-            content.deletedAt = nil
-            content.parentContent = originalParentContent
-            content.originalParentId = nil
-
-            // 2. 셋리스트 타입이면 CoreData만 업데이트하고 종료
-            if content.type == .setlist {
-                ContentCoreDataManager.shared.updateContent(model: content)
-                promise(.success(()))
-                return
+            
+            // 3) 파일 시스템에서 Trash_Can → 원래 부모 폴더로 이동
+            guard
+                let oldRel = entity.path,
+                let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first,
+                let originalParent = entity.originalParent,                     // restoreContent 내에서 originalParent nil 처리 전이라면
+                let parentRel = originalParent.path
+            else {
+                CoreDataManager.shared.saveContext()
+                return promise(.success(()))
             }
-
-            // 3. 현재 Content의 파일 경로가 필요함
-            guard let currentRelativePath = content.path,
-                  !currentRelativePath.isEmpty,
-                  let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                print("현재 Content의 파일 경로가 없습니다.")
-                promise(.success(()))
-                return
-            }
-
-            let sourceURL = docsURL.appendingPathComponent(currentRelativePath)
-            let destinationFolderURL = docsURL.appendingPathComponent(parentFolderRelativePath)
-            let fileName = (currentRelativePath as NSString).lastPathComponent
-            let destinationURL = destinationFolderURL.appendingPathComponent(fileName)
-
-            // 4. 물리적 파일 이동
-            ContentFileManagerManager.shared.moveItem(from: sourceURL, to: destinationURL) { result in
+            
+            let trashURL = docsURL.appendingPathComponent("Trash_Can", isDirectory: true)
+            let sourceURL = trashURL.appendingPathComponent((oldRel as NSString).lastPathComponent)
+            let destFolderURL = docsURL.appendingPathComponent(parentRel, isDirectory: true)
+            let destURL = destFolderURL.appendingPathComponent(sourceURL.lastPathComponent)
+            
+            ContentFileManagerManager.shared.moveItem(from: sourceURL, to: destURL) { result in
                 switch result {
-                case .success(let newRelativePath):
-                    content.path = newRelativePath
-                    ContentCoreDataManager.shared.updateContent(model: content)
-                    print("복구 성공: \(content.name)")
-                    promise(.success(()))
-                case .failure(let error):
-                    print("복구 실패: \(error)")
-                    promise(.success(()))
+                case .success(let newRel):
+                    entity.path = newRel
+                case .failure(let err):
+                    print("파일 복구 실패:", err)
                 }
+                // 4) 최종 Core Data 저장
+                CoreDataManager.shared.saveContext()
+                promise(.success(()))
             }
         }
         .eraseToAnyPublisher()
@@ -384,227 +373,127 @@ struct ContentManager {
     
     // 복제 – 작업 완료 시 Void 발행
     func duplicateContent(
-            _ model: ContentModel,
-            newParent: ContentModel? = nil,
-            dashboardContents: DashboardContents
-        ) -> AnyPublisher<ContentModel, Never> {
-            switch model.type {
+        _ entity: Content,
+        newParent: Content? = nil,
+        dashboardContents: DashboardContents
+    ) -> AnyPublisher<Content, Never> {
+        Future<Content, Never> { promise in
+            let parent = newParent ?? entity.parentContent
+            let baseName = entity.name ?? ""
+            let newName = "Copy of \(baseName)"
+            
+            switch ContentType(rawValue: entity.type) {
             case .score, .scoresOfSetlist:
-                return duplicateScore(model, newParent: newParent, dashboardContents: dashboardContents)
-            case .folder:
-                return duplicateFolder(model, newParent: newParent, dashboardContents: dashboardContents)
-            case .setlist:
-                return duplicateSetlist(model, newParent: newParent, dashboardContents: dashboardContents)
-            }
-        }
-
-        private func duplicateScore(
-            _ model: ContentModel,
-            newParent: ContentModel? = nil,
-            dashboardContents: DashboardContents
-        ) -> AnyPublisher<ContentModel, Never> {
-            Future { promise in
-                let newCID = UUID()
-                let parentModel = newParent ?? model.parentContent
-                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFileName(for: model, dashboardContents: dashboardContents) : model.name
-
-                guard let oldPath = model.path else {
-                            promise(.success(model))
-                            return
-                        }
-
-                let parentRel = parentModel?.path
-
-
-                switch ContentFileManagerManager.shared.duplicateFile(
-                    oldFilePath: oldPath,
+                guard
+                    let oldRel = entity.path,
+                    let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+                else {
+                    return promise(.success(entity))
+                }
+                // synchronous duplicateFile -> Result<URL,Error>
+                let result = ContentFileManagerManager.shared.duplicateFile(
+                    oldFilePath: oldRel,
                     newFileName: newName,
-                    newParentRelativePath: parentRel,
+                    newParentRelativePath: parent?.path,
                     dashboardContents: dashboardContents
-                ) {
+                )
+                switch result {
                 case .success(let destURL):
-                    guard let newRel = FileManagerManager.shared.relativePath(for: destURL.path) else {
-                        promise(.success(model))
-                        return
-                    }
-
-                    let newModel = ContentModel(
-                        cid: newCID,
+                    let newRel = FileManagerManager.shared.relativePath(for: destURL.path) ?? ""
+                    let clone = ContentCoreDataManager.shared.createContent(
                         name: newName,
                         path: newRel,
-                        type: model.type,
-                        parentContent: parentModel,
-                        createdAt: model.modifiedAt,
-                        modifiedAt: model.modifiedAt,
-                        lastAccessedAt: model.modifiedAt,
-                        deletedAt: nil,
-                        originalParentId: parentModel?.cid,
-                        syncStatus: false,
-                        isStared: false,
-                        scoreDetail: nil,
-                        scores: []
+                        type: entity.type,
+                        parent: parent
                     )
-
-                    let created = ContentCoreDataManager.shared.createContent(model: newModel)
-                    promise(.success(created))
-
+                    promise(.success(clone))
                 case .failure:
-                    promise(.success(model))
+                    promise(.success(entity))
                 }
-            }.eraseToAnyPublisher()
-        }
 
-        private func duplicateFolder(
-            _ model: ContentModel,
-            newParent: ContentModel? = nil,
-            dashboardContents: DashboardContents
-        ) -> AnyPublisher<ContentModel, Never> {
-            Future { promise in
-                let newCID = UUID()
-                let parentModel = newParent ?? model.parentContent
-                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFolderAndSetlistName(for: model) : model.name
-
-                guard let oldPath = model.path else {
-                            promise(.success(model))
-                            return
-                        }
-
-                let parentRel = parentModel?.path
-
-                switch ContentFileManagerManager.shared.duplicateFolder(
-                    oldFolderPath: oldPath,
+            case .folder:
+                guard let oldRel = entity.path else {
+                    return promise(.success(entity))
+                }
+                let result = ContentFileManagerManager.shared.duplicateFolder(
+                    oldFolderPath: oldRel,
                     newFolderName: newName,
-                    newParentRelativePath: parentRel,
+                    newParentRelativePath: parent?.path,
                     dashboardContents: dashboardContents
-                ) {
+                )
+                switch result {
                 case .success(let newURL):
-                    guard let newRel = FileManagerManager.shared.relativePath(for: newURL.path) else {
-                        promise(.success(model))
-                        return
-                    }
-
-                    let newModel = ContentModel(
-                        cid: newCID,
+                    let newRel = FileManagerManager.shared.relativePath(for: newURL.path) ?? ""
+                    let clone = ContentCoreDataManager.shared.createContent(
                         name: newName,
                         path: newRel,
-                        type: .folder,
-                        parentContent: parentModel,
-                        createdAt: model.modifiedAt,
-                        modifiedAt: model.modifiedAt,
-                        lastAccessedAt: model.modifiedAt,
-                        deletedAt: nil,
-                        originalParentId: newParent?.cid,
-                        syncStatus: false,
-                        isStared: false,
-                        scoreDetail: nil,
-                        scores: []
+                        type: ContentType.folder.rawValue,
+                        parent: parent
                     )
-
-                    let created = ContentCoreDataManager.shared.createContent(model: newModel)
-                    let children = ContentCoreDataManager.shared.fetchChildrenModels(for: model.cid)
-
-                    children.forEach { child in
-                        _ = duplicateContent(child, newParent: created, dashboardContents: dashboardContents)
-                            .sink { _ in }
-                    }
-
-                    promise(.success(created))
-
+                    promise(.success(clone))
                 case .failure:
-                    promise(.success(model))
+                    promise(.success(entity))
                 }
-            }.eraseToAnyPublisher()
-        }
 
-        private func duplicateSetlist(
-            _ model: ContentModel,
-            newParent: ContentModel? = nil,
-            dashboardContents: DashboardContents
-        ) -> AnyPublisher<ContentModel, Never> {
-            Future { promise in
-                let newCID = UUID()
-                let parentModel = newParent ?? model.parentContent
-                let newName = newParent == nil ? ContentNamer.shared.generateDuplicateFolderAndSetlistName(for: model) : model.name
-
-                let newModel = ContentModel(
-                    cid: newCID,
+            case .setlist:
+                // setlist only Core Data
+                let clone = ContentCoreDataManager.shared.createContent(
                     name: newName,
                     path: nil,
-                    type: .setlist,
-                    parentContent: parentModel,
-                    createdAt: model.modifiedAt,
-                    modifiedAt: model.modifiedAt,
-                    lastAccessedAt: model.modifiedAt,
-                    deletedAt: nil,
-                    originalParentId: newParent?.cid,
-                    syncStatus: false,
-                    isStared: false,
-                    scoreDetail: nil,
-                    scores: []
+                    type: ContentType.setlist.rawValue,
+                    parent: parent
                 )
+                promise(.success(clone))
 
-                let created = ContentCoreDataManager.shared.createContent(model: newModel)
-
-                        guard let originalScores = model.scores else {
-                            promise(.success(created))
-                            return
-                        }
-
-                        let cloneTasks = originalScores.map { score in
-                            self.duplicateScore(score, newParent: created, dashboardContents: dashboardContents)
-                        }
-
-                _ = Publishers.MergeMany(cloneTasks)
-                            .collect()
-                            .sink { clonedScores in
-                                created.scores = clonedScores
-                                promise(.success(created))
-                            }
-                    }
-                    .eraseToAnyPublisher()
+            default:
+                promise(.success(entity))
+            }
         }
+        .eraseToAnyPublisher()
+    }
+
     
     // 삭제 – 작업 완료 시 Void 발행
-    func deleteContent(_ content: ContentModel) -> AnyPublisher<Void, Never> {
+    func deleteContent(_ content: Content) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            // 1) setlist 타입은 파일 시스템에 기록이 없으므로 CoreData만 삭제
-            if content.type == .setlist {
-                ContentCoreDataManager.shared.deleteContent(model: content)
-                promise(.success(()))
-                return
+            // 1) setlist 타입은 파일 시스템 기록이 없음 → 바로 Core Data 삭제
+            if content.type == ContentType.setlist.rawValue {
+                ContentCoreDataManager.shared.deleteContent(content)
+                return promise(.success(()))
             }
-
-            // 2) 그 외(score, folder)은 물리 파일/폴더 삭제
-            if let path = content.path,
-               let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
-                let itemURL = docsURL.appendingPathComponent(path)
+            
+            // 2) 물리 파일 또는 폴더 삭제
+            if let relPath = content.path,
+               let docsURL = FileManager.default
+                .urls(for: .documentDirectory, in: .userDomainMask)
+                .first {
+                let itemURL = docsURL.appendingPathComponent(relPath)
                 if FileManager.default.fileExists(atPath: itemURL.path) {
                     do {
                         try FileManager.default.removeItem(at: itemURL)
                         print("파일 시스템에서 삭제 성공: \(itemURL.path)")
                     } catch {
-                        print("파일 시스템 삭제 실패 (\(itemURL.path)): \(error)")
+                        print("파일 시스템 삭제 실패:", error)
                     }
                 } else {
-                    print("삭제할 파일/폴더가 존재하지 않습니다: \(itemURL.path)")
+                    print("삭제할 파일/폴더가 없습니다: \(itemURL.path)")
                 }
             }
-
-            // 3) Core Data에서도 삭제 (Cascade Delete가 설정되어 있으면 자식 항목도 함께 삭제)
-            ContentCoreDataManager.shared.deleteContent(model: content)
+            
+            // 3) Core Data 레코드 삭제 (Cascade 규칙에 따라 자식도 함께)
+            ContentCoreDataManager.shared.deleteContent(content)
             promise(.success(()))
         }
         .eraseToAnyPublisher()
     }
-    
     // 셋리스트의 Contents 가져오기 (sync)
-    func fetchScoresFromSetlist(_ setlist: ContentModel) -> [ContentModel] {
-        return ContentCoreDataManager.shared.fetchScoresOfSetlist(for: setlist)
+    func fetchScoresFromSetlist(_ setlist: Content) -> [Content] {
+        return ContentCoreDataManager.shared.fetchScoresFromSetlist(setlist)
     }
     
-    func toggleContentStared(_ content: ContentModel) -> AnyPublisher<Void, Never> {
+    func toggleContentStared(_ content: Content) -> AnyPublisher<Void, Never> {
         Future<Void, Never> { promise in
-            ContentCoreDataManager.shared.toggleContentStared(model: content)
+            ContentCoreDataManager.shared.toggleContentStared(content: content)
             promise(.success(()))
         }
         .eraseToAnyPublisher()

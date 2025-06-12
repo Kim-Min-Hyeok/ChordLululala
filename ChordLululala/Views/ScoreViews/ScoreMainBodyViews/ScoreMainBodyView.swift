@@ -91,12 +91,12 @@ struct ScoreMainBodyView: View {
                                                 }
                                             
                                             if chordBoxViewModel.chordsForPages.indices.contains(realIndex) {
-                                                ForEach(chordBoxViewModel.chordsForPages[realIndex], id: \.s_cid) { chord in
+                                                ForEach(chordBoxViewModel.chordsForPages[realIndex], id: \.objectID) { chord in
                                                     ChordBoxView(
                                                         chord: chord,
                                                         originalSize: uiImage.size,
                                                         displaySize: displaySize,
-                                                        transposedText: chordBoxViewModel.transposedChord(for: chord.chord),
+                                                        transposedText: chordBoxViewModel.transposedChord(for: chord.chord ?? "C"),
                                                         onDelete: nil,
                                                         onMove: nil
                                                     )

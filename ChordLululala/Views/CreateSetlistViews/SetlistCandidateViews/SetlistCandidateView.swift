@@ -15,7 +15,7 @@ struct SetlistCandidateView: View {
         VStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ForEach(viewModel.filteredScores, id: \.cid) { content in
+                    ForEach(viewModel.filteredScores, id: \.objectID) { content in
                         CandidateCellView(file: content)
                     }
                 }

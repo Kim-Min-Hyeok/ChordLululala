@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 final class ChordBoxViewModel: ObservableObject {
-    @Published var chordsForPages: [[ScoreChordModel]] = []
+    @Published var chordsForPages: [[ScoreChord]] = []
 
     @Published var key: String = "C"
     @Published var t_key: String = "C"
@@ -17,21 +17,21 @@ final class ChordBoxViewModel: ObservableObject {
 
     private var cancellables = Set<AnyCancellable>()
     
-    init(content: ContentModel?) {
+    init(content: Content?) {
         if let content = content {
             load(content)
         }
     }
 
-    func load(_ content: ContentModel?) {
+    func load(_ content: Content?) {
         guard let content = content else { return }
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: content) else { return }
 
-        key = detail.key
-        t_key = detail.t_key
+        key = detail.key ?? "C"
+        t_key = detail.t_key ?? "C"
 
-        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-        chordsForPages = pageModels.map { ScoreChordManager.shared.fetch(for: $0) }
+        let pages = ScorePageManager.shared.fetchPages(for: detail)
+        chordsForPages = pages.map { ScoreChordManager.shared.fetchChords(for: $0) }
     }
 
     func transposedChord(for original: String) -> String {

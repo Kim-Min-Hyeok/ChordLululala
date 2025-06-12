@@ -13,9 +13,9 @@ struct FileGridCellView: View {
     @EnvironmentObject var router: NavigationRouter
     @State private var thumbnail: UIImage? = nil
     
-    let file: ContentModel
+    let file: Content
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == file.cid }
+        viewModel.selectedContents.contains { $0.objectID == file.objectID }
     }
     
     var body: some View {
@@ -64,10 +64,10 @@ struct FileGridCellView: View {
             
             // 텍스트 + 버튼 영역
             VStack (spacing: 3){
-                Text(file.name)
+                Text(file.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(file.modifiedAt.dateFormatForGrid())
+                Text(file.modifiedAt?.dateFormatForList() ?? "")
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
                 if viewModel.isSearching {
@@ -127,7 +127,7 @@ struct FileGridCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == file.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == file.objectID }
         } else {
             viewModel.selectedContents.append(file)
         }

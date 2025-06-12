@@ -10,7 +10,7 @@ import Combine
 
 final class ChordConfirmViewModel: ObservableObject {
     @Published var pagesImages: [UIImage] = []
-    @Published var chordLists: [[ScoreChordModel]] = []
+    @Published var chordLists: [[ScoreChord]] = []
     
     @Published var key: String = "C"
     @Published var t_key: String = "C"
@@ -26,17 +26,17 @@ final class ChordConfirmViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     
-    func load(from content: ContentModel) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content),
+    func load(from content: Content) {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: content),
               let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail)
         else { return }
         
-        key = detail.key
-        t_key = detail.t_key
+        key = detail.key ?? "C"
+        t_key = detail.t_key ?? "C"
         
-        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
+        let pages = ScorePageManager.shared.fetchPages(for: detail)
         pagesImages = Array(PDFProcessor.extractPages(from: pdfURL).prefix(3))
-        chordLists = pageModels.prefix(3).map { ScoreChordManager.shared.fetch(for: $0) }
+        chordLists = pages.prefix(3).map { ScoreChordManager.shared.fetchChords(for: $0) }
     }
     
     func transposedChord(for original: String) -> String {

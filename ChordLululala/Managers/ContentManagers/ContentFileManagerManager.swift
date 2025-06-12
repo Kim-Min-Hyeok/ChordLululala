@@ -39,7 +39,7 @@ final class ContentFileManagerManager {
     
     // 폴더 생성
     func createFolder(named folderName: String,
-                      relativeTo currentParent: ContentModel?,
+                      relativeTo currentParent: Content?,
                       dashboardContents: DashboardContents,
                       completion: @escaping (Result<(folderURL: URL, relativePath: String), FileServiceError>) -> Void) {
         

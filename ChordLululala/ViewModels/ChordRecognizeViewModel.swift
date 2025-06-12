@@ -13,15 +13,15 @@ enum RecognitionState {
     case keyFixing
     case chordFixing
     case keyTranspostion
-//    case keyFixingAndTransposition
+    //    case keyFixingAndTransposition
 }
 
 final class ChordRecognizeViewModel: ObservableObject {
     @Published var state: RecognitionState = .recognition
     
     @Published var pagesImages: [UIImage] = []
-    @Published var pageModels: [ScorePageModel] = []
-    @Published var chordLists: [[ScoreChordModel]] = []
+    @Published var scorePages: [ScorePage] = []
+    @Published var scoreChords: [[ScoreChord]] = []
     @Published var doneCount: Int = 0
     @Published var totalCount: Int = 0
     
@@ -31,7 +31,7 @@ final class ChordRecognizeViewModel: ObservableObject {
     @Published var isSharp: Bool = true
     
     @Published var selectedPage = 0
-    @Published var editingChord: ScoreChordModel? = nil
+    @Published var editingChord: ScoreChord? = nil
     
     // 키 인식되면, 바로 모달띄워야 하므로 viewModel로 관리
     @Published var showKeyTranspositionModal: Bool = false
@@ -47,57 +47,59 @@ final class ChordRecognizeViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     
     /// Content → ScoreDetail → 기존 ScorePageModel → ScoreChord 인식 & 저장
-    func startRecognition(for file: ContentModel) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: file),
+    func startRecognition(for file: Content) {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: file),
               let pdfURL  = ScoreDetailManager.shared.getContentURL(for: detail)
         else {
-            print("⚠️ Missing ScoreDetail or PDF URL for Content \(file.cid)")
+            print("⚠️ Missing ScoreDetail or PDF URL for Content \(file.objectID)")
             return
         }
         
         // 이미 코드 인식을 했으면 (이미 key 및 t_key가 존재하면 바로 chordFixing으로 이동)
-        if !detail.key.isEmpty && !detail.t_key.isEmpty {
+        if let key = detail.key, !key.isEmpty,
+           let t_key = detail.t_key, !t_key.isEmpty
+        {
             // MARK: Plan B Start
             self.state = .keyTranspostion
             self.showKeyTranspositionModal = true
             // MARK: Plan B End
             // MARK: Plan A Start
-//            self.state = .keyFixingAndTransposition
+            //            self.state = .keyFixingAndTransposition
             // MARK: Plan A End
-
+            
             DispatchQueue.main.async {
-                self.key = detail.key
-                self.t_key = detail.t_key
-                self.isSharp = self.sharpKeys.keys.contains(detail.t_key)
-
+                self.key = key
+                self.t_key = t_key
+                self.isSharp = self.sharpKeys.keys.contains(t_key)
+                
                 // ✅ 수정된 부분
                 if self.isSharp {
                     self.transposeAmount = self.sharpKeys[self.t_key] ?? 0
                 } else {
                     self.transposeAmount = self.flatKeys[self.t_key] ?? 0
                 }
-
-                self.pageModels  = ScorePageManager.shared.fetchPageModels(for: detail)
-                self.chordLists  = self.pageModels.map { ScoreChordManager.shared.fetch(for: $0) }
+                
+                self.scorePages  = ScorePageManager.shared.fetchPages(for: detail)
+                self.scoreChords  = self.scorePages.map { ScoreChordManager.shared.fetchChords(for: $0) }
                 self.pagesImages = PDFProcessor.extractPages(from: pdfURL)
-                self.totalCount  = self.pageModels.count
+                self.totalCount  = self.scorePages.count
                 self.doneCount   = self.totalCount
             }
-            print("✅ 이미 key 정보 존재: \(detail.key), \(detail.t_key)")
+            print("✅ 이미 key 정보 존재: \(String(describing: detail.key)), \(String(describing: detail.t_key))")
             return
         } else {
-            print("⚠️ key 또는 t_key 비어 있음: key=\(detail.key), t_key=\(detail.t_key)")
+            print("⚠️ key 또는 t_key 비어 있음: key=\(String(describing: detail.key)), t_key=\(String(describing: detail.t_key))")
         }
         
         // 1) 페이지 모델 + 이미지 준비
-        let pModels = ScorePageManager.shared.fetchPageModels(for: detail)
+        let pages = ScorePageManager.shared.fetchPages(for: detail)
         let imgs    = PDFProcessor.extractPages(from: pdfURL)
         
         DispatchQueue.main.async {
-            self.pageModels  = pModels
+            self.scorePages  = pages
             self.pagesImages = imgs
-            self.chordLists  = Array(repeating: [], count: pModels.count)
-            self.totalCount  = pModels.count
+            self.scoreChords  = Array(repeating: [], count: pages.count)
+            self.totalCount  = pages.count
             self.doneCount   = 0
         }
         
@@ -106,110 +108,145 @@ final class ChordRecognizeViewModel: ObservableObject {
             ChordRecognizeManager.shared
                 .recognize(image: image)
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] processed, chords in
-                    guard let self = self else { return }
-                    // CoreData 저장
-                    ScoreChordManager.shared.save(chords: chords, for: self.pageModels[idx])
-                    // ViewModel 반영
-                    self.chordLists[idx] = chords
-                    self.doneCount    += 1
-                }
+                .sink(
+                    receiveCompletion: { _ in },
+                    receiveValue: { [weak self] processedImage, recognizedChords in
+                        guard let self = self else { return }
+                        let pageEntity = pages[idx]
+
+                        // RecognizedChord → ScoreChord 변환
+                        let chordEntities = recognizedChords.map { rc -> ScoreChord in
+                            let ent = ScoreChord(context: CoreDataManager.shared.context)
+                            ent.chord     = rc.text
+                            ent.x         = Double(rc.rect.origin.x)
+                            ent.y         = Double(rc.rect.origin.y)
+                            ent.width     = Double(rc.rect.width)
+                            ent.height    = Double(rc.rect.height)
+                            ent.scorePage = pageEntity
+                            return ent
+                        }
+
+                        ScoreChordManager.shared.save(chords: chordEntities, for: pageEntity)
+
+                        // 저장된 값을 다시 fetch 해서 UI에 뿌리기
+                        self.scoreChords[idx] = ScoreChordManager.shared.fetchChords(for: pageEntity)
+                        self.doneCount    += 1
+                    }
+                )
                 .store(in: &cancellables)
         }
     }
     
-    func findKey() {
-        guard let firstPage = chordLists.first,
-              let topLeftChord = firstPage.min(by: { ($0.x * $0.y) < ($1.x * $1.y) })
-        else { return }
-        
-        let chord = topLeftChord.chord
-        let pattern = "^[A-Ga-g][#♯b♭]?"
-        let root: String
-        
-        if let match = chord.range(of: pattern, options: .regularExpression) {
-            root = String(chord[match])
-                .uppercased()
-                .replacingOccurrences(of: "♯", with: "#")
-                .replacingOccurrences(of: "♭", with: "b")
-        } else {
-            root = chord.uppercased()
+    private func extractRoot(from chord: String) -> String {
+        let scalars = chord.unicodeScalars
+        guard let first = scalars.first,
+              CharacterSet(charactersIn: "A-Za-z").contains(first) else {
+            return chord.uppercased()
         }
+        // A~G + optional #/b/♯/♭
+        let valid = CharacterSet(charactersIn: "ABCDEFGabcdefg#b♯♭")
+        let rootScalars = scalars.prefix { valid.contains($0) }
+        return String(rootScalars)
+            .uppercased()
+            .replacingOccurrences(of: "♯", with: "#")
+            .replacingOccurrences(of: "♭", with: "b")
+    }
+    
+    func findKey() {
+        // 1) 첫 페이지의 코드 배열이 있고 비어있지 않은지
+        guard let chords = scoreChords.first, !chords.isEmpty else { return }
         
+        // 2) 화면 상단(작은 y) → 왼쪽(작은 x) 순으로 top-left 찾기
+        let topLeft = chords.min { a, b in
+            if a.y != b.y { return a.y < b.y }
+            return a.x < b.x
+        }!
+        
+        // 3) 루트만 추출
+        let root = extractRoot(from: topLeft.chord ?? "C")
         key = root
         
-        if let count = sharpKeys[root] {
-            isSharp = true
-            transposeAmount = count
-        } else if let count = flatKeys[root] {
-            isSharp = false
-            transposeAmount = count
+        // 4) 전조량 결정
+        if let cnt = sharpKeys[root] {
+            isSharp         = true
+            transposeAmount = cnt
+        } else if let cnt = flatKeys[root] {
+            isSharp         = false
+            transposeAmount = cnt
         } else {
-            isSharp = true
+            // 기본값
+            isSharp         = true
             transposeAmount = 0
         }
         
-        print("🎵 topLeftChord = \(topLeftChord.chord), position = (\(topLeftChord.x), \(topLeftChord.y))")
-        
+        print("🎵 topLeftChord = \(String(describing: topLeft.chord)), position = (\(topLeft.x), \(topLeft.y)), root = \(root)")
     }
     
-    func fixingKey(for file: ContentModel) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: file) else { return }
+    func fixingKey(for file: Content) {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: file) else { return }
         
         detail.key = key
         detail.t_key = t_key
         isSharp = sharpKeys.keys.contains(t_key)
-        ScoreDetailManager.shared.update(detailModel: detail)
+        ScoreDetailManager.shared.save(detailEntity: detail)
     }
     
-    func applyTransposedKey(for file: ContentModel) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: file) else { return }
+    func applyTransposedKey(for file: Content) {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: file) else { return }
         detail.t_key = t_key
         isSharp = sharpKeys.keys.contains(t_key)
-        ScoreDetailManager.shared.update(detailModel: detail)
+        ScoreDetailManager.shared.save(detailEntity: detail)
     }
     
-    func updateChordPosition(_ chord: ScoreChordModel, pageIndex: Int, newPos: CGPoint, imageSize: CGSize, displaySize: CGSize) {
+    func updateChordPosition(_ chord: ScoreChord, pageIndex: Int, newPos: CGPoint, imageSize: CGSize, displaySize: CGSize) {
         // 변환: 디스플레이 위치 → 원본 이미지 위치
         let newX = newPos.x * imageSize.width / displaySize.width
         let newY = newPos.y * imageSize.height / displaySize.height
         
-        if let idx = chordLists[pageIndex].firstIndex(where: { $0.s_cid == chord.s_cid }) {
-            chordLists[pageIndex][idx].x = Double(Int(newX))
-            chordLists[pageIndex][idx].y = Double(Int(newY))
+        if let idx = scoreChords[pageIndex].firstIndex(where: { $0.objectID == chord.objectID }) {
+            scoreChords[pageIndex][idx].x = Double(Int(newX))
+            scoreChords[pageIndex][idx].y = Double(Int(newY))
         }
     }
     
-    func deleteChord(_ chord: ScoreChordModel, pageIndex: Int) {
-        chordLists[pageIndex].removeAll { $0.s_cid == chord.s_cid }
+    func deleteChord(_ chord: ScoreChord, pageIndex: Int) {
+        scoreChords[pageIndex].removeAll { $0.objectID == chord.objectID }
+    }
+    
+    func updateChord(editing: ScoreChord, newText: String) {
+        // 1) 해당 페이지에서 index 찾기
+        guard let idx = scoreChords[selectedPage]
+            .firstIndex(where: { $0.objectID == editing.objectID })
+        else { return }
+        // 2) 배열 수정
+        scoreChords[selectedPage][idx].chord = newText
     }
     
     func addNewChord(text: String, to pageIndex: Int, position: CGPoint) {
-        // 역변환: 현재 t_key 기준으로 입력된 text를 원래 key 기준으로 되돌림
-        let originalChord = reverseTransposedChord(for: text)
+        let original = reverseTransposedChord(for: text)
+        let scorePage = scorePages[pageIndex]
+        let chordEnt = ScoreChord(context: CoreDataManager.shared.context)
+        chordEnt.chord = original
+        chordEnt.x = Double(position.x)
+        chordEnt.y = Double(position.y)
+        chordEnt.width = 60
+        chordEnt.height = 24
+        chordEnt.scorePage = scorePage
         
-        let newChord = ScoreChordModel(
-            s_cid: UUID(),
-            chord: originalChord,
-            x: Double(position.x),
-            y: Double(position.y),
-            width: 60,
-            height: 24
-        )
-        chordLists[pageIndex].append(newChord)
+        scoreChords[pageIndex].append(chordEnt)
     }
     
     func finalizeChordRecognition(completion: @escaping () -> Void) {
-        for (idx, chords) in chordLists.enumerated() {
-            let pageModel = pageModels[idx]
-            ScoreChordManager.shared.save(chords: chords, for: pageModel)
+        for (idx, chords) in scoreChords.enumerated() {
+            let scorePage = scorePages[idx]
+            ScoreChordManager.shared.save(chords: chords, for: scorePage)
         }
         completion()
     }
     
     func transposedChord(for original: String) -> String {
         guard key != t_key else { return original }
-
+        
         let enharmonicMap: [String: Int] = [
             "C": 0, "B#": 0,
             "C#": 1, "Db": 1,
@@ -236,26 +273,26 @@ final class ChordRecognizeViewModel: ObservableObject {
                   let index = enharmonicMap[match] else { return nil }
             return (index, match)
         }
-
+        
         guard let from = enharmonicMap[key],
               let to   = enharmonicMap[t_key] else { return original }
-
+        
         let diff = (to - from + 12) % 12
         let useSharp = sharpKeys.keys.contains(t_key)
-
+        
         if let (idx, matched) = rootIndex(of: original) {
             let displayMap = useSharp ? displayMapSharp : displayMapFlat
             let newRoot = displayMap[(idx + diff) % 12]
             let suffix = original.dropFirst(matched.count)
             return newRoot + suffix
         }
-
+        
         return original
     }
-
+    
     func reverseTransposedChord(for transposed: String) -> String {
         guard key != t_key else { return transposed }
-
+        
         let enharmonicMap: [String: Int] = [
             "C": 0, "B#": 0,
             "C#": 1, "Db": 1,
@@ -282,20 +319,20 @@ final class ChordRecognizeViewModel: ObservableObject {
                   let index = enharmonicMap[match] else { return nil }
             return (index, match)
         }
-
+        
         guard let from = enharmonicMap[t_key],
               let to   = enharmonicMap[key] else { return transposed }
-
+        
         let diff = (to - from + 12) % 12
         let useSharp = sharpKeys.keys.contains(key)
-
+        
         if let (idx, matched) = rootIndex(of: transposed) {
             let displayMap = useSharp ? displayMapSharp : displayMapFlat
             let newRoot = displayMap[(idx + diff) % 12]
             let suffix = transposed.dropFirst(matched.count)
             return newRoot + suffix
         }
-
+        
         return transposed
     }
 }

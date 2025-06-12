@@ -1,40 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23605" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
     <entity name="Content" representedClassName="Content" syncable="YES" codeGenerationType="class">
-        <attribute name="cid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" attributeType="Date" defaultDateTimeInterval="771421080" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="isStared" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="lastAccessedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="modifiedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="originalParentId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isStared" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastAccessedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>
+        <attribute name="modifiedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String" defaultValueString="&quot;&quot;"/>
         <attribute name="path" optional="YES" attributeType="String"/>
         <attribute name="syncStatus" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="type" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="childContent" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="parentContent" inverseEntity="Content"/>
+        <relationship name="originalChildren" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Content" inverseName="originalParent" inverseEntity="Content"/>
+        <relationship name="originalParent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="originalChildren" inverseEntity="Content"/>
         <relationship name="parentContent" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="childContent" inverseEntity="Content"/>
         <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Cascade" destinationEntity="ScoreDetail" inverseName="content" inverseEntity="ScoreDetail"/>
         <relationship name="setlist" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="setlistScores" inverseEntity="Content"/>
         <relationship name="setlistScores" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="setlist" inverseEntity="Content"/>
     </entity>
     <entity name="ScoreAnnotation" representedClassName="ScoreAnnotation" syncable="YES" codeGenerationType="class">
-        <attribute name="s_aid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="strokeData" optional="YES" attributeType="Binary"/>
         <relationship name="scorePage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScorePage" inverseName="scoreAnnotations" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreChord" representedClassName="ScoreChord" syncable="YES" codeGenerationType="class">
-        <attribute name="chord" optional="YES" attributeType="String"/>
-        <attribute name="height" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="s_cid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="width" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="x" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
-        <attribute name="y" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="chord" attributeType="String" defaultValueString="&quot;C&quot;"/>
+        <attribute name="height" attributeType="Double" defaultValueString="20" usesScalarValueType="YES"/>
+        <attribute name="width" attributeType="Double" defaultValueString="20" usesScalarValueType="YES"/>
+        <attribute name="x" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="y" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="scorePage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScorePage" inverseName="scoreChords" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreDetail" representedClassName="ScoreDetail" syncable="YES" codeGenerationType="class">
         <attribute name="key" optional="YES" attributeType="String"/>
-        <attribute name="s_did" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="t_key" optional="YES" attributeType="String"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="scoreDetail" inverseEntity="Content"/>
         <relationship name="scorePages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScorePage" inverseName="scoreDetail" inverseEntity="ScorePage"/>
@@ -44,13 +41,11 @@
         <attribute name="originalPageIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pageType" optional="YES" attributeType="String"/>
         <attribute name="rotation" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="s_pid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <relationship name="scoreAnnotations" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreAnnotation" inverseName="scorePage" inverseEntity="ScoreAnnotation"/>
         <relationship name="scoreChords" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ScoreChord" inverseName="scorePage" inverseEntity="ScoreChord"/>
         <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScoreDetail" inverseName="scorePages" inverseEntity="ScoreDetail"/>
     </entity>
     <entity name="Setting" representedClassName="Setting" syncable="YES" codeGenerationType="class">
         <attribute name="layout" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="sid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
 </model>

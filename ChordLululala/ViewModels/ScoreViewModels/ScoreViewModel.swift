@@ -6,7 +6,7 @@ import PDFKit
 import PencilKit
 
 final class ScoreViewModel: ObservableObject{
-    @Published var content: ContentModel
+    @Published var content: Content
     
     @Published var pages: [UIImage] = []
     @Published var currentPage: Int = 0
@@ -33,7 +33,7 @@ final class ScoreViewModel: ObservableObject{
     
     private var cancellables = Set<AnyCancellable>()
     
-    init(content: ContentModel) {
+    init(content: Content) {
         self.content = content
         self.chordBoxViewModel = ChordBoxViewModel(content: content)
         self.annotationViewModel = ScoreAnnotationViewModel(content: content)
@@ -51,7 +51,7 @@ final class ScoreViewModel: ObservableObject{
     }
     
     // MARK: 페이지로드 (Score · Setlist 모두 지원)
-    private func loadPages(_ content: ContentModel) {
+    private func loadPages(_ content: Content) {
         // 1) 도큐먼트 디렉토리 확보
         guard let docs = FileManager.default
                 .urls(for: .documentDirectory, in: .userDomainMask)
@@ -66,29 +66,27 @@ final class ScoreViewModel: ObservableObject{
             return
         }
 
-        // 2) 로드할 ContentModel 결정
-        let contentModels: [ContentModel] = {
+        let contents: [Content] = {
             switch content.type {
-            case .score:
+            case ContentType.score.rawValue:
                 return [content]
-            case .setlist:
+            case ContentType.setlist.rawValue:
                 // Core Data에서 실제 자식 스코어들을 가져옴
                 return ContentManager.shared.fetchScoresFromSetlist(content)
             default:
                 return []
             }
         }()
-        print("\(contentModels.count) 개의 스코어 로드 시작")
+        print("\(contents.count) 개의 스코어 로드 시작")
 
         var newImages:    [UIImage]         = []
         var newRotations: [Int]             = []
         var newDrawings:  [PKDrawing]       = []
-        var newChords:    [[ScoreChordModel]] = []
+        var newChords:    [[ScoreChord]] = []
 
-        // 3) 각 ContentModel → ScoreDetailModel → ScorePage 순회
-        for c in contentModels {
-            print("🎯 \(c.name) - scoreDetail=\(ScoreDetailManager.shared.fetchScoreDetailModel(for: c) != nil), path=\(c.path ?? "nil")")
-            guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: c),
+        for c in contents {
+            print("🎯 \(String(describing: c.name)) - scoreDetail=\(ScoreDetailManager.shared.fetchDetail(for: c) != nil), path=\(c.path ?? "nil")")
+            guard let detail = ScoreDetailManager.shared.fetchDetail(for: c),
                   let relPath = c.path else {
                 print("❌ detail 또는 path 없음, skip")
                 continue
@@ -101,14 +99,13 @@ final class ScoreViewModel: ObservableObject{
                 .bounds(for: .mediaBox).size
                 ?? CGSize(width: 539, height: 697)
 
-            let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-            print("📑 \(c.name) - 페이지 수: \(pageModels.count)")
-            for pm in pageModels {
+            let pages = ScorePageManager.shared.fetchPages(for: detail)
+            print("📑 \(String(describing: c.name)) - 페이지 수: \(pages.count)")
+            for p in pages {
                 // 4-a) 이미지 생성
                 let img: UIImage
-                if pm.pageType == "pdf",
-                   let idx  = pm.originalPageIndex,
-                   let page = pdf?.page(at: idx)
+                if p.pageType == "pdf",
+                   let page = pdf?.page(at: Int(p.originalPageIndex))  // Int16 → Int 캐스팅
                 {
                     let bounds   = page.bounds(for: .mediaBox)
                     let renderer = UIGraphicsImageRenderer(size: bounds.size)
@@ -123,7 +120,7 @@ final class ScoreViewModel: ObservableObject{
                     img = renderer.image { ctx in
                         UIColor.white.setFill()
                         ctx.fill(CGRect(origin: .zero, size: pageSize))
-                        if pm.pageType == "staff",
+                        if p.pageType == "staff",
                            let tpl = UIImage(named: "staff_template") {
                             tpl.draw(in: CGRect(origin: .zero, size: pageSize))
                         }
@@ -132,19 +129,22 @@ final class ScoreViewModel: ObservableObject{
                 newImages.append(img)
 
                 // 4-b) rotation
-                newRotations.append(pm.rotation)
-
+                newRotations.append(Int(p.rotation))
+                
                 // 4-c) annotation
-                if let data = pm.scoreAnnotations.first?.strokeData,
+                let annotationSet = (p.scoreAnnotations as? Set<ScoreAnnotation>) ?? []
+                if let data = annotationSet.first?.strokeData,
                    let drawing = try? PKDrawing(data: data)
                 {
                     newDrawings.append(drawing)
                 } else {
                     newDrawings.append(PKDrawing())
                 }
-
+                
                 // 4-d) chords
-                newChords.append(pm.scoreChords)
+                let chordSet = (p.scoreChords as? Set<ScoreChord>) ?? []
+                let chordArray = Array(chordSet)
+                newChords.append(chordArray)
             }
         }
 
@@ -184,7 +184,7 @@ final class ScoreViewModel: ObservableObject{
     @discardableResult
     func addPage(at index: Int, type: PageType) -> Bool {
         // 1) Core Data에서 ScoreDetail 조회
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: content) else {
             return false
         }
         // 삽입 후 보여줄 새 페이지 인덱스
@@ -206,14 +206,19 @@ final class ScoreViewModel: ObservableObject{
     }
     
     func deletePage(at index: Int) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-        let models = ScorePageManager.shared.fetchPageModels(for: detail)
-        let modelToDelete = models[index]
-        
-        // 1) Core Data에서 삭제
-        guard ScorePageManager.shared.deletePage(with: modelToDelete.s_pid) else { return }
-        
-        // 2) 뷰 업데이트가 끝난 뒤 전체 다시 로드
+        // 1) 해당 Content의 ScoreDetail 엔티티 fetch
+        guard let detailEntity = ScoreDetailManager.shared.fetchDetail(for: content) else {
+            return
+        }
+        // 2) 페이지 리스트(fetch + 정렬)
+        let pages = ScorePageManager.shared.fetchPages(for: detailEntity)
+        // 3) 삭제할 페이지 엔티티 선택
+        let pageToDelete = pages[index]
+        // 4) 삭제 요청 (and reorder inside)
+        guard ScorePageManager.shared.deletePage(pageToDelete) else {
+            return
+        }
+        // 5) 화면 갱신
         DispatchQueue.main.async {
             self.loadPages(self.content)
             self.currentPage = max(0, min(self.currentPage, self.pages.count - 1))
@@ -221,40 +226,53 @@ final class ScoreViewModel: ObservableObject{
     }
     
     func rotatePage(clockwise: Bool) {
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-        let models = ScorePageManager.shared.fetchPageModels(for: detail)
-        let currentModel = models[currentPage]
-        
-        // Core Data에 rotation 값 저장
-        guard ScorePageManager.shared.rotatePage(with: currentModel.s_pid, clockwise: clockwise) else { return }
-        
-        // 뷰 업데이트가 끝난 뒤 전체 페이지 다시 로드
+        // 1) Content → ScoreDetail 엔티티
+        guard let detailEntity = ScoreDetailManager.shared.fetchDetail(for: content) else {
+            return
+        }
+        // 2) 해당 detail의 페이지들(fetch + 정렬)
+        let pages = ScorePageManager.shared.fetchPages(for: detailEntity)
+        guard pages.indices.contains(currentPage) else { return }
+        let pageEntity = pages[currentPage]
+
+        // 3) 엔티티 직접 넘겨서 회전
+        guard ScorePageManager.shared.rotatePage(pageEntity, clockwise: clockwise) else {
+            return
+        }
+
+        // 4) 화면 갱신
         DispatchQueue.main.async {
             self.loadPages(self.content)
         }
     }
     
     func duplicatePage(at index: Int) {
-        // 1) ScoreDetailModel 조회
-        guard let detail = ScoreDetailManager.shared.fetchScoreDetailModel(for: content) else { return }
-        
-        // 2) 원본 PageModel, Annotation, Chord 모델들 가져오기
-        let pageModels = ScorePageManager.shared.fetchPageModels(for: detail)
-        let originalPage = pageModels[index]
-        let annotations = ScoreAnnotationManager2.shared.fetch(for: originalPage)
-        let chords      = ScoreChordManager.shared.fetch(for: originalPage)
-        
-        // 3) Core Data에 페이지 복제
-        guard let newPageModel = ScorePageManager.shared.duplicatePage(for: detail, at: index) else { return }
-        
-        // 4) 필기·코드 복제
-        ScoreAnnotationManager2.shared.clone(from: annotations, to: newPageModel)
-        ScoreChordManager.shared.clone(from: chords, to: newPageModel)
-        
+        // 1) Content → ScoreDetail 엔티티 fetch
+        guard let detailEntity = ScoreDetailManager.shared.fetchDetail(for: content) else {
+            return
+        }
+
+        // 2) 해당 detail의 페이지 엔티티 배열(fetch + 정렬)
+        let pages = ScorePageManager.shared.fetchPages(for: detailEntity)
+        guard pages.indices.contains(index) else { return }
+        let originalPage = pages[index]
+
+        // 3) 원본 페이지 바로 복제
+        guard let newPage = ScorePageManager.shared.clonePage(originalPage) else {
+            return
+        }
+
+        // 4) 필기·코드 복제 (엔티티 기반)
+        let annotations = ScoreAnnotationManager.shared.fetchAnnotations(for: originalPage)
+        ScoreAnnotationManager.shared.cloneAnnotations(annotations, to: newPage)
+
+        let chords = ScoreChordManager.shared.fetchChords(for: originalPage)
+        ScoreChordManager.shared.cloneChords(chords, to: newPage)
+
         // 5) 화면 갱신 & 커서 이동
         DispatchQueue.main.async {
             self.loadPages(self.content)
-            // 복제된 페이지로 이동
+            // 복제된 페이지는 원본 뒤, 즉 index+1 위치
             self.currentPage = index + 1
         }
     }

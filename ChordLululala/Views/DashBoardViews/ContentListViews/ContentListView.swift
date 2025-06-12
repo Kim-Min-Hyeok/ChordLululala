@@ -34,13 +34,13 @@ struct ContentListView: View {
             ScrollView {
                 if isListView {
                     VStack(spacing: 8) {
-                        ForEach(viewModel.sortedContents, id: \.cid) { content in
+                        ForEach(viewModel.sortedContents, id: \.objectID) { content in
                             switch content.type {
-                            case .folder:
+                            case ContentType.folder.rawValue:
                                 FolderListCellView(folder: content)
-                            case .score:
+                            case ContentType.score.rawValue:
                                 FileListCellView(file: content)
-                            case .setlist:
+                            case ContentType.setlist.rawValue:
                                 SetlistListCellView(setlist: content)
                             default:
                                 EmptyView()
@@ -50,13 +50,13 @@ struct ContentListView: View {
                 } else {
                     let columns: [GridItem] = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
                     LazyVGrid(columns: columns, spacing: 18) {
-                        ForEach(viewModel.sortedContents, id: \.cid) { content in
+                        ForEach(viewModel.sortedContents, id: \.objectID) { content in
                             switch content.type {
-                            case .folder:
+                            case ContentType.folder.rawValue:
                                 FolderGridCellView(folder: content)
-                            case .score:
+                            case ContentType.score.rawValue:
                                 FileGridCellView(file: content)
-                            case .setlist:
+                            case ContentType.setlist.rawValue:
                                 SetlistGridCellView(setlist: content)
                             default:
                                 EmptyView()

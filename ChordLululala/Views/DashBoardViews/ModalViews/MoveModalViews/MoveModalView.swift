@@ -9,23 +9,25 @@ import SwiftUI
 
 struct MoveModalView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-
+    
+    var isDisabled: Bool {
+        viewModel.selectedDestination == nil || viewModel.selectedDestination?.objectID == viewModel.currentParent?.objectID
+    }
+    
     var body: some View {
-        let dest = viewModel.selectedDestination
-        let isDisabled = dest == nil || dest?.cid == viewModel.currentParent?.cid
-
+        
         VStack(spacing: 0) {
             Text("파일 이동")
                 .textStyle(.headingMdSemiBold)
                 .foregroundStyle(Color.primaryGray900)
                 .padding(.vertical, 18)
-
+            
             ScrollView {
                 LazyVStack(spacing: 0) {
-                    ForEach(viewModel.moveDestinations.filter { $0.type == .folder }, id: \.cid) { folder in
+                    ForEach(viewModel.moveDestinations.filter { $0.type == ContentType.folder.rawValue }, id: \.objectID) { folder in
                         MoveFolderButtonView(
                             folder: folder,
-                            isSelected: dest?.cid == folder.cid
+                            isSelected: viewModel.selectedDestination?.objectID == folder.objectID
                         ) {
                             viewModel.selectedDestination = folder
                         }
@@ -46,13 +48,13 @@ struct MoveModalView: View {
                 }
                 .contentShape(Rectangle())
                 .foregroundColor(.primaryBlue600)
-
+                
                 Divider()
                     .frame(height: 44)
                     .foregroundStyle(Color.primaryGray300)
-
+                
                 Button {
-                    guard let destination = dest else { return }
+                    guard let destination = viewModel.selectedDestination else { return }
                     viewModel.moveSelectedContents(to: destination)
                 } label: {
                     Text("이동")

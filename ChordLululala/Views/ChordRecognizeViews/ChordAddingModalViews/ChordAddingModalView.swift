@@ -10,7 +10,7 @@ import SwiftUI
 struct ChordAddingModalView: View {
     @StateObject private var vm = ChordAddingModalViewModel()
     
-    let editingChord: ScoreChordModel?
+    let editingChord: ScoreChord?
     let onCancel: () -> Void
     let onConfirm: (String) -> Void
     
@@ -60,7 +60,7 @@ struct ChordAddingModalView: View {
         }
         .onAppear {
             if let chord = editingChord {
-                vm.setInitialChord(chord.chord)
+                vm.setInitialChord(chord.chord ?? "C")
             } else {
                 vm.setInitialChord("")
             }

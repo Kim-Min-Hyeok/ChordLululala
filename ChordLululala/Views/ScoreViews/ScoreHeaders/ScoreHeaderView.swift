@@ -14,7 +14,7 @@ struct ScoreHeaderView: View {
     @State var isAnnotationMode: Bool = false
     
     // Pararameter
-    let file : ContentModel
+    let file : Content
     
     let toggleAnnotationMode: () -> Void
     let presentAddPageModal: () -> Void
@@ -42,13 +42,14 @@ struct ScoreHeaderView: View {
                 Spacer().frame(width: leftSpacerWidth)
         
                 /// 제목
-                Text(file.name.count > 10
-                     ? "\(file.name.prefix(10))…"
-                     : file.name)
-                    .foregroundColor(Color.primaryGray900)
-                    .textStyle(.headingLgSemiBold)
-                    .layoutPriority(1)
-                    .lineLimit(1)
+                Text({
+                    let name = file.name ?? ""
+                    return name.count > 10 ? "\(name.prefix(10))…" : name
+                }())
+                .foregroundColor(Color.primaryGray900)
+                .textStyle(.headingLgSemiBold)
+                .layoutPriority(1)
+                .lineLimit(1)
                 Spacer()
                 
                 HStack(spacing: 7){
