@@ -38,7 +38,8 @@ struct ChordConfirmView: View {
             Spacer()
 
             Button(action: {
-                router.offNamed("/score", arguments: [file])
+                NotificationCenter.default.post(name: .didTransposeChord, object: file)
+                router.back()
             }) {
                 Text("해당 악보 바로 시작하기")
                     .textStyle(.headingMdSemiBold)

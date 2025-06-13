@@ -16,17 +16,14 @@ struct ScoreHeaderView: View {
     // Pararameter
     let file : Content
     
+    let presentSetlistOverViewModal: () -> Void
     let toggleAnnotationMode: () -> Void
     let presentAddPageModal: () -> Void
     let presentOverViewModal: () -> Void
     let toggleSettingViewModal: () -> Void
     
     var body: some View {
-        GeometryReader { geo in
-            let isLandscape = geo.size.width > geo.size.height // 화면이 가로모드이면 true, 세로모드이면 false
-            let leftSpacerWidth: CGFloat = isLandscape ? 456 : 16
-            
-            
+        ZStack(alignment: .bottom) {
             HStack(spacing:0){
                 /// 뒤로가기
                 Button(action:{
@@ -39,17 +36,18 @@ struct ScoreHeaderView: View {
                         .foregroundColor(Color.primaryBaseBlack)
                 }
                 
-                Spacer().frame(width: leftSpacerWidth)
-        
-                /// 제목
-                Text({
-                    let name = file.name ?? ""
-                    return name.count > 10 ? "\(name.prefix(10))…" : name
-                }())
-                .foregroundColor(Color.primaryGray900)
-                .textStyle(.headingLgSemiBold)
-                .layoutPriority(1)
-                .lineLimit(1)
+                if file.type == ContentType.setlist.rawValue {
+                    Button(action:{
+                        presentSetlistOverViewModal()
+                    }){
+                        Image("scoreheader_score_list")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 36, height: 36)
+                    }
+                    .padding(.leading, 7)
+                }
+                
                 Spacer()
                 
                 HStack(spacing: 7){
@@ -77,26 +75,28 @@ struct ScoreHeaderView: View {
                             .foregroundColor(Color.primaryBaseBlack)
                     }
                     
-                    /// 키변환
-                    Button(action:{
-                        router.offNamed("/chordreconize", arguments: [ file ])
-                        
-                    }){
-                        HStack{
-                            Image("scoreheader_chordchange")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
+                    if file.type == ContentType.score.rawValue {
+                        /// 키변환
+                        Button(action:{
+                            router.toNamed("/chordreconize", arguments: [ file ])
                             
-                            Text("키변환")
-                                .textStyle(.headingLgMedium)
+                        }){
+                            HStack{
+                                Image("scoreheader_chordchange")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 24, height: 24)
+                                
+                                Text("키변환")
+                                    .textStyle(.headingLgMedium)
+                            }
                         }
+                        .frame(width: 94, height: 42)
+                        .background(Color.primaryBlue500)
+                        .foregroundColor(Color.primaryBaseWhite)
+                        .cornerRadius(8)
+                        .padding(.trailing,10)
                     }
-                    .frame(width: 94, height: 42)
-                    .background(Color.primaryBlue500)
-                    .foregroundColor(Color.primaryBaseWhite)
-                    .cornerRadius(8)
-                    .padding(.trailing,10)
                     
                     ///전체 페이지 보기
                     Button(action:{
@@ -126,12 +126,19 @@ struct ScoreHeaderView: View {
                 
             }
             .padding(.horizontal, 22)
-            .frame(maxHeight:.infinity,
+            .frame(height:91,
                    alignment: .bottom)
             
-            
+            /// 제목
+            Text({
+                let name = file.name ?? ""
+                return name.count > 10 ? "\(name.prefix(10))…" : name
+            }())
+            .foregroundColor(Color.primaryGray900)
+            .textStyle(.headingLgSemiBold)
+            .layoutPriority(1)
+            .lineLimit(1)
+            .padding(.bottom, 12)
         }
-        .frame(height: 91)
-        
     }
 }

@@ -159,7 +159,7 @@ struct ContentManager {
                 dashboardContents: dashboardContents
             ) { result in
                 switch result {
-                case .success(let (folderURL, relPath)):
+                case .success(let (_, relPath)):
                     _ = ContentCoreDataManager.shared.createContent(
                         name: folderName,
                         path: relPath,
@@ -223,6 +223,14 @@ struct ContentManager {
             }
         }
         .eraseToAnyPublisher()
+    }
+    
+    func updateSetlistDisplayOrder(for contents: [Content]) {
+        for (index, content) in contents.enumerated() {
+            content.displayOrder = Int16(index)
+        }
+        
+        CoreDataManager.shared.saveContext()
     }
     
     // 파일 이동
@@ -387,7 +395,7 @@ struct ContentManager {
             case .score, .scoresOfSetlist:
                 guard
                     let oldRel = entity.path,
-                    let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+                    let _ = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
                 else {
                     return promise(.success(entity))
                 }
@@ -487,6 +495,21 @@ struct ContentManager {
         }
         .eraseToAnyPublisher()
     }
+    
+    @discardableResult
+    func removeScoreFromSetlist(_ score: Content, in orderedScores: [Content]) -> Bool {
+        guard let removedIndex = orderedScores.firstIndex(where: { $0.objectID == score.objectID }) else { return false }
+
+        ContentCoreDataManager.shared.deleteContent(score)
+
+        for i in (removedIndex + 1)..<orderedScores.count {
+            orderedScores[i].displayOrder -= 1
+        }
+
+        CoreDataManager.shared.saveContext()
+        return true
+    }
+    
     // 셋리스트의 Contents 가져오기 (sync)
     func fetchScoresFromSetlist(_ setlist: Content) -> [Content] {
         return ContentCoreDataManager.shared.fetchScoresFromSetlist(setlist)

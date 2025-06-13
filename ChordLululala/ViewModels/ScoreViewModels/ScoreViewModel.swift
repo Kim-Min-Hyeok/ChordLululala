@@ -12,6 +12,7 @@ final class ScoreViewModel: ObservableObject{
     @Published var currentPage: Int = 0
     
     // MARK: 모달뷰 Presented
+    @Published var isSetlistOverViewModalView: Bool = false
     @Published var isAdditionModalView: Bool = false
     @Published var isOverViewModalView: Bool = false
     @Published var isSettingModalView: Bool = false
@@ -27,6 +28,7 @@ final class ScoreViewModel: ObservableObject{
     let pageAdditionViewModel = PageAdditionViewModel()
     let imageZoomeViewModel = ImageZoomViewModel()
     let scorePageOverViewModel = ScorePageOverViewModel()
+    let scoreSetlistOverViewModel = ScoreSetlistOverViewModel()
     
     let chordBoxViewModel: ChordBoxViewModel
     let annotationViewModel: ScoreAnnotationViewModel
@@ -38,14 +40,39 @@ final class ScoreViewModel: ObservableObject{
         self.chordBoxViewModel = ChordBoxViewModel()
         self.annotationViewModel = ScoreAnnotationViewModel()
         
-        loadPages(content)
+        if content.type == ContentType.setlist.rawValue {
+            scoreSetlistOverViewModel.setSetlist(content)
+            print(scoreSetlistOverViewModel.scores.count, "scores in setlist")
+        }
         
+        loadPages(content)
+        setupBindings()
+    }
+    
+    private func setupBindings() {
         $isAdditionModalView
             .filter { $0 }
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 self.pageAdditionViewModel.setContent(self.content)
                 self.pageAdditionViewModel.currentPage = self.currentPage
+            }
+            .store(in: &cancellables)
+
+        $isSetlistOverViewModalView
+            .dropFirst()
+            .removeDuplicates()
+            .filter { !$0 }
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.loadPages(self.content)
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .didTransposeChord)
+            .compactMap { $0.object as? Content }
+            .sink { [weak self] updated in
+                self?.loadPages(updated)
             }
             .store(in: &cancellables)
     }

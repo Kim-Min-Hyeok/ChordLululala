@@ -17,6 +17,9 @@ struct ScoreView : View {
                 if !viewModel.isPlayMode {
                     ScoreHeaderView(
                         file: viewModel.content,
+                        presentSetlistOverViewModal: {
+                            viewModel.isSetlistOverViewModalView = true
+                        },
                         toggleAnnotationMode: {
                             viewModel.isAnnotationMode.toggle()
                         },
@@ -144,6 +147,20 @@ struct ScoreView : View {
                     )
                     .padding(.top, 100)
                     .padding(.trailing, 26)
+                }
+            }
+            if viewModel.isSetlistOverViewModalView {
+                ZStack {
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isSetlistOverViewModalView = false
+                        }
+                    
+                    ScoreSetlistOverView(
+                        viewModel: viewModel.scoreSetlistOverViewModel
+                    )
                 }
             }
         }
