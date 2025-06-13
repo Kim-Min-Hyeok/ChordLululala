@@ -65,7 +65,10 @@ struct FixingKeyModalView: View {
             
             HStack(spacing: 0) {
                 // ♭ 버튼
-                Button(action: { isSharp = false }) {
+                Button(action: {
+                    isSharp = false
+                    updateKeyText()
+                }) {
                     Text("♭")
                         .frame(maxWidth: .infinity)
                         .frame(height: 30)
@@ -91,7 +94,10 @@ struct FixingKeyModalView: View {
                 }
                 
                 // # 버튼
-                Button(action: { isSharp = true }) {
+                Button(action: {
+                    isSharp = true
+                    updateKeyText()
+                }) {
                     Text("#")
                         .frame(maxWidth: .infinity)
                         .frame(height: 30)
@@ -129,6 +135,7 @@ struct FixingKeyModalView: View {
                     if transposeAmount > 0 {
                         transposeAmount -= 1
                     }
+                    updateKeyText()
                 }) {
                     Image(systemName: "minus")
                         .frame(width: 20, height: 20)
@@ -149,6 +156,7 @@ struct FixingKeyModalView: View {
                     if transposeAmount < 7 {
                         transposeAmount += 1
                     }
+                    updateKeyText()
                 }) {
                     Image(systemName: "plus")
                         .frame(width: 20, height: 20)
@@ -180,15 +188,9 @@ struct FixingKeyModalView: View {
         .cornerRadius(10)
         .shadow(radius: 30)
         .onAppear {
-            self.keyText = initialKey
             self.isSharp = initialIsSharp
             self.transposeAmount = initialTransposeAmount
-        }
-        .onChange(of: isSharp) {
-            updateKeyText()
-        }
-        .onChange(of: transposeAmount) {
-            updateKeyText()
+            self.keyText = initialKey
         }
     }
     

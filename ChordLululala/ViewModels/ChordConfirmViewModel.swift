@@ -30,13 +30,23 @@ final class ChordConfirmViewModel: ObservableObject {
         guard let detail = ScoreDetailManager.shared.fetchDetail(for: content),
               let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail)
         else { return }
-        
+
         key = detail.key ?? "C"
         t_key = detail.t_key ?? "C"
-        
-        let pages = ScorePageManager.shared.fetchPages(for: detail)
-        pagesImages = Array(PDFProcessor.extractPages(from: pdfURL).prefix(3))
-        chordLists = pages.prefix(3).map { ScoreChordManager.shared.fetchChords(for: $0) }
+
+        let allPages = ScorePageManager.shared.fetchPages(for: detail)
+        let pdfPages = allPages
+            .filter { $0.pageType == "pdf" }
+            .sorted { ($0.originalPageIndex) < ($1.originalPageIndex) }
+
+        let allImages = PDFProcessor.extractPages(from: pdfURL)
+
+        let minCount = min(3, allImages.count, pdfPages.count)
+        let usedPages = Array(pdfPages.prefix(minCount))
+        let usedImages = Array(allImages.prefix(minCount))
+
+        self.pagesImages = usedImages
+        self.chordLists  = usedPages.map { ScoreChordManager.shared.fetchChords(for: $0) }
     }
     
     func transposedChord(for original: String) -> String {

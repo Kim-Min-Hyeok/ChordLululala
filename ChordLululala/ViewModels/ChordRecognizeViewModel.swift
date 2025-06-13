@@ -59,20 +59,11 @@ final class ChordRecognizeViewModel: ObservableObject {
         if let key = detail.key, !key.isEmpty,
            let t_key = detail.t_key, !t_key.isEmpty
         {
-            // MARK: Plan B Start
-            self.state = .keyTranspostion
-            self.showKeyTranspositionModal = true
-            // MARK: Plan B End
-            // MARK: Plan A Start
-            //            self.state = .keyFixingAndTransposition
-            // MARK: Plan A End
-            
             DispatchQueue.main.async {
                 self.key = key
                 self.t_key = t_key
                 self.isSharp = self.sharpKeys.keys.contains(t_key)
                 
-                // ✅ 수정된 부분
                 if self.isSharp {
                     self.transposeAmount = self.sharpKeys[self.t_key] ?? 0
                 } else {
@@ -84,27 +75,47 @@ final class ChordRecognizeViewModel: ObservableObject {
                 self.pagesImages = PDFProcessor.extractPages(from: pdfURL)
                 self.totalCount  = self.scorePages.count
                 self.doneCount   = self.totalCount
+                
+                // MARK: Plan B Start
+                self.state = .keyTranspostion
+                self.showKeyTranspositionModal = true
+                // MARK: Plan B End
+                // MARK: Plan A Start
+                //            self.state = .keyFixingAndTransposition
+                // MARK: Plan A End
             }
             print("✅ 이미 key 정보 존재: \(String(describing: detail.key)), \(String(describing: detail.t_key))")
+            
             return
         } else {
             print("⚠️ key 또는 t_key 비어 있음: key=\(String(describing: detail.key)), t_key=\(String(describing: detail.t_key))")
         }
         
-        // 1) 페이지 모델 + 이미지 준비
-        let pages = ScorePageManager.shared.fetchPages(for: detail)
-        let imgs    = PDFProcessor.extractPages(from: pdfURL)
-        
+        let allPages = ScorePageManager.shared.fetchPages(for: detail)
+        let pdfPages = allPages.filter { $0.pageType == "pdf" }
+        let images = PDFProcessor.extractPages(from: pdfURL)  // index: 0 ~ n-1
+
+        // 1. originalPageIndex 기준 정렬 (PDF 순서 기준)
+        let sortedPages = pdfPages.sorted { ($0.originalPageIndex) < ($1.originalPageIndex) }
+
+        // 2. 매핑 가능한 범위만큼만 사용
+        let minCount = min(images.count, sortedPages.count)
+        let pagesToUse = Array(sortedPages.prefix(minCount))
+        let imagesToUse = Array(images.prefix(minCount))
+
         DispatchQueue.main.async {
-            self.scorePages  = pages
-            self.pagesImages = imgs
-            self.scoreChords  = Array(repeating: [], count: pages.count)
-            self.totalCount  = pages.count
-            self.doneCount   = 0
+            self.scorePages = pagesToUse
+            self.pagesImages = imagesToUse
+            self.scoreChords = Array(repeating: [], count: minCount)
+            self.totalCount = minCount
+            self.doneCount = 0
         }
-        
-        // 2) OCR & 저장 & 업데이트
-        for (idx, image) in imgs.enumerated() {
+
+        // 3. OCR 수행 시도
+        for idx in 0..<minCount {
+            let pageEntity = pagesToUse[idx]
+            let image = imagesToUse[idx]
+
             ChordRecognizeManager.shared
                 .recognize(image: image)
                 .receive(on: DispatchQueue.main)
@@ -112,9 +123,7 @@ final class ChordRecognizeViewModel: ObservableObject {
                     receiveCompletion: { _ in },
                     receiveValue: { [weak self] processedImage, recognizedChords in
                         guard let self = self else { return }
-                        let pageEntity = pages[idx]
 
-                        // RecognizedChord → ScoreChord 변환
                         let chordEntities = recognizedChords.map { rc -> ScoreChord in
                             let ent = ScoreChord(context: CoreDataManager.shared.context)
                             ent.chord     = rc.text
@@ -127,10 +136,8 @@ final class ChordRecognizeViewModel: ObservableObject {
                         }
 
                         ScoreChordManager.shared.save(chords: chordEntities, for: pageEntity)
-
-                        // 저장된 값을 다시 fetch 해서 UI에 뿌리기
-                        self.scoreChords[idx] = ScoreChordManager.shared.fetchChords(for: pageEntity)
-                        self.doneCount    += 1
+                        self.scoreChords[idx] = chordEntities
+                        self.doneCount += 1
                     }
                 )
                 .store(in: &cancellables)
@@ -225,7 +232,13 @@ final class ChordRecognizeViewModel: ObservableObject {
     func addNewChord(text: String, to pageIndex: Int, position: CGPoint) {
         let original = reverseTransposedChord(for: text)
         let scorePage = scorePages[pageIndex]
-        let chordEnt = ScoreChord(context: CoreDataManager.shared.context)
+        
+        guard let context = scorePage.managedObjectContext else {
+            print("⚠️ scorePage에 context 없음")
+            return
+        }
+
+        let chordEnt = ScoreChord(context: context)
         chordEnt.chord = original
         chordEnt.x = Double(position.x)
         chordEnt.y = Double(position.y)

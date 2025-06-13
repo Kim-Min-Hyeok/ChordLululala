@@ -54,6 +54,7 @@ final class ScoreDetailManager {
             detail.key       = original.key
             detail.t_key     = original.t_key
             content.scoreDetail = detail
+            detail.content = content
 
             try? context.save()
             return detail

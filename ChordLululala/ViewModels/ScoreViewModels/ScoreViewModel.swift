@@ -35,8 +35,8 @@ final class ScoreViewModel: ObservableObject{
     
     init(content: Content) {
         self.content = content
-        self.chordBoxViewModel = ChordBoxViewModel(content: content)
-        self.annotationViewModel = ScoreAnnotationViewModel(content: content)
+        self.chordBoxViewModel = ChordBoxViewModel()
+        self.annotationViewModel = ScoreAnnotationViewModel()
         
         loadPages(content)
         
@@ -51,7 +51,7 @@ final class ScoreViewModel: ObservableObject{
     }
     
     // MARK: 페이지로드 (Score · Setlist 모두 지원)
-    private func loadPages(_ content: Content) {
+    private func loadPages(_ content: Content, completion: (() -> Void)? = nil) {
         // 1) 도큐먼트 디렉토리 확보
         guard let docs = FileManager.default
                 .urls(for: .documentDirectory, in: .userDomainMask)
@@ -82,7 +82,9 @@ final class ScoreViewModel: ObservableObject{
         var newImages:    [UIImage]         = []
         var newRotations: [Int]             = []
         var newDrawings:  [PKDrawing]       = []
-        var newChords:    [[ScoreChord]] = []
+        var newKey:          String         = "C"
+        var newTKey:         String         = "C"
+        var newChords:    [[ScoreChord]]    = []
 
         for c in contents {
             print("🎯 \(String(describing: c.name)) - scoreDetail=\(ScoreDetailManager.shared.fetchDetail(for: c) != nil), path=\(c.path ?? "nil")")
@@ -98,6 +100,9 @@ final class ScoreViewModel: ObservableObject{
                 .page(at: 0)?
                 .bounds(for: .mediaBox).size
                 ?? CGSize(width: 539, height: 697)
+            
+            newKey = detail.key ?? "C"
+            newTKey = detail.t_key ?? "C"
 
             let pages = ScorePageManager.shared.fetchPages(for: detail)
             print("📑 \(String(describing: c.name)) - 페이지 수: \(pages.count)")
@@ -150,11 +155,14 @@ final class ScoreViewModel: ObservableObject{
 
         // 5) 메인스레드에서 한 번에 갱신
         DispatchQueue.main.async {
-            self.pages = newImages
-            self.rotations = newRotations
-            self.annotationViewModel.pageDrawings = newDrawings
-            self.chordBoxViewModel.chordsForPages = newChords
-        }
+                self.pages = newImages
+                self.rotations = newRotations
+                self.annotationViewModel.pageDrawings = newDrawings
+                self.chordBoxViewModel.chordsForPages = newChords
+                self.chordBoxViewModel.key = newKey
+                self.chordBoxViewModel.t_key = newTKey
+                completion?()
+            }
     }
 
     
@@ -197,9 +205,10 @@ final class ScoreViewModel: ObservableObject{
         
         // 3) 뷰 업데이트가 끝난 뒤 전체 다시 로드
         DispatchQueue.main.async {
-            self.loadPages(self.content)
-            if self.currentPage == index {
-                self.currentPage = newIndex
+            self.loadPages(self.content) {
+                if self.pages.indices.contains(newIndex) {
+                    self.currentPage = newIndex
+                }
             }
         }
         return true
@@ -220,9 +229,10 @@ final class ScoreViewModel: ObservableObject{
         }
         // 5) 화면 갱신
         DispatchQueue.main.async {
-            self.loadPages(self.content)
-            self.currentPage = max(0, min(self.currentPage, self.pages.count - 1))
-        }
+                self.loadPages(self.content) {
+                    self.currentPage = max(0, min(index, self.pages.count - 1))
+                }
+            }
     }
     
     func rotatePage(clockwise: Bool) {
@@ -271,9 +281,9 @@ final class ScoreViewModel: ObservableObject{
 
         // 5) 화면 갱신 & 커서 이동
         DispatchQueue.main.async {
-            self.loadPages(self.content)
-            // 복제된 페이지는 원본 뒤, 즉 index+1 위치
-            self.currentPage = index + 1
+            self.loadPages(self.content) {
+                self.currentPage = index + 1
+            }
         }
     }
     

@@ -16,23 +16,6 @@ final class ChordBoxViewModel: ObservableObject {
     @Published var isSharp: Bool = true
 
     private var cancellables = Set<AnyCancellable>()
-    
-    init(content: Content?) {
-        if let content = content {
-            load(content)
-        }
-    }
-
-    func load(_ content: Content?) {
-        guard let content = content else { return }
-        guard let detail = ScoreDetailManager.shared.fetchDetail(for: content) else { return }
-
-        key = detail.key ?? "C"
-        t_key = detail.t_key ?? "C"
-
-        let pages = ScorePageManager.shared.fetchPages(for: detail)
-        chordsForPages = pages.map { ScoreChordManager.shared.fetchChords(for: $0) }
-    }
 
     func transposedChord(for original: String) -> String {
         guard key != t_key else { return original }
@@ -69,6 +52,7 @@ final class ChordBoxViewModel: ObservableObject {
         let diff = (to - from + 12) % 12
 
         if let (idx, matched) = rootIndex(of: original) {
+            let isSharp = ["C", "G", "D", "A", "E", "B", "F#", "C#"].contains(t_key)
             let displayMap = isSharp ? displayMapSharp : displayMapFlat
             let newRoot = displayMap[(idx + diff) % 12]
             let suffix = original.dropFirst(matched.count)

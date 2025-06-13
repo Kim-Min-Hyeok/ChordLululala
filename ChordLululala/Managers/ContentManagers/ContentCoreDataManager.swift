@@ -123,8 +123,8 @@ final class ContentCoreDataManager {
     }
     
     func fetchScoresFromSetlist(_ setlist: Content) -> [Content] {
-        let children = (setlist.setlistScores as? Set<Content>) ?? []
-        return Array(children)
+        let orderedScores = (setlist.setlistScores as? Set<Content>)?.sorted { $0.displayOrder < $1.displayOrder } ?? []
+        return Array(orderedScores)
     }
     
     // 기본 디렉토리 Content(Score, Setlist_List, Trash_Can) 가져오기
@@ -174,6 +174,7 @@ final class ContentCoreDataManager {
         if let trash = fetchBaseDirectory(named: "Trash_Can") {
             entity.parentContent = trash
         }
+        saveContext()
     }
     
     func restoreContent(entity: Content) {
@@ -194,6 +195,7 @@ final class ContentCoreDataManager {
         // 타임스탬프 복원
         entity.modifiedAt     = Date()
         entity.lastAccessedAt = Date()
+        saveContext()
     }
     
     // MARK: - Delete

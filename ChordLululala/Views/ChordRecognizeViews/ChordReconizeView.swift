@@ -85,7 +85,6 @@ struct ChordReconizeView: View {
                     
                     FixingKeyModalView(
                         onConfirm: { keyText, transposeAmount in
-                            // 여기에서 ViewModel 업데이트 등 처리
                             vm.key = keyText
                             vm.t_key = keyText
                             vm.transposeAmount = transposeAmount
@@ -183,7 +182,6 @@ struct ChordReconizeView: View {
 //                    )
                     FixingKeyModalView(
                         onConfirm: { keyText, transposeAmount in
-                            // 여기에서 ViewModel 업데이트 등 처리
                             vm.t_key = keyText
                             vm.transposeAmount = transposeAmount
                             vm.applyTransposedKey(for: file)
@@ -249,12 +247,6 @@ struct ChordReconizeView: View {
 //                }
 //                .zIndex(2)
 //            }
-        }
-        .onAppear() {
-            print("원래 키:", vm.key, "변환될 키:", vm.t_key, "isSharp:", vm.isSharp)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                print("변환 결과 예시:", vm.transposedChord(for: "D"))
-            }
         }
         .navigationBarHidden(true)
     }

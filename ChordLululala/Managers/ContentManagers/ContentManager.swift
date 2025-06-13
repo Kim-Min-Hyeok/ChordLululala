@@ -111,7 +111,7 @@ struct ContentManager {
                 setlistEntity.lastAccessedAt = now
 
                 // 2) originalScores 각각을 scoresOfSetlist 타입으로 “연결” 복제
-                let scoreEntities: [Content] = originalScores.map { orig in
+                let scoreEntities: [Content] = originalScores.enumerated().map { (idx, orig) in
                     let cloned = ContentCoreDataManager.shared.createContent(
                         name: orig.name ?? "",
                         path: orig.path,
@@ -121,6 +121,7 @@ struct ContentManager {
                     cloned.createdAt      = now
                     cloned.modifiedAt     = now
                     cloned.lastAccessedAt = now
+                    cloned.displayOrder   = Int16(idx)
                     // 연관 관계 설정
                     cloned.setlist = setlistEntity
                     return cloned

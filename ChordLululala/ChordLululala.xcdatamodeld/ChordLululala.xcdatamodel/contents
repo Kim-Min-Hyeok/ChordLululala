@@ -3,6 +3,7 @@
     <entity name="Content" representedClassName="Content" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" attributeType="Date" defaultDateTimeInterval="771421080" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="displayOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="isStared" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastAccessedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>
         <attribute name="modifiedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>

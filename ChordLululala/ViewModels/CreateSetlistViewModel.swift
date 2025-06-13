@@ -116,7 +116,8 @@ final class CreateSetlistViewModel: ObservableObject {
         setlistPublisher
             .flatMap(maxPublishers: .max(1)) { (setlist: Content) -> AnyPublisher<Void, Never> in
                 // 1) newScores 타입 명시
-                let newScores: [Content] = (setlist.setlistScores as? Set<Content>)?.map { $0 } ?? []
+                let newScores: [Content] = (setlist.setlistScores as? Set<Content>)?
+                    .sorted { $0.displayOrder < $1.displayOrder } ?? []
 
                 // 2) zip 결과를 Array로 변환해서 타입 고정
                 let pairs: [(Content, Content)] = Array(zip(originals, newScores))
