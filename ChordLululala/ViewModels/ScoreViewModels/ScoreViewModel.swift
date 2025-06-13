@@ -16,6 +16,7 @@ final class ScoreViewModel: ObservableObject{
     @Published var isAdditionModalView: Bool = false
     @Published var isOverViewModalView: Bool = false
     @Published var isSettingModalView: Bool = false
+    @Published var isChordResetModalView: Bool = false
     
     // MARK: 각종 모드
     @Published var isAnnotationMode: Bool = false
@@ -24,6 +25,9 @@ final class ScoreViewModel: ObservableObject{
     
     // MARK: 페이지 설정
     @Published private(set) var rotations: [Int] = []
+    
+    // MARK: 키 인식 여부
+    @Published var isRecognized: Bool = false
     
     let pageAdditionViewModel = PageAdditionViewModel()
     let imageZoomeViewModel = ImageZoomViewModel()
@@ -188,6 +192,9 @@ final class ScoreViewModel: ObservableObject{
                 self.chordBoxViewModel.chordsForPages = newChords
                 self.chordBoxViewModel.key = newKey
                 self.chordBoxViewModel.t_key = newTKey
+                print("코드 개수 리스트:", newChords.map { $0.count })
+                self.isRecognized = newChords.contains { !$0.isEmpty }
+            
                 completion?()
             }
     }
@@ -316,6 +323,40 @@ final class ScoreViewModel: ObservableObject{
     
     func saveAnnotations() {
         annotationViewModel.saveAll(for: content)
+    }
+    
+    func resetChords(completion: (() -> Void)? = nil) {
+        DispatchQueue.global(qos: .userInitiated).async {
+            let contents: [Content] = {
+                switch self.content.type {
+                case ContentType.score.rawValue:
+                    return [self.content]
+                case ContentType.setlist.rawValue:
+                    return ContentManager.shared.fetchScoresFromSetlist(self.content)
+                default:
+                    return []
+                }
+            }()
+            
+            for c in contents {
+                guard let detail = ScoreDetailManager.shared.fetchDetail(for: c) else { continue }
+                let pages = ScorePageManager.shared.fetchPages(for: detail)
+                
+                for page in pages {
+                    let chords = ScoreChordManager.shared.fetchChords(for: page)
+                    ScoreChordManager.shared.deleteChords(chords)
+                }
+                
+                detail.key = nil
+                detail.t_key = nil
+            }
+            
+            DispatchQueue.main.async {
+                self.loadPages(self.content) {
+                    completion?()
+                }
+            }
+        }
     }
 }
 

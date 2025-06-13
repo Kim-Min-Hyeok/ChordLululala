@@ -62,4 +62,11 @@ final class ScoreChordManager {
         }
         try? context.save()
     }
+    
+    func deleteChords(_ chords: [ScoreChord]) {
+        for chord in chords {
+            context.delete(chord)
+        }
+        try? context.save()
+    }
 }

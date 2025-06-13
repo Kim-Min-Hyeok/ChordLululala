@@ -14,11 +14,13 @@ struct ScoreHeaderView: View {
     @State var isAnnotationMode: Bool = false
     
     // Pararameter
+    @Binding var isRecognized: Bool
     let file : Content
     
     let presentSetlistOverViewModal: () -> Void
     let toggleAnnotationMode: () -> Void
     let presentAddPageModal: () -> Void
+    let resetChords: () -> Void
     let presentOverViewModal: () -> Void
     let toggleSettingViewModal: () -> Void
     
@@ -96,6 +98,24 @@ struct ScoreHeaderView: View {
                         .foregroundColor(Color.primaryBaseWhite)
                         .cornerRadius(8)
                         .padding(.trailing,10)
+                        
+                        if isRecognized {
+                            Button(action:{
+                                resetChords()
+                            }){
+                                Text("초기화")
+                                    .textStyle(.headingLgMedium)
+                                    .foregroundStyle(Color.supportingRed600)
+                                    .frame(width: 64, height: 42)
+                                    .background(Color.supportingRed100)
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.supportingRed300, lineWidth: 1)
+                                    )
+                            }
+                            .padding(.trailing,7)
+                        }
                     }
                     
                     ///전체 페이지 보기
@@ -113,7 +133,7 @@ struct ScoreHeaderView: View {
                     ///설정
                     Button(action:{
                         toggleSettingViewModal()
-                        print("설정 보기 클릭") //TODO: 기능 추가해야함
+                        print("설정 보기 클릭")
                     }){
                         Image("scoreheader_setting")
                             .resizable()

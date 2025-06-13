@@ -16,6 +16,7 @@ struct ScoreView : View {
                 /// 악보 헤더부분
                 if !viewModel.isPlayMode {
                     ScoreHeaderView(
+                        isRecognized: $viewModel.isRecognized,
                         file: viewModel.content,
                         presentSetlistOverViewModal: {
                             viewModel.isSetlistOverViewModalView = true
@@ -25,6 +26,9 @@ struct ScoreView : View {
                         },
                         presentAddPageModal: {
                             viewModel.isAdditionModalView = true
+                        },
+                        resetChords: {
+                            viewModel.isChordResetModalView = true
                         },
                         presentOverViewModal: {
                             viewModel.isOverViewModalView = true
@@ -160,6 +164,28 @@ struct ScoreView : View {
                     
                     ScoreSetlistOverView(
                         viewModel: viewModel.scoreSetlistOverViewModel
+                    )
+                }
+            }
+            if viewModel.isChordResetModalView {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .contentShape(Rectangle())
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.isChordResetModalView = false
+                        }
+                    
+                    ChordResetModalView(
+                        onDismiss: {
+                            viewModel.isChordResetModalView = false
+                            
+                        },
+                        onReset: {
+                            viewModel.resetChords() {
+                                viewModel.isChordResetModalView = false
+                            }
+                        }
                     )
                 }
             }
