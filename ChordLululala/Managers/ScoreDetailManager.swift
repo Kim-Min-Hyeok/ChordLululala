@@ -23,6 +23,7 @@ final class ScoreDetailManager {
             }
             // 새 Detail 생성
             let detail = ScoreDetail(context: self.context)
+            detail.id = UUID()
             detail.key   = ""
             detail.t_key = ""
             content.scoreDetail = detail
@@ -51,6 +52,7 @@ final class ScoreDetailManager {
             }
             // 새 엔티티 생성
             let detail = ScoreDetail(context: context)
+            detail.id        = UUID()
             detail.key       = original.key
             detail.t_key     = original.t_key
             content.scoreDetail = detail

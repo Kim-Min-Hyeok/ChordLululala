@@ -87,7 +87,7 @@ struct FileGridCellView: View {
         .onTapGesture {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
-            } else {
+            } else if viewModel.dashboardContents != .trashCan {
                 // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
                 router.toNamed("/score", arguments: [file])
             }

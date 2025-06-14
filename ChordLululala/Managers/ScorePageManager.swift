@@ -34,6 +34,7 @@ final class ScorePageManager {
 
             for idx in 0..<pdf.pageCount {
                 let page = ScorePage(context: self.context)
+                page.id                = page.id ?? UUID()
                 page.pageType          = "pdf"
                 page.originalPageIndex = Int16(idx)
                 page.displayOrder      = Int16(idx)
@@ -79,6 +80,7 @@ final class ScorePageManager {
 
             // 4) 새 엔티티 생성 & 속성 복사
             let newPage = ScorePage(context: context)
+            newPage.id                = UUID()
             newPage.rotation          = original.rotation
             newPage.pageType          = original.pageType
             newPage.originalPageIndex = original.originalPageIndex

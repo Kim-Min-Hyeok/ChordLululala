@@ -79,6 +79,9 @@ final class DashBoardViewModel: ObservableObject {
         let allContents = ContentCoreDataManager.shared.fetchContentsSync()
         
         contents = allContents.filter { content in
+            guard content.parentContent != nil else {
+                return false
+            }
             guard content.type != ContentType.scoresOfSetlist.rawValue else { return false }
             guard let name = content.name else { return false }
             return name.localizedCaseInsensitiveContains(query)
@@ -236,7 +239,7 @@ final class DashBoardViewModel: ObservableObject {
         switch selectedSort {
         case .date:
             sorted = filtered.sorted {
-                ($0.modifiedAt ?? defaultDate) < ($1.modifiedAt ?? defaultDate)
+                ($0.modifiedAt ?? defaultDate) > ($1.modifiedAt ?? defaultDate)
             }
         case .name:
             sorted = filtered.sorted {

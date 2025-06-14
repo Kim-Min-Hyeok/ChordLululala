@@ -70,7 +70,7 @@ struct SetlistListCellView: View {
             .onTapGesture {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
-                } else {
+                } else if viewModel.dashboardContents != .trashCan {
                     router.toNamed("/score", arguments: [setlist])
                 }
             }

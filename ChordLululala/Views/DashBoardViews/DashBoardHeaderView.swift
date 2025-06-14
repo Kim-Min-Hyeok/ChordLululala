@@ -16,13 +16,11 @@ struct DashBoardHeaderView: View {
                 Button(action: {
                     viewModel.goBack()
                 }) {
-                    HStack {
-                        Image("arrow_back")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 30)
-                            .foregroundStyle(Color.primaryGray700)
-                    }
+                    Image("arrow_back")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 30)
+                        .foregroundStyle(Color.primaryGray700)
                 }
                 Text(viewModel.currentParent?.name ?? "상위 폴더")
                     .textStyle(.displayXLMedium)
@@ -56,7 +54,18 @@ struct DashBoardHeaderView: View {
         }
         else {
             if viewModel.dashboardContents == .trashCan {
-                HStack {
+                HStack(spacing: 14) {
+                    Button(action: {
+                        viewModel.dashboardContents = .myPage
+                    }) {
+                        HStack {
+                            Image("arrow_back")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 30)
+                                .foregroundStyle(Color.primaryGray700)
+                        }
+                    }
                     Text("휴지통")
                         .textStyle(.displayXLMedium)
                         .foregroundStyle(Color.primaryGray700)

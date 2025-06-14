@@ -17,6 +17,7 @@ final class ContentCoreDataManager {
     // MARK: - Create
     @discardableResult
     func createContent(
+        id: UUID = UUID(),
         name: String,
         path: String? = nil,
         type: Int16,
@@ -24,6 +25,7 @@ final class ContentCoreDataManager {
     ) -> Content {
         let now = Date()
         let entity = Content(context: context)
+        entity.id             = id
         entity.name           = name
         entity.path           = path
         entity.type           = type
@@ -57,6 +59,7 @@ final class ContentCoreDataManager {
             // 2) 없는 것만 생성
             for name in missing {
                 let entity = Content(context: context)
+                entity.id = UUID()
                 entity.name = name
                 entity.path = name
                 entity.type = ContentType.folder.rawValue

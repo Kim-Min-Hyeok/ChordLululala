@@ -26,6 +26,7 @@ final class ScoreChordManager {
         // 2) 새로운 코드 연결
         for chord in chords {
             if chord.managedObjectContext == nil {
+                chord.id = chord.id ?? UUID()
                 context.insert(chord)
             }
             chord.scorePage = page
@@ -53,6 +54,7 @@ final class ScoreChordManager {
     func cloneChords(_ originalChords: [ScoreChord], to newPage: ScorePage) {
         for chord in originalChords {
             let nc = ScoreChord(context: context)
+            nc.id        = UUID()
             nc.chord     = chord.chord
             nc.x         = chord.x
             nc.y         = chord.y

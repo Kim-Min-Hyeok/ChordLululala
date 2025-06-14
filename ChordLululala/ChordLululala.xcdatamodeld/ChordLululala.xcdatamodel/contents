@@ -4,6 +4,7 @@
         <attribute name="createdAt" attributeType="Date" defaultDateTimeInterval="771421080" usesScalarValueType="NO"/>
         <attribute name="deletedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="displayOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isStared" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastAccessedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>
         <attribute name="modifiedAt" attributeType="Date" defaultDateTimeInterval="771421140" usesScalarValueType="NO"/>
@@ -20,18 +21,21 @@
         <relationship name="setlistScores" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Content" inverseName="setlist" inverseEntity="Content"/>
     </entity>
     <entity name="ScoreAnnotation" representedClassName="ScoreAnnotation" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="strokeData" optional="YES" attributeType="Binary"/>
         <relationship name="scorePage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScorePage" inverseName="scoreAnnotations" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreChord" representedClassName="ScoreChord" syncable="YES" codeGenerationType="class">
         <attribute name="chord" attributeType="String" defaultValueString="&quot;C&quot;"/>
         <attribute name="height" attributeType="Double" defaultValueString="20" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="width" attributeType="Double" defaultValueString="20" usesScalarValueType="YES"/>
         <attribute name="x" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="y" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <relationship name="scorePage" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScorePage" inverseName="scoreChords" inverseEntity="ScorePage"/>
     </entity>
     <entity name="ScoreDetail" representedClassName="ScoreDetail" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="key" optional="YES" attributeType="String"/>
         <attribute name="t_key" optional="YES" attributeType="String"/>
         <relationship name="content" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Content" inverseName="scoreDetail" inverseEntity="Content"/>
@@ -39,6 +43,7 @@
     </entity>
     <entity name="ScorePage" representedClassName="ScorePage" syncable="YES" codeGenerationType="class">
         <attribute name="displayOrder" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="originalPageIndex" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="pageType" optional="YES" attributeType="String"/>
         <attribute name="rotation" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
@@ -47,6 +52,7 @@
         <relationship name="scoreDetail" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ScoreDetail" inverseName="scorePages" inverseEntity="ScoreDetail"/>
     </entity>
     <entity name="Setting" representedClassName="Setting" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="layout" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
     </entity>
 </model>

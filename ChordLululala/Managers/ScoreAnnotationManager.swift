@@ -19,6 +19,7 @@ final class ScoreAnnotationManager {
 
             // 2) 새 어노테이션 엔티티 생성
             let annot = ScoreAnnotation(context: context)
+            annot.id = annot.id ?? UUID()
             annot.strokeData = drawing.dataRepresentation()
             // inverse 관계로 자동 추가됩니다
             annot.scorePage  = page

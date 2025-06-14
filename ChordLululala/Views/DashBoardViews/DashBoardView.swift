@@ -21,9 +21,12 @@ struct DashboardView: View {
                 HStack(spacing: 0) {
                     // MARK: 사이드바
                     if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching && viewModel.dashboardContents != .createSetlist {
-                        SidebarView(onSelect: { newContent in
-                            viewModel.dashboardContents = newContent
-                        })
+                        SidebarView(
+                            onSelect: { newContent in
+                                viewModel.dashboardContents = newContent
+                            },
+                            selected: $viewModel.dashboardContents
+                        )
                     }
                     // MARK: 전체 / 탭바
                     VStack {
@@ -110,9 +113,12 @@ struct DashboardView: View {
                         }
                         
                         if !viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
-                            TabBarView(onSelect: { newContent in
-                                viewModel.dashboardContents = newContent
-                            })
+                            TabBarView(
+                                onSelect: { newContent in
+                                    viewModel.dashboardContents = newContent
+                                },
+                                selected: $viewModel.dashboardContents
+                            )
                         }
                     }
                     
