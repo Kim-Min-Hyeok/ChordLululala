@@ -48,18 +48,22 @@ struct TermsOfServiceView: View {
                 
                 // 개별 동의 버튼들
                 AgreeButton(isAgreed: $viewModel.isPrivacyAgreed) {
-                    Link("(필수) 개인정보 수집 및 이용동의", destination: URL(string: "https://example.com/privacy")!)
-                        .textStyle(.headingLgMedium)
-                        .foregroundColor(Color.primaryGray700)
-                        .underline()
+                    Link(destination: URL(string: "https://example.com/privacy")!) {
+                        Text("(필수) 개인정보 수집 및 이용동의")
+                            .textStyle(.headingLgMedium)
+                            .foregroundColor(Color.primaryGray700)
+                            .underline()
+                    }
                 }
                 .padding(.top, 15)
-                
+
                 AgreeButton(isAgreed: $viewModel.isServiceAgreed) {
-                    Link("(필수) 서비스 이용약관", destination: URL(string: "https://example.com/terms")!)
-                        .textStyle(.headingLgMedium)
-                        .foregroundColor(Color.primaryGray700)
-                        .underline()
+                    Link(destination: URL(string: "https://example.com/terms")!) {
+                        Text("(필수) 서비스 이용약관")
+                            .textStyle(.headingLgMedium)
+                            .foregroundColor(Color.primaryGray700)
+                            .underline()
+                    }
                 }
                 .padding(.top, 12)
             }

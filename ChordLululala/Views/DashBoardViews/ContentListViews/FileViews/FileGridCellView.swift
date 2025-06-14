@@ -13,9 +13,9 @@ struct FileGridCellView: View {
     @EnvironmentObject var router: NavigationRouter
     @State private var thumbnail: UIImage? = nil
     
-    let file: ContentModel
+    let file: Content
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == file.cid }
+        viewModel.selectedContents.contains { $0.objectID == file.objectID }
     }
     
     var body: some View {
@@ -64,10 +64,10 @@ struct FileGridCellView: View {
             
             // 텍스트 + 버튼 영역
             VStack (spacing: 3){
-                Text(file.name)
+                Text(file.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(file.modifiedAt.dateFormatForGrid())
+                Text(file.modifiedAt?.dateFormatForList() ?? "")
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
                 if viewModel.isSearching {
@@ -87,7 +87,7 @@ struct FileGridCellView: View {
         .onTapGesture {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
-            } else {
+            } else if viewModel.dashboardContents != .trashCan {
                 // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
                 router.toNamed("/score", arguments: [file])
             }
@@ -127,7 +127,7 @@ struct FileGridCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == file.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == file.objectID }
         } else {
             viewModel.selectedContents.append(file)
         }

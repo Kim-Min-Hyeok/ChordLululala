@@ -11,7 +11,7 @@ struct SelectedCellView: View {
     @EnvironmentObject var viewModel: CreateSetlistViewModel
     @State private var thumbnail: UIImage? = nil
     
-    let file: ContentModel
+    let file: Content
     
     var isSelected: Bool {
         viewModel.isSelected(content: file)
@@ -30,10 +30,10 @@ struct SelectedCellView: View {
             }
             
             VStack(alignment: .leading, spacing: 0) {
-                Text(file.name)
+                Text(file.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(file.modifiedAt.dateFormatForList())
+                Text(file.modifiedAt?.dateFormatForList() ?? "")
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
                     .padding(.top, 3)

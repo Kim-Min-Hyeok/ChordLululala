@@ -12,7 +12,7 @@ struct CandidateCellView: View {
     @EnvironmentObject var viewModel: CreateSetlistViewModel
     @State private var thumbnail: UIImage? = nil
     
-    let file: ContentModel
+    let file: Content
     
     var isSelected: Bool {
         viewModel.isSelected(content: file)
@@ -43,10 +43,10 @@ struct CandidateCellView: View {
                 .shadow(color: Color.primaryBaseBlack.opacity(0.15), radius: 4, x: 0, y: 0)
                 
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(file.name)
+                    Text(file.name ?? "Untitled")
                         .textStyle(.bodyTextXLSemiBold)
                         .foregroundStyle(Color.primaryGray800)
-                    Text(file.modifiedAt.dateFormatForList())
+                    Text(file.modifiedAt?.dateFormatForList() ?? "")
                         .textStyle(.bodyTextLgRegular)
                         .foregroundStyle(Color.primaryGray600)
                         .padding(.top, 3)
@@ -70,7 +70,7 @@ struct CandidateCellView: View {
             viewModel.toggleSelection(content: file)
         }
         .onDrag {
-            NSItemProvider(object: file.cid.uuidString as NSString)
+            NSItemProvider(object: file.objectID.uriRepresentation().absoluteString as NSString)
         }
         .onAppear {
             loadThumbnail()

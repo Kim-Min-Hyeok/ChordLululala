@@ -12,9 +12,11 @@ struct PageOverModalRowView: View {
     let ImageName: String
     let Messege: String
     
+    var onSelect:() -> Void
+    
     var body: some View {
         Button(action:{
-            // TODO: 페이지 지우기, 회전하기 기능 추가하기
+            onSelect()
         }){
             HStack(){
                 Image(ImageName)

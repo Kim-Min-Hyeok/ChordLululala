@@ -60,16 +60,32 @@ final class UserManager: ObservableObject {
 
     func loadUser() {
         guard let id = UserDefaults.standard.string(forKey: "lastLoggedInUserUUID") else {
+            print("🚫 UserDefaults에 사용자 UUID가 없습니다.")
             currentUser = nil
             return
         }
-        currentUser = UserModel(
-            id: id,
-            providerId: UserDefaults.standard.string(forKey: "lastLoggedInUserID"),
-            name: UserDefaults.standard.string(forKey: "lastLoggedInUserName"),
-            email: UserDefaults.standard.string(forKey: "lastLoggedInUserEmail"),
-            profileImageURL: UserDefaults.standard.string(forKey: "lastLoggedInUserProfileImageURL")
-        )
+        
+        let providerId = UserDefaults.standard.string(forKey: "lastLoggedInUserID")
+            let name = UserDefaults.standard.string(forKey: "lastLoggedInUserName")
+            let email = UserDefaults.standard.string(forKey: "lastLoggedInUserEmail")
+            let profile = UserDefaults.standard.string(forKey: "lastLoggedInUserProfileImageURL")
+
+            print("""
+            ✅ UserManager.loadUser()
+            id: \(id)
+            providerId: \(providerId ?? "nil")
+            name: \(name ?? "nil")
+            email: \(email ?? "nil")
+            profileImageURL: \(profile ?? "nil")
+            """)
+
+            currentUser = UserModel(
+                id: id,
+                providerId: providerId,
+                name: name,
+                email: email,
+                profileImageURL: profile
+            )
     }
 
     func logout() {

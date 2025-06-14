@@ -11,9 +11,9 @@ struct FolderGridCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     @State private var cellFrame: CGRect = .zero
     
-    let folder: ContentModel
+    let folder: Content
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == folder.cid }
+        viewModel.selectedContents.contains { $0.objectID == folder.objectID }
     }
     
     var body: some View {
@@ -42,10 +42,10 @@ struct FolderGridCellView: View {
             }
             .frame(width: viewModel.isLandscape ? 200 : 171, height: 114)
             VStack (spacing: 3){
-                Text(folder.name)
+                Text(folder.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray800)
-                Text(folder.modifiedAt.dateFormatForGrid())
+                Text(folder.modifiedAt?.dateFormatForGrid() ?? "")
                     .textStyle(.bodyTextLgRegular)
                     .foregroundStyle(Color.primaryGray600)
                 if viewModel.isSearching {
@@ -77,7 +77,7 @@ struct FolderGridCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == folder.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == folder.objectID }
         } else {
             viewModel.selectedContents.append(folder)
         }

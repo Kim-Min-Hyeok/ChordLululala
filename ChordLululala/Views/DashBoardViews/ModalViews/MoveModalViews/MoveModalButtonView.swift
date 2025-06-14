@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct MoveFolderButtonView: View {
-    let folder: ContentModel
+    let folder: Content
     let isSelected: Bool
     let action: () -> Void
 
     private var displayName: String {
-        folder.parentContent == nil ? "전체 폴더" : folder.name
+        folder.parentContent == nil ? "전체 폴더" : folder.name ?? "Untitled"
     }
 
     var body: some View {

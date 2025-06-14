@@ -6,7 +6,13 @@
 //
 
 import Foundation
+import AppleArchive
+import System
 
+enum ArchiveError: Error {
+    case cannotOpen
+    case processFailed(Error)
+}
 final class FileManagerManager {
     static let shared = FileManagerManager()
     private let fileManager = FileManager.default
@@ -81,4 +87,56 @@ final class FileManagerManager {
             print("Documents 폴더 파일 삭제 실패: \(error)")
         }
     }
+
+    // MARK: 백업 관련
+    func compressDirectory(_ src: URL, toArchive dst: URL) throws {
+            guard let writeStream = ArchiveByteStream.fileStream(
+                    path: FilePath(dst.path),
+                    mode: .writeOnly,
+                    options: [.create, .truncate],
+                    permissions: FilePermissions(rawValue: 0o644)
+            ),
+            let encoder = ArchiveStream.encodeStream(writingTo: writeStream)
+            else { throw ArchiveError.cannotOpen }
+            defer {
+                try? encoder.close()
+                try? writeStream.close()
+            }
+            let keySet = ArchiveHeader.FieldKeySet("TYP,PAT,DAT,UID,GID,MOD")!
+            try encoder.writeDirectoryContents(archiveFrom: FilePath(src.path), keySet: keySet)
+        }
+
+        /// `.aar` 압축 해제
+        func decompressArchive(_ src: URL, to dst: URL) throws {
+            guard let readStream = ArchiveByteStream.fileStream(
+                    path: FilePath(src.path),
+                    mode: .readOnly,
+                    options: [],
+                    permissions: FilePermissions(rawValue: 0o644)
+            ),
+            let decomp = ArchiveByteStream.decompressionStream(readingFrom: readStream),
+            let decode = ArchiveStream.decodeStream(readingFrom: decomp),
+            let extract = ArchiveStream.extractStream(extractingTo: FilePath(dst.path))
+            else { throw ArchiveError.cannotOpen }
+            defer {
+                try? readStream.close()
+                try? decomp.close()
+                try? decode.close()
+                try? extract.close()
+            }
+            _ = try ArchiveStream.process(readingFrom: decode, writingTo: extract)
+        }
+    
+    func mergeContents(of src: URL, into dst: URL) throws {
+        let items = try fileManager.contentsOfDirectory(at: src, includingPropertiesForKeys: nil)
+        if !fileManager.fileExists(atPath: dst.path) {
+            try fileManager.createDirectory(at: dst, withIntermediateDirectories: true)
+            }
+            for file in items {
+                let target = dst.appendingPathComponent(file.lastPathComponent)
+                if !fileManager.fileExists(atPath: target.path) {
+                    try fileManager.copyItem(at: file, to: target)
+                }
+            }
+        }
 }

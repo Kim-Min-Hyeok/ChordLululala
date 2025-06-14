@@ -10,7 +10,7 @@ import SwiftUI
 struct TabBarView: View {
     var onSelect: (DashboardContents) -> Void
     @EnvironmentObject var router: NavigationRouter
-    @State private var selected: DashboardContents = .score
+    @Binding var selected: DashboardContents
     
     var body: some View {
         HStack(alignment: .top, spacing: 115) {
@@ -24,15 +24,10 @@ struct TabBarView: View {
                 onSelect(.setlist)
             }, isSelected: selected == .setlist)
             
-            TabBarButtonView(imageName: "trash", title: "휴지통", action: {
-                selected = .trashCan
-                onSelect(.trashCan)
-            }, isSelected: selected == .trashCan)
-            
-            TabBarButtonView(imageName: "mypage", title: "마이페이지", action: {
+            TabBarButtonView(imageName: "mypage", title: "내 계정", action: {
                 selected = .myPage
                 onSelect(selected)
-            }, isSelected: false)
+            }, isSelected: selected == .myPage || selected == .trashCan)
         }
         .frame(maxWidth: .infinity, maxHeight: 110)
         .background(Color.primaryBaseWhite)

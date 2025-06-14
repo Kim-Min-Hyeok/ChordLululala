@@ -13,9 +13,9 @@ struct FileListCellView: View {
     @EnvironmentObject var router: NavigationRouter
     @State private var thumbnail: UIImage? = nil
     
-    let file: ContentModel
+    let file: Content
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == file.cid }
+        viewModel.selectedContents.contains { $0.objectID == file.objectID }
     }
     
     var body: some View {
@@ -53,10 +53,10 @@ struct FileListCellView: View {
             VStack(spacing: 12) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(file.name)
+                        Text(file.name ?? "Untitled")
                             .textStyle(.bodyTextXLSemiBold)
                             .foregroundStyle(Color.primaryGray800)
-                        Text(file.modifiedAt.dateFormatForList())
+                        Text(file.modifiedAt?.dateFormatForList() ?? "")
                             .textStyle(.bodyTextLgRegular)
                             .foregroundStyle(Color.primaryGray600)
                             .padding(.top, 3)
@@ -83,7 +83,7 @@ struct FileListCellView: View {
         .onTapGesture {
             if viewModel.isSelectionViewVisible {
                 toggleSelection()
-            } else {
+            } else if viewModel.dashboardContents != .trashCan {
                 // 나중에 송리스트에서도 동일한 방식 사용하기 위해 배열로 전달
                 router.toNamed("/score", arguments: [file])
             }
@@ -126,7 +126,7 @@ struct FileListCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == file.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == file.objectID }
         } else {
             viewModel.selectedContents.append(file)
         }
