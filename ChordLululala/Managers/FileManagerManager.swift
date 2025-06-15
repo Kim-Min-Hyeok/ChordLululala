@@ -25,13 +25,19 @@ final class FileManagerManager {
     
     /// Documents 폴더 기준 절대 경로에서 상대 경로를 추출
     func relativePath(for absolutePath: String) -> String? {
-        guard let docsURL = documentsURL else { return nil }
+        guard let docsURL = documentsURL?.standardizedFileURL else { return nil }
+
+        let fileURL = URL(fileURLWithPath: absolutePath).standardizedFileURL
+        let filePath = fileURL.path
         let docsPath = docsURL.path
-        if absolutePath.hasPrefix(docsPath) {
-            let startIndex = absolutePath.index(absolutePath.startIndex, offsetBy: docsPath.count + 1)
-            return String(absolutePath[startIndex...])
+
+        guard filePath.hasPrefix(docsPath) else {
+            print("📛 상대 경로 변환 실패: \(filePath) is not under \(docsPath)")
+            return nil
         }
-        return nil
+
+        let relative = filePath.replacingOccurrences(of: docsPath + "/", with: "")
+        return relative
     }
     
     func createSubfolderIfNeeded(for relativeFolderPath: String) -> URL? {

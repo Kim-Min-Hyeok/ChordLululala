@@ -103,10 +103,10 @@ final class DashBoardViewModel: ObservableObject {
                     currentParent = scoreBase
                 }
             case .setlist:
-                        if !preserveCurrentParent,
-                           let setlistBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Setlist") {
-                            currentParent = setlistBase
-                        }
+                if !preserveCurrentParent,
+                   let setlistBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Setlist") {
+                    currentParent = setlistBase
+                }
             case .trashCan:
                 if let trashCanBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                     currentParent = trashCanBase
@@ -172,8 +172,8 @@ final class DashBoardViewModel: ObservableObject {
         case .createSetlist:
             break
         }
-        loadContents()
-        loadMoveDestinations()
+        
+        importFromDropboxAndLoadContents()
     }
     
     func goToSetlistPreservingFolder() {
@@ -183,30 +183,30 @@ final class DashBoardViewModel: ObservableObject {
     
     func loadMoveDestinations() {
         var destinations: [Content] = []
-
+        
         switch dashboardContents {
         case .score:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
                 destinations = [base] +
-                    ContentCoreDataManager.shared.fetchChildrenSync(for: base)
+                ContentCoreDataManager.shared.fetchChildrenSync(for: base)
             }
-
+            
         case .setlist:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Setlist") {
                 destinations = [base] +
-                    ContentCoreDataManager.shared.fetchChildrenSync(for: base)
+                ContentCoreDataManager.shared.fetchChildrenSync(for: base)
             }
-
+            
         case .trashCan:
             if let base = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
                 destinations = [base] +
-                    ContentCoreDataManager.shared.fetchChildrenSync(for: base)
+                ContentCoreDataManager.shared.fetchChildrenSync(for: base)
             }
-
+            
         case .createSetlist, .myPage:
             destinations = []
         }
-
+        
         // 폴더 타입(type == 2)만 남기기
         moveDestinations = destinations.filter { $0.type == ContentType.folder.rawValue }
     }
@@ -231,10 +231,10 @@ final class DashBoardViewModel: ObservableObject {
             case .star:  return content.isStared
             }
         }
-
+        
         // 기본값으로 아주 과거 날짜를 사용
         let defaultDate = Date.distantPast
-
+        
         let sorted: [Content]
         switch selectedSort {
         case .date:
@@ -246,7 +246,7 @@ final class DashBoardViewModel: ObservableObject {
                 ($0.name ?? "") < ($1.name ?? "")
             }
         }
-
+        
         return sortDirection == .ascending ? sorted : Array(sorted.reversed())
     }
     
@@ -256,9 +256,9 @@ final class DashBoardViewModel: ObservableObject {
             exitSearch()
         }
         currentParent = folder
-        loadContents()
+        importFromDropboxAndLoadContents()
     }
-
+    
     func goBack() {
         if isSearching {
             exitSearch()
@@ -281,14 +281,14 @@ final class DashBoardViewModel: ObservableObject {
                 currentParent = nil
             }
         }
-        loadContents()
+        importFromDropboxAndLoadContents()
     }
     
     // MARK: - Content 관련 비즈니스 로직 호출
     func loadContents() {
         guard let parent = currentParent else { return }
         print("🔍 Loading contents - Parent: \(parent.name ?? "?"), Dashboard: \(dashboardContents)")
-
+        
         ContentManager.shared
             .loadContents(forParent: parent, dashboardContents: dashboardContents)
             .sink(
@@ -307,7 +307,7 @@ final class DashBoardViewModel: ObservableObject {
     
     func uploadFile(with url: URL) {
         guard let parent = currentParent else { return }
-
+        
         ContentManager.shared
             .createScore(with: url, currentParent: parent, dashboardContents: dashboardContents)
             .compactMap { $0 }
@@ -329,7 +329,7 @@ final class DashBoardViewModel: ObservableObject {
     
     func createFolder(folderName: String) {
         guard let parent = currentParent else { return }
-
+        
         ContentManager.shared
             .createFolder(
                 named: folderName,
@@ -371,7 +371,7 @@ final class DashBoardViewModel: ObservableObject {
             }
             .store(in: &cancellables)
     }
-
+    
     func duplicateSelectedContents() {
         let tasks = selectedContents.map { original in
             ContentManager.shared.duplicateContent(original, dashboardContents: dashboardContents)
@@ -404,25 +404,25 @@ final class DashBoardViewModel: ObservableObject {
                 }
                 // 1) ScoreDetail 복제
                 let newDetail = ScoreDetailManager.shared.cloneDetail(of: origDetail, to: cloned)
-
+                
                 // 2) Page 복제
                 let origPages = ScorePageManager.shared.fetchPages(for: origDetail)
                 let newPages  = ScorePageManager.shared.clonePages(from: origPages, to: newDetail)
-
+                
                 // 3) Chord & Annotation 복제
                 for (op, np) in zip(origPages, newPages) {
                     let chords = ScoreChordManager.shared.fetchChords(for: op)
                     ScoreChordManager.shared.cloneChords(chords, to: np)
-
+                    
                     let annots = ScoreAnnotationManager.shared.fetchAnnotations(for: op)
                     ScoreAnnotationManager.shared.cloneAnnotations(annots, to: np)
                 }
-
+                
                 promise(.success(()))
             }
             .receive(on: DispatchQueue.global(qos: .userInitiated))
             .eraseToAnyPublisher()
-
+            
         case .setlist:
             guard let origScores = original.setlistScores as? Set<Content>,
                   let newScores  = cloned.setlistScores  as? Set<Content> else {
@@ -436,7 +436,7 @@ final class DashBoardViewModel: ObservableObject {
                 .collect()
                 .map { _ in () }
                 .eraseToAnyPublisher()
-
+            
         case .folder:
             guard let children = original.childContent as? Set<Content> else {
                 return Just(()).eraseToAnyPublisher()
@@ -452,7 +452,7 @@ final class DashBoardViewModel: ObservableObject {
                 .collect()
                 .map { _ in () }
                 .eraseToAnyPublisher()
-
+            
         default:
             return Just(()).eraseToAnyPublisher()
         }
@@ -513,7 +513,7 @@ final class DashBoardViewModel: ObservableObject {
     }
     
     func deleteContent(_ content: Content) {
-            ContentManager.shared.deleteContent(content)
+        ContentManager.shared.deleteContent(content)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.loadContents()
@@ -551,5 +551,25 @@ final class DashBoardViewModel: ObservableObject {
             return "전체 폴더"
         }
         return parent.name ?? "전체 폴더"
+    }
+    
+    /// MARK: 드롭박스에 직접 추가
+    func importFromDropboxAndLoadContents() {
+        guard dashboardContents == .score else {
+            print("드롭박스에서 가져오기: 현재 대시보드가 Score가 아닙니다.")
+            return
+        }
+        guard let parent = currentParent else {
+            return
+        }
+        
+        return DropboxImportManager.shared
+            .syncCurrentFolderWithFileSystem(parent: parent)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] in
+                self?.loadContents()
+                self?.loadMoveDestinations()
+            }
+            .store(in: &cancellables)
     }
 }

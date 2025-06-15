@@ -200,7 +200,7 @@ struct DashboardView: View {
                         case .setlist:
                             return ("셋리스트 이름 변경", "이 셋리스트의 새로운 이름을 입력하십시오.")
                         default:
-                                return ("이름 변경", "새로운 이름을 입력하십시오.")
+                            return ("이름 변경", "새로운 이름을 입력하십시오.")
                         }
                     }()
                     
@@ -268,7 +268,6 @@ struct DashboardView: View {
                     .transition(.opacity)
             }
         }
-        // 방향 감지
         .onAppear {
             viewModel.isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
         }
@@ -282,6 +281,9 @@ struct DashboardView: View {
             .background(Color.primaryGray50)
             .environmentObject(viewModel)
             .navigationBarHidden(true)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                viewModel.importFromDropboxAndLoadContents()
+            }
     }
     
     private func handleMoveAction() {

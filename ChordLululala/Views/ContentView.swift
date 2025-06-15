@@ -57,6 +57,8 @@ struct ContentView: View {
         }
         .environmentObject(router)
         .onAppear {
+            // 앱 시작 시 기본 디렉토리 초기화
+            ContentManager.shared.initializeBaseDirectories()
             if let _ = UserDefaults.standard.string(forKey: "lastLoggedInUserID") {
                 router.offAll("/")
             } else {

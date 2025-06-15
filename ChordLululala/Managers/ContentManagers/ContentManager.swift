@@ -12,7 +12,21 @@ struct ContentManager {
     static let shared = ContentManager()
     
     func initializeBaseDirectories() {
-        ContentCoreDataManager.shared.initializeBaseDirectories()
+        let scoreFolderURL = FileManager.default
+            .urls(for: .documentDirectory, in: .userDomainMask)
+            .first!
+            .appendingPathComponent("Score", isDirectory: true)
+
+        ContentFileManagerManager.shared.createFolderIfNeeded(at: scoreFolderURL) { result in
+            switch result {
+            case .success:
+                // 폴더가 보장됨!
+                print("폴더가 준비됨: \(scoreFolderURL.path)")
+                ContentCoreDataManager.shared.initializeBaseDirectories()
+            case .failure(let error):
+                print("폴더 생성 실패: \(error)")
+            }
+        }
     }
     
     func fetchBaseDirectory(named name: String) -> Content? {
