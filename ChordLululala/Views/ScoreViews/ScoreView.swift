@@ -60,7 +60,6 @@ struct ScoreView : View {
                         }
                     
                     AddPageModalView(
-                        viewModel: viewModel.pageAdditionViewModel,
                         onSelect: { type in
                             if viewModel.addPage(at: viewModel.currentPage, type: type) {
                                 viewModel.isAdditionModalView = false

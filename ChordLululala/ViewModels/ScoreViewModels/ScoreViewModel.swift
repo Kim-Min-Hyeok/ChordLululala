@@ -29,7 +29,6 @@ final class ScoreViewModel: ObservableObject{
     // MARK: 키 인식 여부
     @Published var isRecognized: Bool = false
     
-    let pageAdditionViewModel = PageAdditionViewModel()
     let imageZoomeViewModel = ImageZoomViewModel()
     let scorePageOverViewModel = ScorePageOverViewModel()
     let scoreSetlistOverViewModel = ScoreSetlistOverViewModel()
@@ -54,15 +53,6 @@ final class ScoreViewModel: ObservableObject{
     }
     
     private func setupBindings() {
-        $isAdditionModalView
-            .filter { $0 }
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                self.pageAdditionViewModel.setContent(self.content)
-                self.pageAdditionViewModel.currentPage = self.currentPage
-            }
-            .store(in: &cancellables)
-
         $isSetlistOverViewModalView
             .dropFirst()
             .removeDuplicates()

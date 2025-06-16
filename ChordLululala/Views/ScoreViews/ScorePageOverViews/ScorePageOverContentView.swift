@@ -53,7 +53,7 @@ struct ScorePageOverContentView: View {
                 Button {
                     onToggleOptions(pageIndex)
                 } label: {
-                    Image("dropdown")
+                    Image("arrow_down")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 10, height: 15)

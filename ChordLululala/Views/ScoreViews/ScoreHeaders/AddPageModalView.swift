@@ -2,7 +2,6 @@
 import SwiftUI
 
 struct AddPageModalView: View {
-    @ObservedObject var viewModel: PageAdditionViewModel
     @State private var selectedType: PageType? = nil
     
     let onSelect: (PageType) -> Void
