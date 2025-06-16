@@ -11,7 +11,7 @@ import Combine
 
 final class ContentCoreDataManager {
     static let shared = ContentCoreDataManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Create
@@ -98,16 +98,32 @@ final class ContentCoreDataManager {
         .eraseToAnyPublisher()
     }
     
+    func fetchContentByID(_ id: UUID) -> Content? {
+        let req: NSFetchRequest<Content> = Content.fetchRequest()
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        req.fetchLimit = 1
+        do {
+            return try context.fetch(req).first
+        } catch {
+            print("fetchContentByID error:", error)
+            return nil
+        }
+    }
+    
     // Fetch (동기)
     func fetchContentsSync(predicate: NSPredicate? = nil) -> [Content] {
         let request: NSFetchRequest<Content> = Content.fetchRequest()
         request.predicate = predicate
-        do {
-            return try context.fetch(request)
-        } catch {
-            print("Error fetching Content entities: \(error)")
-            return []
+        var results: [Content] = []
+        
+        context.performAndWait {
+            do {
+                results = try context.fetch(request)
+            } catch {
+                print("Error fetching Content entities: \(error)")
+            }
         }
+        return results
     }
     
     func fetchChildrenSync(for parent: Content?) -> [Content] {

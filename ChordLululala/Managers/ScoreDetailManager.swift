@@ -11,7 +11,7 @@ import Combine
 
 final class ScoreDetailManager {
     static let shared = ScoreDetailManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     func createScoreDetail(for content: Content) -> AnyPublisher<ScoreDetail, Never> {
         Future<ScoreDetail, Never> { [weak self] promise in

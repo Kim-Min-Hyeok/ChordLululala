@@ -11,7 +11,7 @@ import CoreData
 /// Core Data 저장·조회 관리
 final class ScoreChordManager {
     static let shared = ScoreChordManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     func save(chords: [ScoreChord], for page: ScorePage) {
         // 1) 기존 코드 삭제

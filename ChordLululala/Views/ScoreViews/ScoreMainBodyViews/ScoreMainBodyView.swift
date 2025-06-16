@@ -10,24 +10,30 @@ struct ScoreMainBodyView: View {
     
     @State private var toolPicker = PKToolPicker()
     
-    private var pages: [[UIImage]] {
-        let imgs = viewModel.pages
+    private var pages: [UIImage] { viewModel.flatPages }
+    private var rotations: [Int] { viewModel.flatRotations }
+    
+    private var groupedPages: [[UIImage]] {
         if viewModel.isSinglePageMode {
-            return imgs.map { [$0] }
+            return pages.map { [$0] }
         } else {
-            return stride(from: 0, to: imgs.count, by: 2).map {
-                Array(imgs[$0..<min($0 + 2, imgs.count)])
+            return stride(from: 0, to: pages.count, by: 2).map { start in
+                Array(pages[start..<min(start + 2, pages.count)])
             }
         }
     }
     
-    private var pageSelectionBinding: Binding<Int> {
+    private var groupSelection: Binding<Int> {
         Binding(
             get: {
-                viewModel.isSinglePageMode ? viewModel.currentPage : viewModel.currentPage / 2
+                viewModel.isSinglePageMode
+                ? viewModel.selectedPageIndex
+                : viewModel.selectedPageIndex / 2
             },
-            set: { newIndex in
-                viewModel.currentPage = viewModel.isSinglePageMode ? newIndex : newIndex * 2
+            set: { newValue in
+                viewModel.selectedPageIndex = viewModel.isSinglePageMode
+                ? newValue
+                : newValue * 2
             }
         )
     }
@@ -36,17 +42,20 @@ struct ScoreMainBodyView: View {
         ZStack {
             Color.primaryGray50.ignoresSafeArea()
             
-            TabView(selection: pageSelectionBinding) {
-                ForEach(Array(pages.enumerated()), id: \.offset) { pageIndex, pageImgs in
+            TabView(selection: groupSelection) {
+                ForEach(Array(groupedPages.enumerated()), id: \.offset) { groupIdx, imgsInGroup in
                     HStack(spacing: 12) {
-                        ForEach(Array(pageImgs.enumerated()), id: \.offset) { localIdx, uiImage in
+                        ForEach(Array(imgsInGroup.enumerated()), id: \.offset) { localIdx, uiImage in
                             let realIndex = viewModel.isSinglePageMode
-                            ? pageIndex
-                            : pageIndex * 2 + localIdx
+                            ? groupIdx
+                            : groupIdx * 2 + localIdx
                             
                             ZStack {
                                 GeometryReader { geo in
-                                    let rot = viewModel.rotations[viewModel.currentPage]
+                                    let realIndex = viewModel.isSinglePageMode
+                                        ? groupIdx
+                                        : (groupIdx * 2 + localIdx)
+                                    let rot = rotations[realIndex]
                                     let angle = Angle(degrees: Double(rot) * 90)
                                     
                                     let imageAspect = uiImage.size.width / uiImage.size.height
@@ -96,7 +105,10 @@ struct ScoreMainBodyView: View {
                                                         chord: chord,
                                                         originalSize: uiImage.size,
                                                         displaySize: displaySize,
-                                                        transposedText: chordBoxViewModel.transposedChord(for: chord.chord ?? "C"),
+                                                        transposedText: chordBoxViewModel.transposedChord(
+                                                            for: chord.chord ?? "C",
+                                                            atPage: realIndex
+                                                        ),
                                                         onDelete: nil,
                                                         onMove: nil
                                                     )
@@ -135,15 +147,15 @@ struct ScoreMainBodyView: View {
                             }
                         }
                     }
-                    .tag(pageIndex)
+                    .tag(groupIdx)
                 }
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             
             .overlay(
                 PageIndicatorView(
-                    current: viewModel.isSinglePageMode ? viewModel.currentPage + 1 : viewModel.currentPage + 2,
-                    total: viewModel.pages.count
+                    current: viewModel.isSinglePageMode ? viewModel.selectedPageIndex + 1 : viewModel.selectedPageIndex + 2,
+                    total: pages.count
                 )
                 .offset(x: 22, y: -10),
                 alignment: .bottomLeading

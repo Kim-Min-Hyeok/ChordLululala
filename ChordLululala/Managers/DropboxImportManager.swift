@@ -11,7 +11,7 @@ import CoreData
 
 final class DropboxImportManager {
     static let shared = DropboxImportManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     private init() {}
     

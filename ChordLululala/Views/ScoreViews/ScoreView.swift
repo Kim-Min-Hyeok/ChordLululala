@@ -16,7 +16,7 @@ struct ScoreView : View {
                 /// 악보 헤더부분
                 if !viewModel.isPlayMode {
                     ScoreHeaderView(
-                        isRecognized: $viewModel.isRecognized,
+                        isRecognized: $viewModel.currentScoreRecognized,
                         file: viewModel.content,
                         presentSetlistOverViewModal: {
                             viewModel.isSetlistOverViewModalView = true
@@ -45,7 +45,7 @@ struct ScoreView : View {
                 ScoreMainBodyView(
                     zoomViewModel: viewModel.imageZoomeViewModel,
                     chordBoxViewModel: viewModel.chordBoxViewModel,
-                    annotationViewModel: viewModel.annotationViewModel
+                    annotationViewModel: viewModel.scoreAnnotationViewModel
                 )
             }
             
@@ -61,7 +61,7 @@ struct ScoreView : View {
                     
                     AddPageModalView(
                         onSelect: { type in
-                            if viewModel.addPage(at: viewModel.currentPage, type: type) {
+                            if viewModel.addPage(atFlatIndex: viewModel.selectedPageIndex, type: type) {
                                 viewModel.isAdditionModalView = false
                             }
                         },
@@ -83,17 +83,16 @@ struct ScoreView : View {
                         }
                     
                     ScorePageOverView(
-                        viewModel: viewModel.scorePageOverViewModel,
-                        pages: viewModel.pages,
-                        rotations: viewModel.rotations,
+                        pages: viewModel.flatPages,
+                        rotations: viewModel.flatRotations,
                         onClose: {
                             viewModel.isOverViewModalView = false
                         },
                         deletePage: { index in
-                            viewModel.deletePage(at: index)
+                            viewModel.deletePage(atFlatIndex: index)
                         },
                         duplicatePage: { index in
-                            viewModel.duplicatePage(at: index)
+                            viewModel.duplicatePage(atFlatIndex: index)
                         },
                         addImage: {
                             
@@ -102,10 +101,10 @@ struct ScoreView : View {
                             
                         },
                         addBlank: {
-                                viewModel.addPage(at: viewModel.pages.count-1, type: .blank)
+                            viewModel.addPage(atFlatIndex: viewModel.flatPages.count-1, type: .blank)
                         },
                         addStaff: {
-                                viewModel.addPage(at: viewModel.pages.count-1, type: .staff)
+                            viewModel.addPage(atFlatIndex: viewModel.flatPages.count-1, type: .staff)
                         }
                     )
                     .zIndex(1)
@@ -123,7 +122,7 @@ struct ScoreView : View {
                     ScoreSettingView(
                         deletePage: {
                             DispatchQueue.main.async {
-                                viewModel.deletePage(at: viewModel.currentPage)
+                                viewModel.deletePage(atFlatIndex: viewModel.selectedPageIndex)
                                 viewModel.isSettingModalView = false
                             }
                         },
@@ -135,17 +134,9 @@ struct ScoreView : View {
                             viewModel.isSinglePageMode = false
                             viewModel.isSettingModalView = false
                         },
-                        rotateWithClockwise: {
-                            DispatchQueue.main.async {
-                                viewModel.rotatePage(clockwise: true)
-                                viewModel.isSettingModalView = false
-                            }
+                        rotateWithClockwise: { viewModel.rotatePage(atFlatIndex: viewModel.selectedPageIndex, clockwise: true)  ; viewModel.isSettingModalView = false
                         },
-                        rotateWithCounterClockwise: {
-                            DispatchQueue.main.async {
-                                viewModel.rotatePage(clockwise: false)
-                                viewModel.isSettingModalView = false
-                            }
+                        rotateWithCounterClockwise: { viewModel.rotatePage(atFlatIndex: viewModel.selectedPageIndex, clockwise: false) ; viewModel.isSettingModalView = false
                         }
                     )
                     .padding(.top, 100)
@@ -160,9 +151,17 @@ struct ScoreView : View {
                         .onTapGesture {
                             viewModel.isSetlistOverViewModalView = false
                         }
-                    
                     ScoreSetlistOverView(
-                        viewModel: viewModel.scoreSetlistOverViewModel
+                        viewModel: viewModel.scoreSetlistOverViewModel,
+                        scores: $viewModel.scores,
+                        moveScore: { indexSet, newOffset in
+                            viewModel.moveScore(from: indexSet, to: newOffset)
+                        },
+                        deleteScore: { score in
+                            viewModel.deleteScore(score)
+                        },
+                        addScores: { scores in                            viewModel.addScores(scores)
+                        }
                     )
                 }
             }

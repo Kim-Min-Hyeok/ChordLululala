@@ -12,7 +12,7 @@ import Combine
 
 final class ScorePageManager {
     static let shared = ScorePageManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     func createPages(
         for detail: ScoreDetail,

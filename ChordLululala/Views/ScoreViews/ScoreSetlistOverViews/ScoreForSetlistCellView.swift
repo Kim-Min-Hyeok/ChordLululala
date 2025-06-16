@@ -1,43 +1,25 @@
 //
-//  ScoreCellView.swift
+//  ScoreForSetlistCellView.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 6/13/25.
+//  Created by Minhyeok Kim on 6/17/25.
 //
 
 import SwiftUI
 import QuickLookThumbnailing
 
-struct ScoreCellView: View {
+struct ScoreForSetlistCellView: View {
+    @ObservedObject var viewModel: ScoreSetlistOverViewModel
     @State private var thumbnail: UIImage? = nil
     
-    let score: Content
+    let file: Content
     
-    let keyTransformation: () -> Void
-    let deleteScore: () -> Void
+    var isSelected: Bool {
+        viewModel.isSelected(content: file)
+    }
     
     var body: some View {
-        HStack {
-//            VStack(alignment: .center) {
-//                Image(systemName: "line.3.horizontal")
-//                    .resizable()
-//                    .scaledToFit()
-//                    .frame(width: 20, height: 12)
-//            }
-//            .frame(width: 34, height: 34)
-            Button(action: {
-                deleteScore()
-            }) {
-                VStack(alignment: .center) {
-                    Image(systemName: "xmark")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(Color.primaryGray400)
-                        .frame(width: 12, height: 12)
-                }
-                .frame(width: 34, height: 34)
-            }
-            
+        HStack(spacing: 0) {
             Group {
                 if let thumbnail = thumbnail {
                     Image(uiImage: thumbnail)
@@ -62,51 +44,34 @@ struct ScoreCellView: View {
                 .frame(width: 9)
             
             VStack(alignment: .leading, spacing: 0) {
-                Text(score.name ?? "Untitled")
+                Text(file.name ?? "Untitled")
                     .textStyle(.bodyTextXLSemiBold)
                     .foregroundStyle(Color.primaryGray700)
                     .lineLimit(1)
-                Text(score.modifiedAt?.dateFormatForList() ?? "")
+                Text(file.modifiedAt?.dateFormatForList() ?? "")
                     .textStyle(.bodyTextLgMedium)
                     .foregroundStyle(Color.primaryGray500)
             }
+            .padding(.leading, 16)
             
             Spacer()
-                .frame(width: 9)
             
-            Spacer()
-            
-            Text("키변환")
-                .textStyle(.bodyTextLgSemiBold)
-                .foregroundStyle(Color.primaryBlue600)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 4)
-                .contentShape(Rectangle()) // 정확한 탭 영역 설정
-                .onTapGesture {
-                    keyTransformation()
-                }
-            
-//            Button(action: {
-//                deleteScore()
-//            }) {
-//                VStack(alignment: .center) {
-//                    Image(systemName: "xmark")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 12, height: 12)
-//                }
-//                .frame(width: 34, height: 34)
-//            }
-//            .padding(.leading, 22)
+            Image(isSelected ? "selected2" : "select")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 41, height: 41)
         }
         .clipped()
+        .onTapGesture {
+            viewModel.toggleSelection(content: file)
+        }
         .onAppear {
             loadThumbnail()
         }
     }
     
     private func loadThumbnail() {
-        guard let relativePath = score.path, !relativePath.isEmpty,
+        guard let relativePath = file.path, !relativePath.isEmpty,
               let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
             print("파일 경로 없음")
             return

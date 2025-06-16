@@ -40,7 +40,7 @@ final class CreateSetlistViewModel: ObservableObject {
     
     func loadScores() {
         let all = ContentCoreDataManager.shared.fetchContentsSync()
-        self.allScores = all.filter { $0.type == ContentType.score.rawValue }
+        self.allScores = all.filter { $0.type == ContentType.score.rawValue && $0.deletedAt == nil}
     }
     
     func toggleSelection(content: Content) {
@@ -80,13 +80,13 @@ final class CreateSetlistViewModel: ObservableObject {
                     }
                 )
             else { return }
-
+            
             DispatchQueue.main.async {
                 // 중복 방지: objectID 로 비교
                 guard !self.selectedContents.contains(
                     where: { $0.objectID == dropped.objectID }
                 ) else { return }
-
+                
                 // 삽입 위치 보정
                 let safeIndex = min(index, self.selectedContents.count)
                 self.selectedContents.insert(dropped, at: safeIndex)
@@ -103,25 +103,25 @@ final class CreateSetlistViewModel: ObservableObject {
         completion: @escaping () -> Void
     ) {
         let originals: [Content] = selectedContents
-
+        
         let setlistPublisher: AnyPublisher<Content, Never> =
-            ContentManager.shared
-                .createSetlist(
-                    named: name,
-                    with: originals,
-                    currentParent: currentParent
-                )
-                .eraseToAnyPublisher()
-
+        ContentManager.shared
+            .createSetlist(
+                named: name,
+                with: originals,
+                currentParent: currentParent
+            )
+            .eraseToAnyPublisher()
+        
         setlistPublisher
             .flatMap(maxPublishers: .max(1)) { (setlist: Content) -> AnyPublisher<Void, Never> in
                 // 1) newScores 타입 명시
                 let newScores: [Content] = (setlist.setlistScores as? Set<Content>)?
                     .sorted { $0.displayOrder < $1.displayOrder } ?? []
-
+                
                 // 2) zip 결과를 Array로 변환해서 타입 고정
                 let pairs: [(Content, Content)] = Array(zip(originals, newScores))
-
+                
                 // 3) tasks 배열 명시
                 let tasks: [AnyPublisher<Void, Never>] = pairs.map { orig, copy in
                     Future<Void, Never> { promise in
@@ -137,28 +137,28 @@ final class CreateSetlistViewModel: ObservableObject {
                         // 페이지 복제
                         let origPages = ScorePageManager.shared.fetchPages(for: origDetail)
                         let newPages  = ScorePageManager.shared.clonePages(from: origPages, to: newDetail)
-
+                        
                         // 코드·어노테이션 복제
                         for (origPage, newPage) in zip(origPages, newPages) {
-                                let chords     = ScoreChordManager.shared.fetchChords(for: origPage)
-                                ScoreChordManager.shared.cloneChords(chords, to: newPage)
-
-                                let annots     = ScoreAnnotationManager.shared.fetchAnnotations(for: origPage)
-                                ScoreAnnotationManager.shared.cloneAnnotations(annots, to: newPage)
-                            }
-
+                            let chords     = ScoreChordManager.shared.fetchChords(for: origPage)
+                            ScoreChordManager.shared.cloneChords(chords, to: newPage)
+                            
+                            let annots     = ScoreAnnotationManager.shared.fetchAnnotations(for: origPage)
+                            ScoreAnnotationManager.shared.cloneAnnotations(annots, to: newPage)
+                        }
+                        
                         promise(.success(()))
                     }
                     .eraseToAnyPublisher()
                 }
-
+                
                 // 4) MergeMany 결과도 변수에 담기
                 let merged: AnyPublisher<Void, Never> =
-                    Publishers.MergeMany(tasks)
-                        .collect()
-                        .map { _ in () }
-                        .eraseToAnyPublisher()
-
+                Publishers.MergeMany(tasks)
+                    .collect()
+                    .map { _ in () }
+                    .eraseToAnyPublisher()
+                
                 return merged
             }
             .receive(on: DispatchQueue.main)

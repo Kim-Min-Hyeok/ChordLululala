@@ -10,7 +10,9 @@ import Foundation
 
 final class CoreDataManager {
     static let shared = CoreDataManager()
-    let context = PersistenceController.shared.container.viewContext
+    var context: NSManagedObjectContext {
+        PersistenceController.shared.container.viewContext
+    }
     
     func saveContext() {
         do {

@@ -9,7 +9,6 @@ import SwiftUI
 
 
 struct ScorePageOverView: View {
-    @ObservedObject var viewModel: ScorePageOverViewModel
     var pages: [UIImage]
     var rotations: [Int]
     

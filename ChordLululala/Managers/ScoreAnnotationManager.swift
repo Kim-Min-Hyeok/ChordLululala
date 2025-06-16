@@ -7,7 +7,7 @@ import PencilKit
 /// 악보 필기 관리하는 manager
 final class ScoreAnnotationManager {
     static let shared = ScoreAnnotationManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     /// 저장하기
     @discardableResult

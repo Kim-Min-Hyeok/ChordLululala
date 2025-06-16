@@ -217,7 +217,7 @@ struct MyPageView: View {
                         },
                         onConfirm: {
                             viewModel.logout {
-                                router.toNamed("/login")
+                                router.offAll("/login")
                             }
                         }
                     )
@@ -242,7 +242,7 @@ struct MyPageView: View {
                         },
                         onConfirm: {
                             viewModel.deleteAccount {
-                                router.toNamed("/login")
+                                router.offAll("/login")
                             }
                         }
                     )

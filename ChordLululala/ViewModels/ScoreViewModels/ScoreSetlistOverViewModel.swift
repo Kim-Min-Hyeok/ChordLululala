@@ -2,39 +2,65 @@
 //  ScoreSetlistOverViewModel.swift
 //  ChordLululala
 //
-//  Created by Minhyeok Kim on 6/13/25.
+//  Created by Minhyeok Kim on 6/17/25.
 //
 
-import Foundation
+import Combine
 import SwiftUI
 
-final class ScoreSetlistOverViewModel: ObservableObject {
-    @Published var scores: [Content] = []
+final class ScoreSetlistOverViewModel: ObservableObject{
+    @Published var searchText: String = ""
+    @Published var currentFilter: ToggleFilter = .all
+    @Published var selectedContents: [Content] = []
     
-    private var setlist: Content?
+    private var allScores: [Content] = []
     
-    func setSetlist(_ setlist: Content) {
-        self.setlist = setlist
-        self.scores = ContentManager.shared.fetchScoresFromSetlist(setlist)
-    }
-    
-    func moveScore(from source: IndexSet, to destination: Int) {
-        guard setlist != nil else { return }
-        var updatedScores = scores
-        updatedScores.move(fromOffsets: source, toOffset: destination)
+    var filteredScores: [Content] {
+        // 1. 검색어 필터
+        let queryFiltered: [Content] = {
+            guard !searchText.isEmpty else { return allScores }
+            return allScores.filter { content in
+                guard let name = content.name else { return false }
+                return name.localizedCaseInsensitiveContains(searchText)
+            }
+        }()
         
-        ContentManager.shared.updateSetlistDisplayOrder(for: updatedScores)
-        self.scores = updatedScores
+        return queryFiltered
+        // 2. 즐겨찾기 필터
+//        switch currentFilter {
+//        case .all:  return queryFiltered
+//        case .star: return queryFiltered.filter { $0.isStared }
+//        }
     }
     
-    func deleteScore(_ score: Content) {
-        guard setlist != nil else { return }
-        guard let removedIndex = scores.firstIndex(where: { $0.objectID == score.objectID }) else { return }
-
-        let orderedScores = scores
-
-        if ContentManager.shared.removeScoreFromSetlist(score, in: orderedScores) {
-            self.scores.remove(at: removedIndex)
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        loadScores()
+    }
+    
+    func loadScores() {
+        let all = ContentCoreDataManager.shared.fetchContentsSync()
+        self.allScores = all.filter { $0.type == ContentType.score.rawValue && $0.deletedAt == nil}
+    }
+    
+    func toggleSelection(content: Content) {
+        if isSelected(content: content) {
+            unselectContent(content: content)
+        } else {
+            selectContent(content: content)
         }
+    }
+    
+    func isSelected(content: Content) -> Bool {
+        selectedContents.contains { $0.objectID == content.objectID }
+    }
+    
+    func selectContent(content: Content) {
+        selectedContents.append(content)
+    }
+    
+    func unselectContent(content: Content) {
+        selectedContents.removeAll { $0 == content }
     }
 }
