@@ -46,7 +46,11 @@ final class BackupManager {
             try fm.removeItem(at: archiveURL)
         }
         try FileManagerManager.shared.compressDirectory(tmpRoot, toArchive: archiveURL)
+        // 5) 암호화
         try EncryptionManager.shared.encryptFile(at: archiveURL, to: archiveURL)
+        // 6) 무결성 검사용 MAC 파일 생성
+        let macURL = archiveURL.appendingPathExtension("mac")
+        try EncryptionManager.shared.generateMACFile(at: archiveURL, to: macURL)
         
         return archiveURL
     }
@@ -65,6 +69,10 @@ final class BackupManager {
             .appendingPathComponent("Decrypted_Backup.aar")
         try? fm.removeItem(at: decryptedArchiveURL)
         
+        // 1) 무결성 검증
+        let macURL = archiveURL.appendingPathExtension("mac")
+        try EncryptionManager.shared.verifyMACFile(at: archiveURL, macURL: macURL)
+        // 2) 복호화
         print("🔓 [restoreBackup] 백업 파일 복호화")
         try EncryptionManager.shared.decryptFile(at: archiveURL, to: decryptedArchiveURL)
         

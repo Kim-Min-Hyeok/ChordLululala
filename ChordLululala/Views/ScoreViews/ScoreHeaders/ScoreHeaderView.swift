@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ScoreHeaderView: View {
     @EnvironmentObject var router : NavigationRouter
+    @EnvironmentObject var viewModel: ScoreViewModel
     
     @State var isAnnotationMode: Bool = false
     
@@ -29,6 +30,7 @@ struct ScoreHeaderView: View {
             HStack(spacing:0){
                 /// 뒤로가기
                 Button(action:{
+                    viewModel.saveAnnotations()
                     router.back()
                 }){
                     Image("scoreheader_back")

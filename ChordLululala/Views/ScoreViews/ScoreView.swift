@@ -196,6 +196,9 @@ struct ScoreView : View {
                 }
             }
         }
+        .onAppear {
+            viewModel.loadAllScoresData()
+        }
         .onDisappear {
             viewModel.saveAnnotations()
         }

@@ -128,7 +128,7 @@ final class ScoreViewModel: ObservableObject{
         
     }
     
-    private func loadAllScoresData() {
+    func loadAllScoresData() {
         let items = scores
         DispatchQueue.global(qos: .userInitiated).async {
             var allPages = [[UIImage]]()
@@ -300,7 +300,6 @@ final class ScoreViewModel: ObservableObject{
         {
             scores.remove(at: idx)
             loadAllScoresData()
-            // ---- ⬇️ 반드시 추가! ----
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
                 // flatPages의 마지막 인덱스로 클램프
@@ -366,6 +365,21 @@ final class ScoreViewModel: ObservableObject{
         // 새로 추가된 페이지로 flat 인덱스 갱신
         selectedPageIndex = flat + 1
         return true
+    }
+    
+    // TODO: 나중에 페이지 이동 구현시 사용
+    func movePage(score: Content, from source: IndexSet, to destination: Int) {
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: score) else { return }
+        var pages = ScorePageManager.shared.fetchPages(for: detail)
+        pages.move(fromOffsets: source, toOffset: destination)
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            ScorePageManager.shared.updateScorePageDisplayOrder(pages)
+            
+            DispatchQueue.main.async {
+                self.loadAllScoresData()
+            }
+        }
     }
     
     /// flatPages의 index에 해당하는 페이지를 삭제

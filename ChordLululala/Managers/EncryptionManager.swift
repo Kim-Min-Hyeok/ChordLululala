@@ -12,78 +12,100 @@ import CryptoKit
 final class EncryptionManager {
     static let shared = EncryptionManager()
     
-    private let key: SymmetricKey
+    private let aesKey: SymmetricKey
+    
+    // 보안 문제보다는 무결성 문제를 해결하기 위한 HMAC 키 (이 키는 공개 되어도 ㄱㅊ)
+    private let hmacKey: SymmetricKey = SymmetricKey(data: Data([
+        0x23,0xA7,0x5F,0xD1,0xC3,0xE9,0x18,0x4B,
+        0x7D,0x90,0xFE,0x61,0x2B,0x5C,0x8E,0x3F,
+        0x99,0xDE,0x41,0xB2,0x17,0x6A,0xCE,0x04,
+        0x8A,0x3D,0x77,0xF0,0x1E,0xB8,0xCA,0x55
+    ]))
+    
     private let keyTag = "com.noteflow.chordlululala.encryptionKey"
     
     private init() {
-        if let storedKey = try? KeychainHelper.shared.readKey(tag: keyTag) {
-            key = SymmetricKey(data: storedKey)
+        if let stored = try? KeychainHelper.shared.readKey(tag: keyTag) {
+            aesKey = SymmetricKey(data: stored)
         } else {
             let newKey = SymmetricKey(size: .bits256)
-            let keyData = newKey.withUnsafeBytes { Data($0) }
-            try? KeychainHelper.shared.storeKey(keyData, tag: keyTag)
-            key = newKey
+            let data = newKey.withUnsafeBytes { Data($0) }
+            try? KeychainHelper.shared.storeKey(data, tag: keyTag)
+            aesKey = newKey
         }
     }
     
     func encrypt(_ data: Data) throws -> Data {
-        let sealedBox = try AES.GCM.seal(data, using: key)
-        guard let combined = sealedBox.combined else {
+        let box = try AES.GCM.seal(data, using: aesKey)
+        guard let combined = box.combined else {
             throw EncryptionError.encryptionFailed
         }
         return combined
     }
-    
-    func decrypt(_ encryptedData: Data) throws -> Data {
-        let sealedBox = try AES.GCM.SealedBox(combined: encryptedData)
-        return try AES.GCM.open(sealedBox, using: key)
+    func decrypt(_ encrypted: Data) throws -> Data {
+        let box = try AES.GCM.SealedBox(combined: encrypted)
+        return try AES.GCM.open(box, using: aesKey)
+    }
+    func encryptFile(at src: URL, to dst: URL) throws {
+        let d = try Data(contentsOf: src)
+        let e = try encrypt(d)
+        try e.write(to: dst, options: .atomic)
+    }
+    func decryptFile(at src: URL, to dst: URL) throws {
+        let d = try Data(contentsOf: src)
+        let dec = try decrypt(d)
+        try dec.write(to: dst, options: .atomic)
     }
     
-    func encryptFile(at srcURL: URL, to dstURL: URL) throws {
-        let data = try Data(contentsOf: srcURL)
-        let encrypted = try encrypt(data)
-        try encrypted.write(to: dstURL, options: .atomic)
+    func generateMACFile(at src: URL, to macURL: URL) throws {
+        let data = try Data(contentsOf: src)
+        let mac = HMAC<SHA256>.authenticationCode(for: data, using: hmacKey)
+        try Data(mac).write(to: macURL, options: .atomic)
     }
     
-    func decryptFile(at srcURL: URL, to dstURL: URL) throws {
-        let data = try Data(contentsOf: srcURL)
-        let decrypted = try decrypt(data)
-        try decrypted.write(to: dstURL, options: .atomic)
+    /// src 파일과 macURL 파일을 비교, 불일치 시 에러 던짐
+    func verifyMACFile(at src: URL, macURL: URL) throws {
+        let data     = try Data(contentsOf: src)
+        let stored   = try Data(contentsOf: macURL)
+        let expected = HMAC<SHA256>.authenticationCode(for: data, using: hmacKey)
+        guard stored == Data(expected) else {
+            throw EncryptionError.macValidationFailed
+        }
     }
 }
 
 enum EncryptionError: Error {
     case encryptionFailed
+    case macValidationFailed
 }
 
 final class KeychainHelper {
     static let shared = KeychainHelper()
     private init() {}
-
+    
     func storeKey(_ key: Data, tag: String) throws {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassKey,
+        let q: [String: Any] = [
+            kSecClass              as String: kSecClassKey,
             kSecAttrApplicationTag as String: tag,
-            kSecValueData as String: key,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            kSecValueData          as String: key,
+            kSecAttrAccessible     as String: kSecAttrAccessibleAfterFirstUnlock
         ]
-        SecItemDelete(query as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
-        guard status == errSecSuccess else {
+        SecItemDelete(q as CFDictionary)
+        guard SecItemAdd(q as CFDictionary, nil) == errSecSuccess else {
             throw EncryptionError.encryptionFailed
         }
     }
-
+    
     func readKey(tag: String) throws -> Data {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassKey,
+        let q: [String: Any] = [
+            kSecClass              as String: kSecClassKey,
             kSecAttrApplicationTag as String: tag,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecReturnData         as String: true,
+            kSecMatchLimit         as String: kSecMatchLimitOne
         ]
-        var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
-        guard status == errSecSuccess, let data = result as? Data else {
+        var res: AnyObject?
+        guard SecItemCopyMatching(q as CFDictionary, &res) == errSecSuccess,
+              let data = res as? Data else {
             throw EncryptionError.encryptionFailed
         }
         return data

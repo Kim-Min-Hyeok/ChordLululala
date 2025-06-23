@@ -242,6 +242,7 @@ struct MyPageView: View {
                         },
                         onConfirm: {
                             viewModel.deleteAccount {
+                                isShowingDeleteAcountModal = false
                                 router.offAll("/login")
                             }
                         }
@@ -281,9 +282,3 @@ struct MyPageView: View {
         }
     }
 }
-
-#Preview {
-    MyPageView()
-}
-
-

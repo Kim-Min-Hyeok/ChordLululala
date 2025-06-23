@@ -70,6 +70,10 @@ class MyPageViewModel: ObservableObject {
         CoreDataManager.shared.deleteAllCoreDataObjects()
         FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
         UserManager.shared.logout()
+
+        DispatchQueue.main.async {
+            completion()
+        }
     }
     
     /// 백업
