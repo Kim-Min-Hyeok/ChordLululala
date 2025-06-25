@@ -27,20 +27,29 @@ struct ContentView: View {
                     case "/termsofservice":
                         TermsOfServiceView()
                     case "/score":
-                        if let content = route.arguments as? [ContentModel],
+                        if let content = route.arguments as? [Content],
                            let first = content.first{
-                                ScoreView(content: first)
-                            } else {
-                                Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
-                            }
+                            ScoreView(content: first)
+                        } else {
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
+                        }
                     case "/chordreconize":
-                        if let args = route.arguments as? [ContentModel],
-                               let file = args.first {
-                                ChordReconizeView(file: file)
-                                    .environmentObject(router)
-                            } else {
-                                Text("❌ ContentModel 전달 실패: \(String(describing: route.arguments))")
-                            }
+                        if let args = route.arguments as? [Content],
+                           let file = args.first {
+                            ChordReconizeView(file: file)
+                                .environmentObject(router)
+                        } else {
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
+                        }
+                    case "/chordConfirm":
+                        if let args = route.arguments as? [Content],
+                           let file = args.first {
+                            ChordConfirmView(file: file)
+                                .environmentObject(router)
+                        } else {
+                            Text("❌ Content 전달 실패: \(String(describing: route.arguments))")
+                        }
+                        
                     default:
                         Text("알 수 없는 경로: \(route.name)")
                     }
@@ -48,6 +57,8 @@ struct ContentView: View {
         }
         .environmentObject(router)
         .onAppear {
+            // 앱 시작 시 기본 디렉토리 초기화
+            ContentManager.shared.initializeBaseDirectories()
             if let _ = UserDefaults.standard.string(forKey: "lastLoggedInUserID") {
                 router.offAll("/")
             } else {

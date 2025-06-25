@@ -7,46 +7,70 @@
 
 import SwiftUI
 
+struct CellFrameKey: PreferenceKey {
+    typealias Value = [Int: CGRect]
+    static var defaultValue: [Int: CGRect] = [:]
+    static func reduce(value: inout Value, nextValue: () -> Value) {
+        value.merge(nextValue(), uniquingKeysWith: { $1 })
+    }
+}
+
+import SwiftUI
+
 struct ScorePageOverContentView: View {
-    @EnvironmentObject var vm : ScorePageOverViewModel
+    let pageIndex: Int
+    let image: UIImage
+    let rotate: Int
+    let onToggleOptions: (Int) -> Void
     
-    let pageIndex : Int
-    let image : UIImage
+    private var imageSize: CGSize {
+        if rotate % 2 == 0 {
+            // 0°, 180° → portrait
+            return CGSize(width: 99, height: 135)
+        } else {
+            // 90°, 270° → landscape
+            return CGSize(width: 135, height: 99)
+        }
+    }
+
     var body: some View {
-        VStack{
-            //페이지
-            Image(uiImage: image) // TODO: 이미지 사이즈  바꿔야 함
+        VStack(spacing: 8) {
+            Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-                .frame(width: 99, height: 135)
+                .frame(width: imageSize.width, height: imageSize.height)
+                .rotationEffect(
+                    Angle(degrees: Double(rotate) * 90),
+                    anchor: .center
+                )
                 .cornerRadius(1)
-                .shadow(color: Color.primaryBaseBlack.opacity(0.25) , radius: 3.24, x: 0, y: 3.24)
+                .shadow(color: Color.primaryBaseBlack.opacity(0.25), radius: 3.24, x: 0, y: 3.24)
             
-            HStack{
-                Text("\(pageIndex)")
+            HStack {
+                Text("\(pageIndex+1)")
                     .textStyle(.headingLgSemiBold)
                 Spacer()
-                
-                Button(action: {
-                    //TODO: 모달 창 띄우기
-                    vm.isPageOption()
-                }){
-                    Image("dropdown")
+                Button {
+                    onToggleOptions(pageIndex)
+                } label: {
+                    Image("arrow_down")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 10, height: 15)
                 }
-                .popover(
-                    isPresented: $vm.isPageOptionModalPresented,
-                    attachmentAnchor: .rect(.bounds),
-                    arrowEdge: .top
-                ){
-                    PageOptionModalView()
-                }
             }
+            .frame(width: 129, height: 24)
             .foregroundColor(Color.primaryGray500)
-            
         }
-        .frame(width: 129, height: 167)
+        .frame(width: 160, height: 191)
+        .background {
+            GeometryReader { geo in
+                Color.clear
+                    .preference(
+                        key: CellFrameKey.self,
+                        value: [pageIndex: geo.frame(in: .named("scrollArea"))]
+                    )
+            }
+        }
     }
 }

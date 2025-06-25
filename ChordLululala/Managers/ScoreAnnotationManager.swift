@@ -2,60 +2,49 @@
 
 import Foundation
 import CoreData
+import PencilKit
 
 /// 악보 필기 관리하는 manager
 final class ScoreAnnotationManager {
     static let shared = ScoreAnnotationManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     
     /// 저장하기
-    func save(annotations: [ScoreAnnotationModel], for pageModel: ScorePageModel){
-        print("▶️ [ScoreAnnotationManager.save] called for pageID:", pageModel.s_pid, "with annotation count:", annotations.count)
-        
-        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-        req.predicate = NSPredicate(format: "s_pid == %@", pageModel.s_pid as CVarArg)
-        guard let pageEntity = (try? context.fetch(req))?.first else {
-            print("⚠️ Page entity not found for s_pid: \(pageModel.s_pid)")
-            return
+    @discardableResult
+        func saveAnnotation(drawing: PKDrawing, for page: ScorePage) -> Bool {
+            // 1) 기존 어노테이션 삭제
+            if let existing = page.scoreAnnotations as? Set<ScoreAnnotation> {
+                existing.forEach(context.delete)
+            }
+
+            // 2) 새 어노테이션 엔티티 생성
+            let annot = ScoreAnnotation(context: context)
+            annot.id = annot.id ?? UUID()
+            annot.strokeData = drawing.dataRepresentation()
+            // inverse 관계로 자동 추가됩니다
+            annot.scorePage  = page
+
+            // 3) 저장
+            do {
+                try context.save()
+                return true
+            } catch {
+                print("❌ saveDrawing 실패:", error)
+                return false
+            }
         }
-        
-        // 기존 필기 삭제
-        if let existing = pageEntity.scoreAnnotations as?  Set<ScoreAnnotation> {
-            print("🗑️ [ScoreAnnotationManager.save] deleting existing annotations count:", existing.count)
-            existing.forEach(context.delete)
-        }
-        // 새 필기 삽입
-        for anno in annotations {
-            let ent = ScoreAnnotation(context: context)
-            ent.s_aid = anno.s_aid
-            ent.strokeData = anno.strokeData
-            ent.scorePage = pageEntity
-        }
-        print("➕ [ScoreAnnotationManager.save] inserted new annotations count:", annotations.count)
-        
-        // 저장하기
-        do {
-            try context.save()
-            print("✅ save success")
-        } catch {
-            print("❌ [ScoreAnnotationManager.save] save error:", error.localizedDescription)
-        }
-    }
     
-    /// 불러오기
-    func fetch(for pageModel: ScorePageModel) -> [ScoreAnnotationModel]{
-        print("▶️ [ScoreAnnotationManager.fetch] called for pageID:", pageModel.s_pid)
-        let req: NSFetchRequest<ScorePage> = ScorePage.fetchRequest()
-        req.predicate = NSPredicate(format: "s_pid == %@", pageModel.s_pid as CVarArg)
-        
-        guard let pageEntity = (try? context.fetch(req))?.first,
-              let set = pageEntity.scoreAnnotations as? Set<ScoreAnnotation>
-        else {
-            print("⚠️ 필기 데이터 없음")
-            return []
-        }
-        print("✅ CoreData 조회 완료: \(set.count)개의 필기 데이터")
-        return set.map{ ScoreAnnotationModel(entity: $0)}
+    func fetchAnnotations(for page: ScorePage) -> [ScoreAnnotation] {
+        return Array(page.scoreAnnotations as? Set<ScoreAnnotation> ?? [])
     }
-    
+
+        /// originalAnnotations를 newPage로 복제
+        func cloneAnnotations(_ originalAnnotations: [ScoreAnnotation], to newPage: ScorePage) {
+            for annot in originalAnnotations {
+                let na = ScoreAnnotation(context: context)
+                na.strokeData = annot.strokeData
+                na.scorePage  = newPage
+            }
+            try? context.save()
+        }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct SidebarView: View {
     var onSelect: (DashboardContents) -> Void
     @EnvironmentObject var router: NavigationRouter
-    @State private var selected: DashboardContents = .score
+    @Binding var selected: DashboardContents
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -30,24 +30,10 @@ struct SidebarView: View {
                 onSelect(selected)
             }, isSelected: selected == .setlist)
             
-            SidebarButtonView(imageName: "trash", title: "휴지통", action: {
-                selected = .trashCan
-                onSelect(selected)
-            }, isSelected: selected == .trashCan)
-            
-            SidebarButtonView(imageName: "mypage", title: "마이페이지", action: {
+            SidebarButtonView(imageName: "mypage", title: "내 계정", action: {
                 selected = .myPage
                 onSelect(selected)
-            }, isSelected: false)
-            
-            SidebarButtonView(imageName: "mypage", title: "로그아웃", action: {
-                UserManager.shared.logout()
-                router.offAll("/login")
-            }, isSelected: false)
-            
-            SidebarButtonView(imageName: "mypage", title: "데이터 초기화", action: {
-                CoreDataManager.shared.deleteAllCoreDataObjects()
-            }, isSelected: false)
+            }, isSelected: selected == .myPage || selected == .trashCan)
             
             Spacer()
         }

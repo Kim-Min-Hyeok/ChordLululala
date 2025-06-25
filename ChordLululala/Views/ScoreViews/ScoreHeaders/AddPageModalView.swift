@@ -2,9 +2,10 @@
 import SwiftUI
 
 struct AddPageModalView: View {
-    let onSelect: (PageType) -> Void
     @State private var selectedType: PageType? = nil
-    @ObservedObject var pageAdditionVM: PageAdditionViewModel
+    
+    let onSelect: (PageType) -> Void
+    let onClose: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -12,15 +13,14 @@ struct AddPageModalView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    pageAdditionVM.isSheetPresented = false
+                    onClose()
                 }) {
                     Text("닫기")
                         .textStyle(.headingSmMedium)
                         .foregroundColor(.primaryBlue600)
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 8)
                 }
-                .padding(.trailing, 13)
-                .padding(.top, 8)
-                .padding(.bottom,8)
             }
             .frame(height: 36)
             .background(Color.primaryGray50)
@@ -61,7 +61,9 @@ struct AddPageModalView: View {
             Button(action: {
                 if let type = selectedType {
                     onSelect(type)
-                    pageAdditionVM.isSheetPresented = false
+                }
+                else {
+                    onClose()
                 }
             }) {
                 HStack {
@@ -79,7 +81,7 @@ struct AddPageModalView: View {
             .disabled(selectedType == nil)
             
         }
-        .frame(width: 321, height: 395) // 전체 카드 크기
+        .frame(width: 321, alignment: .top) // 전체 카드 크기
         .background(Color.primaryBaseWhite)
         .cornerRadius(10)
         .shadow(color: Color.primaryBaseBlack.opacity(0.25), radius: 30)

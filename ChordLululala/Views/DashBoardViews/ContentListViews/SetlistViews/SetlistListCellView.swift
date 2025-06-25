@@ -9,10 +9,11 @@ import SwiftUI
 
 struct SetlistListCellView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
-    let setlist: ContentModel
+    @EnvironmentObject var router: NavigationRouter
+    let setlist: Content
     
     private var isSelected: Bool {
-        viewModel.selectedContents.contains { $0.cid == setlist.cid }
+        viewModel.selectedContents.contains { $0.objectID == setlist.objectID }
     }
     
     var body: some View {
@@ -37,10 +38,10 @@ struct SetlistListCellView: View {
                 VStack(spacing: 12) {
                     HStack(alignment: .top) {
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(setlist.name)
+                            Text(setlist.name ?? "Untitled")
                                 .textStyle(.bodyTextXLSemiBold)
                                 .foregroundStyle(Color.primaryGray800)
-                            Text(setlist.modifiedAt.dateFormatForList())
+                            Text((setlist.modifiedAt?.dateFormatForList()) ?? "")
                                 .textStyle(.bodyTextLgRegular)
                                 .foregroundStyle(Color.primaryGray600)
                                 .padding(.top, 3)
@@ -69,8 +70,8 @@ struct SetlistListCellView: View {
             .onTapGesture {
                 if viewModel.isSelectionViewVisible {
                     toggleSelection()
-                } else {
-                    // 셋리스트 들어가기
+                } else if viewModel.dashboardContents != .trashCan {
+                    router.toNamed("/score", arguments: [setlist])
                 }
             }
             .conditionalContextMenu(isEnabled: !viewModel.isSelectionViewVisible) {
@@ -85,7 +86,7 @@ struct SetlistListCellView: View {
     
     private func toggleSelection() {
         if isSelected {
-            viewModel.selectedContents.removeAll { $0.cid == setlist.cid }
+            viewModel.selectedContents.removeAll { $0.objectID == setlist.objectID }
         } else {
             viewModel.selectedContents.append(setlist)
         }

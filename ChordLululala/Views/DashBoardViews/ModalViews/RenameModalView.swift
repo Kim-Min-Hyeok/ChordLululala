@@ -10,7 +10,7 @@ import SwiftUI
 struct RenameModalView: View {
     @EnvironmentObject var viewModel: DashBoardViewModel
     
-    let content: ContentModel
+    let content: Content
     @FocusState private var isFocused: Bool
     
     @State private var name: String = ""
@@ -18,20 +18,22 @@ struct RenameModalView: View {
     
     private let type: String
     
-    init(content: ContentModel) {
+    init(content: Content) {
         self.type = {
             switch content.type {
-            case .score, .scoresOfSetlist:
+            case ContentType.score.rawValue, ContentType.scoresOfSetlist.rawValue:
                 return "파일"
-            case .setlist:
+            case ContentType.setlist.rawValue:
                 return "셋리스트"
-            case .folder:
+            case ContentType.folder.rawValue:
                 return "폴더"
+            default:
+                return "파일"
             }
         }()
         
         self.content = content
-        let baseName = (content.name as NSString).deletingPathExtension
+        let baseName = ((content.name ?? "") as NSString).deletingPathExtension
         self._name = State(initialValue: baseName)
         self.originalName = baseName
     }

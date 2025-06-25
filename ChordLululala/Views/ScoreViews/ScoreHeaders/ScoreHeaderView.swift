@@ -9,26 +9,28 @@ import SwiftUI
 
 
 struct ScoreHeaderView: View {
-    @ObservedObject var viewModel : ScoreHeaderViewModel
     @EnvironmentObject var router : NavigationRouter
-    @ObservedObject var annotationVM : ScoreAnnotationViewModel
-    @ObservedObject var isTransposing: IsTransposingViewModel
-    @ObservedObject var pageAdditionVM : PageAdditionViewModel
-    @EnvironmentObject var settingVM : ScoreSettingViewModel
-    @EnvironmentObject var overViewVM : ScorePageOverViewModel
+    @EnvironmentObject var viewModel: ScoreViewModel
     
-    let file : ContentModel?
+    @State var isAnnotationMode: Bool = false
     
+    // Pararameter
+    @Binding var isRecognized: Bool
+    let file : Content
+    
+    let presentSetlistOverViewModal: () -> Void
+    let toggleAnnotationMode: () -> Void
+    let presentAddPageModal: () -> Void
+    let resetChords: () -> Void
+    let presentOverViewModal: () -> Void
+    let toggleSettingViewModal: () -> Void
     
     var body: some View {
-        GeometryReader { geo in
-            let isLandscape = geo.size.width > geo.size.height // 화면이 가로모드이면 true, 세로모드이면 false
-            let leftSpacerWidth: CGFloat = isLandscape ? 456 : 16
-            
-            
+        ZStack(alignment: .bottom) {
             HStack(spacing:0){
                 /// 뒤로가기
                 Button(action:{
+                    viewModel.saveAnnotations()
                     router.back()
                 }){
                     Image("scoreheader_back")
@@ -38,22 +40,27 @@ struct ScoreHeaderView: View {
                         .foregroundColor(Color.primaryBaseBlack)
                 }
                 
-                Spacer().frame(width: leftSpacerWidth)
+                if file.type == ContentType.setlist.rawValue {
+                    Button(action:{
+                        presentSetlistOverViewModal()
+                    }){
+                        Image("scoreheader_score_list")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 36, height: 36)
+                    }
+                    .padding(.leading, 7)
+                }
                 
-                /// 제목
-                Text(viewModel.truncatedTitle)
-                    .foregroundColor(Color.primaryGray900)
-                    .textStyle(.headingLgSemiBold)
-                    .layoutPriority(1)
-                    .lineLimit(1)
                 Spacer()
                 
                 HStack(spacing: 7){
                     /// 펜슬
                     Button(action:{
-                        annotationVM.isEditing.toggle()
+                        isAnnotationMode.toggle()
+                        toggleAnnotationMode()
                     }){
-                        Image(annotationVM.isEditing ? "scoreheader_pencil_fill" : "scoreheader_pencil")
+                        Image(isAnnotationMode ? "scoreheader_pencil_fill" : "scoreheader_pencil")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 36, height: 36)
@@ -63,7 +70,7 @@ struct ScoreHeaderView: View {
                     
                     /// 페이지 추가버튼
                     Button(action:{
-                        pageAdditionVM.presentSheet()
+                        presentAddPageModal()
                     }){
                         Image("scoreheader_page_add")
                             .resizable()
@@ -72,31 +79,50 @@ struct ScoreHeaderView: View {
                             .foregroundColor(Color.primaryBaseBlack)
                     }
                     
-                    /// 키변환
-                    Button(action:{
-                        guard let file = file else {return}
-                        router.toNamed("/chordreconize", arguments: [ file ])
-                        
-                    }){
-                        HStack{
-                            Image("scoreheader_chordchange")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 24, height: 24)
+                    if file.type == ContentType.score.rawValue {
+                        /// 키변환
+                        Button(action:{
+                            router.toNamed("/chordreconize", arguments: [ file ])
                             
-                            Text("키변환")
-                                .textStyle(.headingLgMedium)
+                        }){
+                            HStack{
+                                Image("scoreheader_chordchange")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 24, height: 24)
+                                
+                                Text("키변환")
+                                    .textStyle(.headingLgMedium)
+                            }
+                        }
+                        .frame(width: 94, height: 42)
+                        .background(Color.primaryBlue500)
+                        .foregroundColor(Color.primaryBaseWhite)
+                        .cornerRadius(8)
+                        .padding(.trailing,10)
+                        
+                        if isRecognized {
+                            Button(action:{
+                                resetChords()
+                            }){
+                                Text("초기화")
+                                    .textStyle(.headingLgMedium)
+                                    .foregroundStyle(Color.supportingRed600)
+                                    .frame(width: 64, height: 42)
+                                    .background(Color.supportingRed100)
+                                    .cornerRadius(8)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 8)
+                                            .stroke(Color.supportingRed300, lineWidth: 1)
+                                    )
+                            }
+                            .padding(.trailing,7)
                         }
                     }
-                    .frame(width: 94, height: 42)
-                    .background(Color.primaryBlue500)
-                    .foregroundColor(Color.primaryBaseWhite)
-                    .cornerRadius(8)
-                    .padding(.trailing,10)
                     
                     ///전체 페이지 보기
                     Button(action:{
-                        overViewVM.toggle()
+                        presentOverViewModal()
                     }){
                         Image("scoreheader_page_list")
                             .resizable()
@@ -108,8 +134,8 @@ struct ScoreHeaderView: View {
                     
                     ///설정
                     Button(action:{
-                        settingVM.toggle()
-                        print("설정 보기 클릭") //TODO: 기능 추가해야함
+                        toggleSettingViewModal()
+                        print("설정 보기 클릭")
                     }){
                         Image("scoreheader_setting")
                             .resizable()
@@ -120,17 +146,21 @@ struct ScoreHeaderView: View {
                     }
                 }
                 
-                
-                
-                
             }
             .padding(.horizontal, 22)
-            .frame(maxHeight:.infinity,
+            .frame(height:91,
                    alignment: .bottom)
             
-            
+            /// 제목
+            Text({
+                let name = file.name ?? ""
+                return name.count > 10 ? "\(name.prefix(10))…" : name
+            }())
+            .foregroundColor(Color.primaryGray900)
+            .textStyle(.headingLgSemiBold)
+            .layoutPriority(1)
+            .lineLimit(1)
+            .padding(.bottom, 12)
         }
-        .frame(height: 91)
-        
     }
 }

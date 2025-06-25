@@ -38,7 +38,7 @@ struct SetlistSelectedView: View {
                 }
             } else {
                 List {
-                    ForEach(viewModel.selectedContents, id: \.cid) { content in
+                    ForEach(viewModel.selectedContents, id: \.objectID) { content in
                         SelectedCellView(file: content)
                             .frame(height: 65)
                             .listRowSeparator(.hidden)

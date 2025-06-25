@@ -39,7 +39,7 @@ final class ContentFileManagerManager {
     
     // 폴더 생성
     func createFolder(named folderName: String,
-                      relativeTo currentParent: ContentModel?,
+                      relativeTo currentParent: Content?,
                       dashboardContents: DashboardContents,
                       completion: @escaping (Result<(folderURL: URL, relativePath: String), FileServiceError>) -> Void) {
         
@@ -79,9 +79,10 @@ final class ContentFileManagerManager {
     // 상대 경로 반환
     func relativePath(for absolutePath: String) -> String? {
         guard let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return nil }
-        let docsPath = docsURL.path
-        if absolutePath.hasPrefix(docsPath) {
-            let relativePath = String(absolutePath.dropFirst(docsPath.count + 1))
+        let docsPath = docsURL.standardizedFileURL.path
+        let absPath = (absolutePath as NSString).standardizingPath
+        if absPath.hasPrefix(docsPath) {
+            let relativePath = String(absPath.dropFirst(docsPath.count + 1))
             return relativePath
         }
         return nil

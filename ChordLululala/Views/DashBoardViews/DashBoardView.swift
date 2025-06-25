@@ -21,9 +21,12 @@ struct DashboardView: View {
                 HStack(spacing: 0) {
                     // MARK: 사이드바
                     if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching && viewModel.dashboardContents != .createSetlist {
-                        SidebarView(onSelect: { newContent in
-                            viewModel.dashboardContents = newContent
-                        })
+                        SidebarView(
+                            onSelect: { newContent in
+                                viewModel.dashboardContents = newContent
+                            },
+                            selected: $viewModel.dashboardContents
+                        )
                     }
                     // MARK: 전체 / 탭바
                     VStack {
@@ -110,9 +113,12 @@ struct DashboardView: View {
                         }
                         
                         if !viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
-                            TabBarView(onSelect: { newContent in
-                                viewModel.dashboardContents = newContent
-                            })
+                            TabBarView(
+                                onSelect: { newContent in
+                                    viewModel.dashboardContents = newContent
+                                },
+                                selected: $viewModel.dashboardContents
+                            )
                         }
                     }
                     
@@ -186,17 +192,19 @@ struct DashboardView: View {
                             viewModel.isRenameModalVisible = false
                         }
                     let (titleText, bodyText): (String, String) = {
-                        switch content.type {
+                        switch ContentType(rawValue: content.type) {
                         case .folder:
                             return ("폴더 이름 변경", "이 폴더의 새로운 이름을 입력하십시오.")
                         case .score, .scoresOfSetlist:
                             return ("파일 이름 변경", "이 파일의 새로운 이름을 입력하십시오.")
                         case .setlist:
                             return ("셋리스트 이름 변경", "이 셋리스트의 새로운 이름을 입력하십시오.")
+                        default:
+                            return ("이름 변경", "새로운 이름을 입력하십시오.")
                         }
                     }()
                     
-                    let baseName = (content.name as NSString).deletingPathExtension
+                    let baseName = ((content.name ?? "") as NSString).deletingPathExtension
                     
                     SetContentNameModalView(
                         titleText,
@@ -204,7 +212,7 @@ struct DashboardView: View {
                         baseName  // ← 여기서 미리 가공해서 넘김
                     ) { newName in
                         // 확장자 붙이기 (필요하면)
-                        let ext = (content.name as NSString).pathExtension
+                        let ext = ((content.name ?? "") as NSString).pathExtension
                         let finalName = ext.isEmpty ? newName : "\(newName).\(ext)"
                         viewModel.renameContent(content, newName: finalName)
                         viewModel.isRenameModalVisible = false
@@ -260,7 +268,6 @@ struct DashboardView: View {
                     .transition(.opacity)
             }
         }
-        // 방향 감지
         .onAppear {
             viewModel.isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
         }
@@ -274,10 +281,13 @@ struct DashboardView: View {
             .background(Color.primaryGray50)
             .environmentObject(viewModel)
             .navigationBarHidden(true)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+                viewModel.importFromDropboxAndLoadContents()
+            }
     }
     
     private func handleMoveAction() {
-        let hadFolders = viewModel.selectedContents.contains { $0.type == .folder }
+        let hadFolders = viewModel.selectedContents.contains { $0.type == ContentType.folder.rawValue }
         if hadFolders {
             toastMessage = "폴더는 이동할 수 없습니다. 제외해주세요."
             showToast = true

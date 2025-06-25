@@ -11,25 +11,24 @@ import SwiftUI
 final class CreateSetlistViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var currentFilter: ToggleFilter = .all
-    @Published var selectedContents: [ContentModel] = []
+    @Published var selectedContents: [Content] = []
     
-    private var allScores: [ContentModel] = []
+    private var allScores: [Content] = []
     
-    var filteredScores: [ContentModel] {
+    var filteredScores: [Content] {
         // 1. 검색어 필터
-        let queryFiltered: [ContentModel] = {
+        let queryFiltered: [Content] = {
             guard !searchText.isEmpty else { return allScores }
-            return allScores.filter {
-                $0.name.localizedCaseInsensitiveContains(searchText)
+            return allScores.filter { content in
+                guard let name = content.name else { return false }
+                return name.localizedCaseInsensitiveContains(searchText)
             }
         }()
         
         // 2. 즐겨찾기 필터
         switch currentFilter {
-        case .all:
-            return queryFiltered
-        case .star:
-            return queryFiltered.filter { $0.isStared }
+        case .all:  return queryFiltered
+        case .star: return queryFiltered.filter { $0.isStared }
         }
     }
     
@@ -40,11 +39,11 @@ final class CreateSetlistViewModel: ObservableObject {
     }
     
     func loadScores() {
-        let all = ContentCoreDataManager.shared.fetchContentModelsSync()
-        self.allScores = all.filter { $0.type == .score }
+        let all = ContentCoreDataManager.shared.fetchContentsSync()
+        self.allScores = all.filter { $0.type == ContentType.score.rawValue && $0.deletedAt == nil}
     }
     
-    func toggleSelection(content: ContentModel) {
+    func toggleSelection(content: Content) {
         if isSelected(content: content) {
             unselectContent(content: content)
         } else {
@@ -52,15 +51,15 @@ final class CreateSetlistViewModel: ObservableObject {
         }
     }
     
-    func isSelected(content: ContentModel) -> Bool {
-        selectedContents.contains { $0.cid == content.cid }
+    func isSelected(content: Content) -> Bool {
+        selectedContents.contains { $0.objectID == content.objectID }
     }
     
-    func selectContent(content: ContentModel) {
+    func selectContent(content: Content) {
         selectedContents.append(content)
     }
     
-    func unselectContent(content: ContentModel) {
+    func unselectContent(content: Content) {
         selectedContents.removeAll { $0 == content }
     }
     
@@ -74,66 +73,100 @@ final class CreateSetlistViewModel: ObservableObject {
         provider.loadObject(ofClass: NSString.self) { nsStr, _ in
             guard
                 let str = nsStr as? String,
-                let uuid = UUID(uuidString: str),
-                let dropped = self.filteredScores.first(where: { $0.cid == uuid })
+                // objectID URI 문자열과 비교
+                let dropped = self.filteredScores.first(
+                    where: {
+                        $0.objectID.uriRepresentation().absoluteString == str
+                    }
+                )
             else { return }
-
+            
             DispatchQueue.main.async {
-                // 중복 방지
-                guard !self.selectedContents.contains(where: { $0.cid == dropped.cid }) else { return }
-                // 삽입 위치 보정 (예: index가 배열 크기보다 크면 맨 끝)
+                // 중복 방지: objectID 로 비교
+                guard !self.selectedContents.contains(
+                    where: { $0.objectID == dropped.objectID }
+                ) else { return }
+                
+                // 삽입 위치 보정
                 let safeIndex = min(index, self.selectedContents.count)
                 self.selectedContents.insert(dropped, at: safeIndex)
-                print("✅ 드롭 완료—선택된 파일들:", self.selectedContents.map(\.name))
+                print("✅ 드롭 완료—선택된 파일들:",
+                      self.selectedContents.map { $0.name ?? "Unnamed" })
             }
         }
         return true
     }
     
-    func createSetlist(_ name: String, currentParent: ContentModel, completion: @escaping () -> Void) {
-        let scoresToClone = selectedContents
-
+    func createSetlist(
+        _ name: String,
+        currentParent: Content,
+        completion: @escaping () -> Void
+    ) {
+        let originals: [Content] = selectedContents
+        
+        let setlistPublisher: AnyPublisher<Content, Never> =
         ContentManager.shared
             .createSetlist(
                 named: name,
-                with: scoresToClone,
-                currentParent: currentParent,
-                dashboardContents: .setlist
+                with: originals,
+                currentParent: currentParent
             )
-            .flatMap { setlist -> AnyPublisher<Void, Never> in
-                let tasks = zip(scoresToClone, setlist.scores ?? []).map { originalScore, newScore in
-                    return ScoreDetailManager.shared.createScoreDetail(for: newScore)
-                        .handleEvents(receiveOutput: { newDetail in
-                            // 1. 페이지 복제
-                            guard let originalDetail = ScoreDetailManager.shared.fetchScoreDetailModel(for: originalScore) else { return }
-
-                            let originalPages = ScorePageManager.shared.fetchPageModels(for: originalDetail)
-                            ScorePageManager.shared.clonePages(from: originalPages, to: newDetail)
-
-                            // 2. 페이지별 Chord & Annotation 복제
-                            let newPages = ScorePageManager.shared.fetchPageModels(for: newDetail)
-                            for (origPage, newPage) in zip(originalPages, newPages) {
-                                let origChords = ScoreChordManager.shared.fetch(for: origPage)
-                                let origAnnotations = ScoreAnnotationManager2.shared.fetch(for: origPage)
-
-                                ScoreChordManager.shared.save(chords: origChords, for: newPage)
-                                ScoreAnnotationManager2.shared.save(annotations: origAnnotations, for: newPage)
-                            }
-                        })
-                        .map { _ in () }
-                        .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
+        
+        setlistPublisher
+            .flatMap(maxPublishers: .max(1)) { (setlist: Content) -> AnyPublisher<Void, Never> in
+                // 1) newScores 타입 명시
+                let newScores: [Content] = (setlist.setlistScores as? Set<Content>)?
+                    .sorted { $0.displayOrder < $1.displayOrder } ?? []
+                
+                // 2) zip 결과를 Array로 변환해서 타입 고정
+                let pairs: [(Content, Content)] = Array(zip(originals, newScores))
+                
+                // 3) tasks 배열 명시
+                let tasks: [AnyPublisher<Void, Never>] = pairs.map { orig, copy in
+                    Future<Void, Never> { promise in
+                        guard let origDetail = ScoreDetailManager.shared.fetchDetail(for: orig) else {
+                            promise(.success(()))
+                            return
+                        }
+                        
+                        // 2) cloneDetail은 non-optional을 반환하므로 일반 할당
+                        let newDetail = ScoreDetailManager.shared.cloneDetail(of: origDetail, to: copy)
+                        
+                        
+                        // 페이지 복제
+                        let origPages = ScorePageManager.shared.fetchPages(for: origDetail)
+                        let newPages  = ScorePageManager.shared.clonePages(from: origPages, to: newDetail)
+                        
+                        // 코드·어노테이션 복제
+                        for (origPage, newPage) in zip(origPages, newPages) {
+                            let chords     = ScoreChordManager.shared.fetchChords(for: origPage)
+                            ScoreChordManager.shared.cloneChords(chords, to: newPage)
+                            
+                            let annots     = ScoreAnnotationManager.shared.fetchAnnotations(for: origPage)
+                            ScoreAnnotationManager.shared.cloneAnnotations(annots, to: newPage)
+                        }
+                        
+                        promise(.success(()))
+                    }
+                    .eraseToAnyPublisher()
                 }
-
-                return Publishers.MergeMany(tasks)
+                
+                // 4) MergeMany 결과도 변수에 담기
+                let merged: AnyPublisher<Void, Never> =
+                Publishers.MergeMany(tasks)
                     .collect()
                     .map { _ in () }
                     .eraseToAnyPublisher()
+                
+                return merged
             }
-            .sink { [weak self] in
+            .receive(on: DispatchQueue.main)
+            .sink(receiveValue: { [weak self] in
                 print("✅ 셋리스트 생성 완료")
                 self?.selectedContents.removeAll()
                 completion()
-            }
+            })
             .store(in: &cancellables)
     }
 }

@@ -11,85 +11,86 @@ import Combine
 
 final class ContentCoreDataManager {
     static let shared = ContentCoreDataManager()
-    private let context = CoreDataManager.shared.context
+    private var context: NSManagedObjectContext { CoreDataManager.shared.context }
     private var cancellables = Set<AnyCancellable>()
     
     // MARK: - Create
-    
-    // 모델로 Content 직접 생성 (부모 관계를 실제 엔티티로 연결)
     @discardableResult
-    func createContent(model: ContentModel) -> ContentModel {
-        let newEntity = Content(context: context)
-        newEntity.update(from: model)
-        
-        // 부모 관계 설정
-        if let parentModel = model.parentContent {
-            let req: NSFetchRequest<Content> = Content.fetchRequest()
-            req.predicate = NSPredicate(format: "cid == %@", parentModel.cid as CVarArg)
-            newEntity.parentContent = (try? context.fetch(req).first)
-        } else {
-            newEntity.parentContent = nil
-        }
-        
-        CoreDataManager.shared.saveContext()
-        return model
-    }
-    
-    /// 이름·경로 등으로 모델 생성 → entity 저장 → 모델 리턴
-    @discardableResult
-    func createContent(name: String,
-                       path: String? = nil,
-                       type: Int16,
-                       parent: ContentModel? = nil,
-                       scoreDetail: ScoreDetailModel? = nil) -> ContentModel {
+    func createContent(
+        id: UUID = UUID(),
+        name: String,
+        path: String? = nil,
+        type: Int16,
+        parent: Content? = nil
+    ) -> Content {
         let now = Date()
-        let model = ContentModel(
-            cid: UUID(),
-            name: name,
-            path: path,
-            type: ContentType(rawValue: type) ?? .score,
-            parentContent: parent,
-            createdAt: now,
-            modifiedAt: now,
-            lastAccessedAt: now,
-            deletedAt: nil,
-            originalParentId: parent?.cid,
-            syncStatus: false,
-            isStared: false,
-            scoreDetail: scoreDetail,
-            scores: []
-        )
-        return createContent(model: model)
+        let entity = Content(context: context)
+        entity.id             = id
+        entity.name           = name
+        entity.path           = path
+        entity.type           = type
+        entity.createdAt      = now
+        entity.modifiedAt     = now
+        entity.lastAccessedAt = now
+        entity.deletedAt      = nil
+        entity.isStared       = false
+        entity.syncStatus     = false
+        entity.parentContent  = parent
+        // originalParent 관계는 moveToTrash 시에 설정
+        
+        do {
+            try context.save()
+        } catch {
+            print("❌ createContent error:", error)
+        }
+        return entity
     }
     
-    // 기본 디렉토리 초기화: Score, Song_List, Trash_Can 생성
     func initializeBaseDirectories() {
-        let baseDirectories = ["Score",
-                               "Song_List",
-                               "Trash_Can"]
-        for name in baseDirectories {
-            let predicate = NSPredicate(format: "name == %@ AND parentContent == nil", name)
-            if fetchContentModelsSync(predicate: predicate).isEmpty {
-                createContent(name: name,
-                              path: name,
-                              type: ContentType.folder.rawValue,
-                              parent: nil,
-                              scoreDetail: nil)
-                print("\(name) base directory created.")
+        let baseNames = ["Score", "Setlist", "Trash_Can"]
+        
+        // 1) 한 번에존재 여부 조회
+        let request: NSFetchRequest<Content> = Content.fetchRequest()
+        request.predicate = NSPredicate(format: "name IN %@ AND parentContent == nil", baseNames)
+        do {
+            let existing = try context.fetch(request).compactMap { $0.name }
+            let missing = baseNames.filter { !existing.contains($0) }
+            
+            // 2) 없는 것만 생성
+            for name in missing {
+                let entity = Content(context: context)
+                entity.id = UUID()
+                entity.name = name
+                entity.path = name
+                entity.type = ContentType.folder.rawValue
+                entity.createdAt = Date()
+                entity.modifiedAt = Date()
+                entity.lastAccessedAt = Date()
+                entity.deletedAt = nil
+                entity.isStared = false
+                entity.syncStatus = false
+                // parentContent는 nil
+                print("✅ \(name) base directory created.")
             }
+            
+            // 3) 한 번에 저장
+            try context.save()
+        } catch {
+            print("❌ initializeBaseDirectories 오류: \(error)")
         }
     }
     
     // MARK: - Read
-    // Fetch (비동기: 도메인 모델 반환)
-    func fetchContentModelsPublisher(predicate: NSPredicate? = nil) -> AnyPublisher<[ContentModel], Error> {
+    // Fetch (비동기)
+    func fetchContentsPublisher(
+        predicate: NSPredicate? = nil
+    ) -> AnyPublisher<[Content], Error> {
         Future { promise in
             let request: NSFetchRequest<Content> = Content.fetchRequest()
             request.predicate = predicate
             do {
-                let entities = try self.context.fetch(request)
-                let models = entities.map { ContentModel(entity: $0) }
-                promise(.success(models))
+                let results = try self.context.fetch(request)
+                promise(.success(results))
             } catch {
                 promise(.failure(error))
             }
@@ -97,182 +98,138 @@ final class ContentCoreDataManager {
         .eraseToAnyPublisher()
     }
     
-    // Fetch (동기: 도메인 모델 반환)
-    func fetchContentModelsSync(predicate: NSPredicate? = nil) -> [ContentModel] {
+    func fetchContentByID(_ id: UUID) -> Content? {
+        let req: NSFetchRequest<Content> = Content.fetchRequest()
+        req.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        req.fetchLimit = 1
+        do {
+            return try context.fetch(req).first
+        } catch {
+            print("fetchContentByID error:", error)
+            return nil
+        }
+    }
+    
+    // Fetch (동기)
+    func fetchContentsSync(predicate: NSPredicate? = nil) -> [Content] {
         let request: NSFetchRequest<Content> = Content.fetchRequest()
         request.predicate = predicate
+        var results: [Content] = []
+        
+        context.performAndWait {
+            do {
+                results = try context.fetch(request)
+            } catch {
+                print("Error fetching Content entities: \(error)")
+            }
+        }
+        return results
+    }
+    
+    func fetchChildrenSync(for parent: Content?) -> [Content] {
+        let request: NSFetchRequest<Content> = Content.fetchRequest()
+        if let p = parent {
+            request.predicate = NSPredicate(format: "parentContent == %@", p)
+        } else {
+            request.predicate = NSPredicate(format: "parentContent == nil")
+        }
         do {
-            let entities = try context.fetch(request)
-            return entities.map { ContentModel(entity: $0) }
+            return try context.fetch(request)
         } catch {
-            print("Error fetching contents: \(error)")
+            print("Error fetching children for \(String(describing: parent)): \(error)")
             return []
         }
     }
     
-    // 특정 Content 도메인 모델 가져오기 (by predicate)
-    func fetchContentModel(predicate: NSPredicate) -> ContentModel? {
+    func fetchScoresFromSetlist(_ setlist: Content) -> [Content] {
+        let orderedScores = (setlist.setlistScores as? Set<Content>)?.sorted { $0.displayOrder < $1.displayOrder } ?? []
+        return Array(orderedScores)
+    }
+    
+    // 기본 디렉토리 Content(Score, Setlist_List, Trash_Can) 가져오기
+    func fetchBaseDirectory(named name: String) -> Content? {
         let request: NSFetchRequest<Content> = Content.fetchRequest()
-        request.predicate = predicate
+        request.predicate = NSPredicate(format: "name == %@ AND parentContent == nil", name)
+        request.fetchLimit = 1
         do {
-            if let entity = try context.fetch(request).first {
-                return ContentModel(entity: entity)
-            }
+            return try context.fetch(request).first
         } catch {
-            print("Error fetching content: \(error)")
+            print("Error fetching base directory '\(name)': \(error)")
+            return nil
         }
-        return nil
-    }
-    
-    // Content 도메인 모델 가져오기 (by id)
-    func fetchContentModel(with id: UUID) -> ContentModel? {
-        let predicate = NSPredicate(format: "cid == %@", id as CVarArg)
-        return fetchContentModel(predicate: predicate)
-    }
-    
-    // Content 도메인 모델 가져오기 (by name, parent)
-    func fetchContentModel(named name: String, parentId: UUID?) -> ContentModel? {
-        let predicate: NSPredicate
-        if let parentId = parentId {
-            predicate = NSPredicate(format: "name == %@ AND parentContent.cid == %@", name, parentId as CVarArg)
-        } else {
-            predicate = NSPredicate(format: "name == %@ AND parentContent.cid == nil", name)
-        }
-        return fetchContentModel(predicate: predicate)
-    }
-    
-    // 자식 Content 도메인 모델들 가져오기 (by parentId(cid))
-    func fetchChildrenModels(for parentId: UUID?) -> [ContentModel] {
-        let predicate: NSPredicate
-        if let parentId = parentId {
-            predicate = NSPredicate(format: "parentContent.cid == %@", parentId as CVarArg)
-        } else {
-            predicate = NSPredicate(format: "parentContent.cid == nil")
-        }
-        return fetchContentModelsSync(predicate: predicate)
-    }
-    
-    // 기본 디렉토리 Content(Score, Song_List, Trash_Can) 가져오기
-    func fetchBaseDirectory(named name: String) -> ContentModel? {
-        let predicate = NSPredicate(format: "name == %@ AND parentContent == nil", name)
-        return fetchContentModel(predicate: predicate)
-    }
-    
-    func loadContentModels(forParent parent: ContentModel?, dashboardContents: DashboardContents) -> AnyPublisher<[ContentModel], Error> {
-        var predicate: NSPredicate
-        
-        // 이미 특정 폴더(parent)가 주어졌다면 그 폴더의 자식들을 불러옴
-        if let parent = parent {
-            predicate = NSPredicate(format: "parentContent.cid == %@", parent.cid as CVarArg)
-        } else {
-            // 최상위 컨텐츠 로드: dashboardContents에 따라 base 디렉토리로 분기
-            switch dashboardContents {
-            case .score:
-                if let scoreBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score") {
-                    predicate = NSPredicate(format: "parentContent.cid == %@", scoreBase.cid as CVarArg)
-                } else {
-                    predicate = NSPredicate(value: false)
-                }
-            case .setlist:
-                if let songListBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    predicate = NSPredicate(format: "parentContent.cid == %@", songListBase.cid as CVarArg)
-                } else {
-                    predicate = NSPredicate(value: false)
-                }
-            case .trashCan:
-                if let trashBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can") {
-                    predicate = NSPredicate(format: "parentContent.cid == %@", trashBase.cid as CVarArg)
-                } else {
-                    predicate = NSPredicate(value: false)
-                }
-            case .createSetlist:
-                predicate = NSPredicate(value: false)
-            case .myPage:
-                predicate = NSPredicate(value: false)
-            }
-        }
-        
-        return ContentCoreDataManager.shared.fetchContentModelsPublisher(predicate: predicate)
     }
     
     // MARK: - Update
-    // 현재 변경 사항 저장 (부모 관계도 업데이트)
-    func updateContent(model: ContentModel) {
-        let fetchRequest: NSFetchRequest<Content> = Content.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
-        
-        do {
-            if let coreEntity = try context.fetch(fetchRequest).first {
-                // 기본 값 업데이트
-                coreEntity.update(from: model)
-                
-                // 부모 관계 업데이트 (기존 UUID → model 객체로 변경됨)
-                if let parentModel = model.parentContent {
-                    let parentRequest: NSFetchRequest<Content> = Content.fetchRequest()
-                    parentRequest.predicate = NSPredicate(format: "cid == %@", parentModel.cid as CVarArg)
-                    if let parentEntity = try? context.fetch(parentRequest).first {
-                        coreEntity.parentContent = parentEntity
-                    } else {
-                        coreEntity.parentContent = nil
-                    }
-                } else {
-                    coreEntity.parentContent = nil
-                }
-                
-                CoreDataManager.shared.saveContext()
-            }
-        } catch {
-            print("Failed to update content: \(error)")
+    
+    func moveEntity(
+        _ entity: Content,
+        to newParent: Content,
+        newRelativePath: String? = nil
+    ) {
+        entity.parentContent = newParent
+        // 원본 부모 저장해 두면, 복구 때 쓸 수 있습니다.
+        if entity.originalParent == nil {
+            entity.originalParent = entity.originalParent ?? entity.parentContent
         }
+        if let newRel = newRelativePath {
+            entity.path = newRel
+        }
+        // 타임스탬프 갱신
+        entity.modifiedAt     = Date()
+        entity.lastAccessedAt = Date()
+        saveContext()
     }
     
-    func moveContentToTrash(_ model: inout ContentModel) {
-        model.modifiedAt = Date()
-        model.lastAccessedAt = Date()
-        model.deletedAt = Date()
+    func moveContentToTrash(entity: Content) {
+        // 타임스탬프 업데이트
+        entity.modifiedAt     = Date()
+        entity.lastAccessedAt = Date()
+        entity.deletedAt      = Date()
         
-        if let trashBase = fetchBaseDirectory(named: "Trash_Can") {
-            model.parentContent = trashBase
-            model.originalParentId = model.originalParentId ?? model.parentContent?.cid
+        // originalParent 관계로 저장해 두었다가 복구에 사용
+        entity.originalParent = entity.originalParent ?? entity.parentContent
+        
+        // parentContent 를 Trash_Can으로 변경
+        if let trash = fetchBaseDirectory(named: "Trash_Can") {
+            entity.parentContent = trash
+        }
+        saveContext()
+    }
+    
+    func restoreContent(entity: Content) {
+        // 삭제 플래그 해제
+        entity.deletedAt = nil
+        
+        // parentContent를 originalParent로 되돌리기
+        if let orig = entity.originalParent {
+            entity.parentContent   = orig
+        } else {
+            // originalParent가 없으면 최상위로
+            entity.parentContent = nil
         }
         
-        updateContent(model: model)
+        // originalParent 관계 해제
+        entity.originalParent = nil
+        
+        // 타임스탬프 복원
+        entity.modifiedAt     = Date()
+        entity.lastAccessedAt = Date()
+        saveContext()
     }
     
     // MARK: - Delete
-    func deleteContent(model: ContentModel) {
-        let request: NSFetchRequest<Content> = Content.fetchRequest()
-        request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
-        do {
-            if let entityToDelete = try context.fetch(request).first {
-                context.delete(entityToDelete)
-                CoreDataManager.shared.saveContext()
-                print("Content 삭제 성공: \(model.name)")
-            } else {
-                print("삭제할 Content를 찾을 수 없음: \(model.name)")
-            }
-        } catch {
-            print("Content 삭제 실패: \(error)")
-        }
+    func deleteContent(_ content: Content) {
+        context.delete(content)
+        saveContext()
+        print("Core Data에서 삭제 성공: \(content.name ?? "Unnamed")")
     }
     
     // MARK: 즐겨찾기 토글
-    func toggleContentStared(model: ContentModel) {
-        let request: NSFetchRequest<Content> = Content.fetchRequest()
-        request.predicate = NSPredicate(format: "cid == %@", model.cid as CVarArg)
-        
-        do {
-            if let entityToUpdate = try context.fetch(request).first {
-                entityToUpdate.isStared.toggle()
-                entityToUpdate.modifiedAt = Date() // 수정 시각 업데이트
-                CoreDataManager.shared.saveContext()
-                print("즐겨찾기 토글 완료: \(entityToUpdate.name ?? "Unnamed") → \(entityToUpdate.isStared ? "★" : "☆")")
-            } else {
-                print("즐겨찾기 토글 실패: 해당 콘텐츠를 찾을 수 없음 (\(model.name))")
-            }
-        } catch {
-            print("즐겨찾기 토글 중 오류 발생: \(error)")
-        }
+    func toggleContentStared(content: Content) {
+        content.isStared.toggle()
+        content.modifiedAt = Date()
+        saveContext()
+        print("즐겨찾기 토글: \(content.name ?? "Unnamed") → \(content.isStared ? "★" : "☆")")
     }
     
     private func saveContext() {
