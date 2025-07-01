@@ -17,7 +17,7 @@ struct ChordResetModalView: View {
             Text("정말 초기화하시겠어요?")
                 .textStyle(.headingMdSemiBold)
                 .foregroundStyle(Color.primaryGray900)
-            Text("코드 변경 전 파일로 돌아갑니다.")
+            Text("변환 되었던 코드가 사라집니다.")
                 .textStyle(.bodyTextLgRegular)
                 .foregroundStyle(Color.primaryGray500)
                 .padding(.top, 8)
