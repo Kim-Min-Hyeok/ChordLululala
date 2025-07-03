@@ -21,7 +21,7 @@ final class ChordConfirmViewModel: ObservableObject {
     ]
     
     let flatKeys: [String: Int] = [
-        "C": 0, "F": 1, "Bb": 2, "Eb": 3, "Ab": 4, "Db": 5, "Gb": 6, "Cb": 7
+        "C": 0, "F": 1, "Bb": 2, "Eb": 3, "Ab": 4, "Db": 5, "Gb": 6, "B": 7
     ]
     
     private var cancellables = Set<AnyCancellable>()

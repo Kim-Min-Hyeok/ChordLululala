@@ -11,9 +11,9 @@ struct ChordAddingKeyboardView: View {
     @EnvironmentObject var viewModel: ChordAddingModalViewModel
     
     let baseNotes = ["C", "D", "E", "F", "G", "A", "B"]
-    let symbols = ["♭", "#", "/"]
-    let chordTypes = ["M", "m", "sus2", "5", "sus4", "Aug", "Dim"]
-    let tensions = ["9", "b9", "#9", "11", "#11", "13", "b13", "6", "7", "maj7", "add9", "add2", "b5"]
+    let symbols = ["b", "#", "/"]
+    let chordTypes = ["maj", "m", "sus2", "5", "sus4", "aug", "dim"]
+    let tensions = ["9", "b9", "#9", "11", "#11", "b13", "6", "7", "maj7", "add9", "add2", "b5","#5"]
 
     var body: some View {
         HStack(alignment: .top, spacing: 28.42) {
