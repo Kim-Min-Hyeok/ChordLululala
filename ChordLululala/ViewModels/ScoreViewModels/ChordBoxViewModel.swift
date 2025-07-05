@@ -46,6 +46,18 @@ final class ChordBoxViewModel: ObservableObject {
         let displayMapFlat  = ["C", "Db", "D", "Eb", "E", "F",
                                "Gb", "G", "Ab", "A", "Bb", "B"]
         
+        func transposeSingle(_ note: String, from: String, to: String) -> String {
+            guard let fromIdx = enharmonicMap[from],
+                  let toIdx = enharmonicMap[to],
+                  let (idx, matched) = rootIndex(of: note) else { return note }
+            let diff = (toIdx - fromIdx + 12) % 12
+            let isSharp = ["C", "G", "D", "A", "E", "B", "F#", "C#"].contains(to)
+            let displayMap = isSharp ? displayMapSharp : displayMapFlat
+            let newRoot = displayMap[(idx + diff) % 12]
+            let suffix = note.dropFirst(matched.count)
+            return newRoot + suffix
+        }
+        
         func rootIndex(of chord: String) -> (index: Int, matched: String)? {
             let candidates = enharmonicMap.keys.filter { chord.starts(with: $0) }
             guard let match = candidates.max(by: { $0.count < $1.count }),
@@ -53,19 +65,18 @@ final class ChordBoxViewModel: ObservableObject {
             return (index, match)
         }
         
-        guard let from = enharmonicMap[key],
-              let to   = enharmonicMap[t_key] else { return original }
+        let parts = original.split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+        let chordPart = String(parts[0])
+        let bassPart = parts.count > 1 ? String(parts[1]) : nil
         
-        let diff = (to - from + 12) % 12
+        let transposedChord = transposeSingle(chordPart, from: key, to: t_key)
+        let transposedBass = bassPart != nil ? transposeSingle(bassPart!, from: key, to: t_key) : nil
         
-        if let (idx, matched) = rootIndex(of: original) {
-            let isSharp = ["C", "G", "D", "A", "E", "B", "F#", "C#"].contains(t_key)
-            let displayMap = isSharp ? displayMapSharp : displayMapFlat
-            let newRoot = displayMap[(idx + diff) % 12]
-            let suffix = original.dropFirst(matched.count)
-            return newRoot + suffix
+        
+        if let bass = transposedBass {
+            return "\(transposedChord)/\(bass)"
+        } else {
+            return transposedChord
         }
-        
-        return original
     }
 }
