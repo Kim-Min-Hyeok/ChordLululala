@@ -13,7 +13,7 @@ struct ChordAddingKeyboardView: View {
     let baseNotes = ["C", "D", "E", "F", "G", "A", "B"]
     let symbols = ["b", "#", "/"]
     let chordTypes = ["maj", "m", "sus2", "5", "sus4", "aug", "dim"]
-    let tensions = ["9", "b9", "#9", "11", "#11", "b13", "6", "7", "maj7", "add9", "add2", "b5","#5"]
+    let tensions = ["9", "b9", "#9", "11", "#11", "b13", "13", "6", "7", "maj7", "add9", "add2", "b5","#5"]
 
     var body: some View {
         HStack(alignment: .top, spacing: 28.42) {

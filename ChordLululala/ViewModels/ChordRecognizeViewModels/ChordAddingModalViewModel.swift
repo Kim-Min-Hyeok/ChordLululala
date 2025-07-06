@@ -61,7 +61,7 @@ final class ChordAddingModalViewModel: ObservableObject {
         
         var determinedChordType: String
         
-        // 특수 코드 타입 (maj7, m7b5, dim7)을 유추하거나 명확히 지정
+        
         if text.contains("maj7") {
             determinedChordType = "maj7"
         } else if text.contains("m7b5") {
@@ -69,39 +69,36 @@ final class ChordAddingModalViewModel: ObservableObject {
         } else if text.contains("dim7") {
             determinedChordType = "dim7"
         } else if baseQuality == "7" {
-            determinedChordType = "seven" // Dom7
+            determinedChordType = "seven"
         } else if baseQuality.isEmpty {
             determinedChordType = "maj" // "C"와 같이 루트만 있는 경우 기본 major로 간주
         } else {
-            determinedChordType = baseQuality // 'm', 'sus2', 'aug' 등 기본 퀄리티
+            determinedChordType = baseQuality // 'm', 'sus2', 'aug' 등 기본 타입
         }
         
         // 전체 정규식 패턴 정의
         let patterns: [String:String] = [
-                   // Major 계열 (maj, maj7)
-                   // 'maj'는 'C'와 같이 기본적으로 major를 의미하거나 'Cmaj'일 경우
-                   // 'maj7'은 'Cmaj7'처럼 명시된 경우. 여기서 11 텐션 제외.
-                   "maj":    #"^[A-G](?:#|b)?(?:maj)?(?:(?:(?:add)?(?:2|4|6|9|#11|13|b5|#5|b9|#9)))*(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "maj7":   #"^[A-G](?:#|b)?maj7(?:(?:add)?(?:9|#11|13))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                    // major
+                   "maj":    #"^[A-G](?:#|b)?(?:maj)?(?:(?:(?:add2|add4|add9|6|#11|13|b5|#5|b9|#9)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "maj7":   #"^[A-G](?:#|b)?maj7(?:(?:add2|add4|add9|#11|13))*(?:/(?:[A-G](?:#|b)?))?$"#,
                    
-                   // Dominant 7 (7/Dom7): 모든 텐션 허용
-                   "seven":  #"^[A-G](?:#|b)?7(?:(?:(?:add)?(?:2|4|5|6|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|♭)?))?$"#,
+                   //7th
+                   "seven":  #"^[A-G](?:#|b)?7(?:(?:(?:add2|add4|add9|11|13|b5|#5|b9|#9|b11|#11|b13|13)))*(?:/(?:[A-G](?:#|♭)?))?$"#,
                    
-                   // Minor 계열 (m, m7, m7b5)
-                   "m":      #"^[A-G](?:#|b)?m(?:(?:(?:add)?(?:2|4|5|6|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "m7":     #"^[A-G](?:#|b)?m7(?:(?:add)?(?:9|11|13))*(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "m7b5":   #"^[A-G](?:#|b)?m7b5(?:(?:add)?(?:9|11|b13))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   // minior
+                   "m":      #"^[A-G](?:#|b)?m(?:(?:(?:add2|add4|add9|5|6|7|9|11|13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "m7":     #"^[A-G](?:#|b)?m7(?:(?:9|11|13))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "m7b5":   #"^[A-G](?:#|b)?m7b5(?:(?:9|11|b13))*(?:/(?:[A-G](?:#|b)?))?$"#,
                    
-                   // Diminished 계열 (dim, dim7)
-                   "dim":    #"^[A-G](?:#|b)?dim(?:(?:(?:add)?(?:2|4|5|6|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "dim7":   #"^[A-G](?:#|b)?dim7(?:(?:add)?(?:9|11))*(?:/(?:[A-G](?:#|b)?))?$"#,
-
-                   // Sus2, Sus4, Power (5), Augmented
-                   // 이들은 표에 명시된 금지 텐션이 없으므로 비교적 넓게 허용.
-                   "sus2":   #"^[A-G](?:#|b)?sus2(?:(?:(?:add)?(?:4|5|6|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "sus4":   #"^[A-G](?:#|b)?sus4(?:(?:(?:add)?(?:2|5|6|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   // diminish  & augment
+                   "dim":    #"^[A-G](?:#|b)?dim(?:(?:(?:7|9|11)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "dim7":   #"^[A-G](?:#|b)?dim7(?:(?:9|11))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "aug":    #"^[A-G](?:#|b)?aug(?:(?:(?:7|9|11)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   
+                   // Sus2, Sus4, Power
+                   "sus2":   #"^[A-G](?:#|b)?sus2(?:(?:(?:add4|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
+                   "sus4":   #"^[A-G](?:#|b)?sus4(?:(?:(?:add2|add9|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#,
                    "5":      #"^[A-G](?:#|b)?5(?:/(?:[A-G](?:#|b)?))?$"#,
-                   "aug":    #"^[A-G](?:#|b)?aug(?:(?:(?:add)?(?:2|4|5|6|7|9|11|13|b5|#5|b9|#9|b11|#11|b13)))*(?:/(?:[A-G](?:#|b)?))?$"#
                ]
         
         // 결정된 코드 타입에 해당하는 패턴을 가져와서 전체 텍스트와 매칭
