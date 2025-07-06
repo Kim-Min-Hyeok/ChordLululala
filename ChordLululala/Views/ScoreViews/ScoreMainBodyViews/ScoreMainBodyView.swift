@@ -38,6 +38,22 @@ struct ScoreMainBodyView: View {
         )
     }
     
+    private var totalGroup: Int {
+        if viewModel.isSinglePageMode {
+            return pages.count
+        } else {
+            return (pages.count + 1)/2
+        }
+    }
+    
+    private var currentGroup: Int {
+        if viewModel.isSinglePageMode {
+            return viewModel.selectedPageIndex
+        } else {
+            return viewModel.selectedPageIndex / 2
+        }
+    }
+    
     var body: some View {
         ZStack {
             Color.primaryGray50.ignoresSafeArea()
@@ -154,8 +170,8 @@ struct ScoreMainBodyView: View {
             
             .overlay(
                 PageIndicatorView(
-                    current: viewModel.isSinglePageMode ? viewModel.selectedPageIndex + 1 : viewModel.selectedPageIndex + 2,
-                    total: pages.count
+                    current: currentGroup + 1,
+                    total: totalGroup
                 )
                 .offset(x: 22, y: -10),
                 alignment: .bottomLeading
