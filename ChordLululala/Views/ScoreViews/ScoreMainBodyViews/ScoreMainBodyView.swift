@@ -94,26 +94,7 @@ struct ScoreMainBodyView: View {
                                                 .scaledToFit()
                                                 .frame(width: displaySize.width, height: displaySize.height)
                                                 .shadow(radius: 4)
-                                                .gesture(
-                                                    MagnificationGesture()
-                                                        .onChanged(zoomViewModel.onPinchChanged)
-                                                        .onEnded(zoomViewModel.onPinchEnded)
-                                                )
-                                            // 2) 드래그 제스처: scale != 1 인 경우에만 처리
-                                                .simultaneousGesture(
-                                                    DragGesture()
-                                                        .onChanged { value in
-                                                            guard zoomViewModel.scale != 1 else { return }
-                                                            zoomViewModel.onDragChanged(value)
-                                                        }
-                                                        .onEnded { value in
-                                                            guard zoomViewModel.scale != 1 else { return }
-                                                            zoomViewModel.onDragEnded(value)
-                                                        }
-                                                )
-                                                .onTapGesture(count: 2) {
-                                                    withAnimation { zoomViewModel.reset() }
-                                                }
+                                               
                                             
                                             if chordBoxViewModel.chordsForPages.indices.contains(realIndex) {
                                                 ForEach(chordBoxViewModel.chordsForPages[realIndex], id: \.objectID) { chord in
@@ -152,8 +133,7 @@ struct ScoreMainBodyView: View {
                                         }
                                         .frame(width: displaySize.width, height: displaySize.height)
                                         
-                                        .scaleEffect(zoomViewModel.scale)
-                                        .offset(zoomViewModel.offset)
+                                       
                                         Spacer().frame(height: 10)
                                     }
                                     .rotationEffect(angle)
@@ -163,6 +143,35 @@ struct ScoreMainBodyView: View {
                             }
                         }
                     }
+                    .gesture(
+                        MagnificationGesture()
+                            .onChanged { value in
+                                       let center = CGPoint(
+                                           x: UIScreen.main.bounds.width / 2,
+                                           y: UIScreen.main.bounds.height / 2
+                                       )
+                                       zoomViewModel.onPinchChanged(value, center: center)
+                                   }
+                            .onEnded(zoomViewModel.onPinchEnded)
+                    )
+                // 2) 드래그 제스처: scale != 1 인 경우에만 처리
+                    .simultaneousGesture(
+                        DragGesture()
+                            .onChanged { value in
+                                guard zoomViewModel.scale != 1 else { return }
+                                zoomViewModel.onDragChanged(value)
+                            }
+                            .onEnded { value in
+                                guard zoomViewModel.scale != 1 else { return }
+                                zoomViewModel.onDragEnded(value)
+                            }
+                    )
+                    .onTapGesture(count: 2) {
+                        withAnimation { zoomViewModel.reset() }
+                    }
+                    .scaleEffect(zoomViewModel.scale)
+                    .offset(zoomViewModel.offset)
+                    .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.7), value: zoomViewModel.offset)
                     .tag(groupIdx)
                 }
             }
