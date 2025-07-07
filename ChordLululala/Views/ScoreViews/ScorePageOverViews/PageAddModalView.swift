@@ -8,37 +8,37 @@
 import SwiftUI
 
 struct PageAddModalView: View {
-    var addImage: () -> Void
-    var addFile: () -> Void
+//    var addImage: () -> Void
+//    var addFile: () -> Void
     var addBlank: () -> Void
     var addStaff: () -> Void
     
     var body: some View {
         VStack(spacing: 0) {
-            PageOverModalRowView(
-                ImageName: "upload_image",
-                Messege: "이미지",
-                onSelect: {
-                    addImage()
-                }
-            )
-            
-            Rectangle()
-                .frame(height: 1)
-                .foregroundStyle(Color.primaryGray300)
-            
-            PageOverModalRowView(
-                ImageName: "upload_file",
-                Messege: "파일",
-                onSelect: {
-                    addFile()
-                }
-            )
-            
-            Rectangle()
-                .frame(height: 1)
-                .foregroundStyle(Color.primaryGray300)
-            
+//            PageOverModalRowView(
+//                ImageName: "upload_image",
+//                Messege: "이미지",
+//                onSelect: {
+//                    addImage()
+//                }
+//            )
+//            
+//            Rectangle()
+//                .frame(height: 1)
+//                .foregroundStyle(Color.primaryGray300)
+//            
+//            PageOverModalRowView(
+//                ImageName: "upload_file",
+//                Messege: "파일",
+//                onSelect: {
+//                    addFile()
+//                }
+//            )
+//            
+//            Rectangle()
+//                .frame(height: 1)
+//                .foregroundStyle(Color.primaryGray300)
+//            
             PageOverModalRowView(
                 ImageName: "add_blank",
                 Messege: "백지 추가",

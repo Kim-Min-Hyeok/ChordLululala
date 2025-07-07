@@ -171,7 +171,9 @@ final class ChordRecognizeViewModel: ObservableObject {
         
         // 3) 루트만 추출
         let root = extractRoot(from: topLeft.chord ?? "C")
-        key = root
+        let validKeys = ["C","G","D","A","E","B","F#","C#","Bb","Eb","Ab","Db","Gb"]
+        let finalKey = validKeys.contains(root) ? root : "C"
+        key = finalKey
         
         // 4) 전조량 결정
         if let cnt = sharpKeys[root] {

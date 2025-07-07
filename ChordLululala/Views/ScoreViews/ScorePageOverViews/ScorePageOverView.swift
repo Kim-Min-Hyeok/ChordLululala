@@ -89,19 +89,19 @@ struct ScorePageOverView: View {
                             .overlay(alignment: .bottom) {
                                 if isAddPageOptions && selectedIndex == nil {
                                     PageAddModalView(
-                                        addImage: {
-                                            
-                                        },
-                                        addFile: {
-                                            
-                                        },
+//                                        addImage: {
+//                                            
+//                                        },
+//                                        addFile: {
+//                                            
+//                                        },
                                         addBlank: {
                                             addBlank()
                                         },
                                         addStaff: {
                                             addStaff()
                                         })
-                                            .offset(x: -4, y: 149)
+                                            .offset(x: -4, y: 77)
                                             .zIndex(1)
                                 }
                             }

@@ -21,7 +21,7 @@ struct CanvasView: UIViewRepresentable {
         canvasView.isOpaque = false
         canvasView.drawing = drawing
         canvasView.delegate = context.coordinator
-        canvasView.drawingPolicy = .anyInput
+        canvasView.drawingPolicy = .pencilOnly
         
         sharedToolPicker.addObserver(canvasView)
         sharedToolPicker.addObserver(context.coordinator)

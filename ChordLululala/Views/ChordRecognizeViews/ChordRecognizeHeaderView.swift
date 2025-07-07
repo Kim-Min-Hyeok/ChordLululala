@@ -62,7 +62,7 @@ struct ChordRecognizeHeaderView: View {
                     }
 
                     Button(action: onFinalize) {
-                        Text("코드 확정")
+                        Text("코드 변환")
                             .textStyle(.headingLgSemiBold)
                             .frame(width: 83, height: 42)
                             .foregroundStyle(Color.primaryBaseWhite)
