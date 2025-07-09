@@ -6,6 +6,7 @@ struct ScoreView : View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var viewModel: ScoreViewModel
     
+    
     init(content: Content) {
         _viewModel = StateObject(wrappedValue: ScoreViewModel(content: content))
     }

@@ -11,6 +11,7 @@ import SwiftUI
 struct ScoreHeaderView: View {
     @EnvironmentObject var router : NavigationRouter
     @EnvironmentObject var viewModel: ScoreViewModel
+    @StateObject var orient  = OrientationViewModel()
     
     @State var isAnnotationMode: Bool = false
     
@@ -152,15 +153,47 @@ struct ScoreHeaderView: View {
                    alignment: .bottom)
             
             /// 제목
-            Text({
-                let name = file.name ?? ""
-                return name.count > 10 ? "\(name.prefix(10))…" : name
-            }())
-            .foregroundColor(Color.primaryGray900)
-            .textStyle(.headingLgSemiBold)
-            .layoutPriority(1)
-            .lineLimit(1)
-            .padding(.bottom, 12)
+            if file.type == ContentType.setlist.rawValue {
+                Text({
+                    let name = file.name ?? ""
+                    return name.count > 10 ? "\(name.prefix(10))…" : name
+                }())
+                .foregroundColor(Color.primaryGray900)
+                .textStyle(.headingLgSemiBold)
+                .layoutPriority(1)
+                .lineLimit(1)
+                .padding(.bottom, 12)
+            } else {
+                if orient.isLandscape { // 가로모드
+                    Text({
+                        let name = file.name ?? ""
+                        return name.count > 10 ? "\(name.prefix(10))…" : name
+                    }())
+                    .foregroundColor(Color.primaryGray900)
+                    .textStyle(.headingLgSemiBold)
+                    .layoutPriority(1)
+                    .lineLimit(1)
+                    .padding(.bottom, 12)
+                } else { // 세로모드
+                    HStack {
+                        Spacer()
+                            .frame(width: 90)
+                        Text({
+                            let name = file.name ?? ""
+                            return name.count > 10 ? "\(name.prefix(10))…" : name
+                        }())
+                        .foregroundColor(Color.primaryGray900)
+                        .textStyle(.headingLgSemiBold)
+                        .layoutPriority(1)
+                        .lineLimit(1)
+                        Spacer()
+                    }
+                    .padding(.bottom, 12)
+                }
+            }
+            
+            
+            
         }
     }
 }
