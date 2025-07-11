@@ -47,15 +47,14 @@ struct MyPageView: View {
                 // MARK: 백업하기 / 불러오기 버튼
                 HStack(spacing: 10) {
                     BackupAndImportButton(
-                        imageName: "backup_button",
-                        title: "백업하기",
-                        action: { viewModel.backup() }
-                    )
-                    
-                    BackupAndImportButton(
                         imageName: "load_button",
                         title: "불러오기",
                         action: { isImporterPresented = true }
+                    )
+                    BackupAndImportButton(
+                        imageName: "share",
+                        title: "내보내기",
+                        action: { viewModel.backup() }
                     )
                 }
                 .padding(.bottom, 65)
@@ -138,7 +137,7 @@ struct MyPageView: View {
                 
                 // MARK: 약관 링크
                 VStack(spacing: 4) {
-                    Link(destination: URL(string: "https://example.com/privacy")!) {
+                    Link(destination: URL(string: "https://inexpensive-witch-105.notion.site/Noteflow-22aee525885580d4aa8ace2a9bcf103a?source=copy_link")!) {
                         Text("개인정보 처리방침")
                             .textStyle(
                                 TextStyle(
@@ -151,7 +150,7 @@ struct MyPageView: View {
                             .foregroundColor(.primaryGray900)
                             .underline()
                     }
-                    Link(destination: URL(string: "https://example.com/terms")!) {
+                    Link(destination: URL(string: "https://inexpensive-witch-105.notion.site/Noteflow-22aee525885580b8b88dca79c0cffab8?source=copy_link")!) {
                         Text("서비스 이용약관")
                             .textStyle(
                                 TextStyle(
