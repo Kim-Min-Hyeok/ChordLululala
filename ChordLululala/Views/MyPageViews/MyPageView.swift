@@ -18,8 +18,8 @@ struct BoundsPreferenceKey: PreferenceKey {
 
 struct MyPageView: View {
     @EnvironmentObject var dashboardViewModel: DashBoardViewModel
+    @EnvironmentObject var viewModel: MyPageViewModel
     @EnvironmentObject var router: NavigationRouter
-    @StateObject private var viewModel = MyPageViewModel()
     
     @State private var shareURL: URL? = nil
     @State private var isSharePresented = false
@@ -35,6 +35,7 @@ struct MyPageView: View {
     // MARK: 언어 변경 연결 전 토스트 기능 (한국어만 지원 시)
     @Binding var toastMessage: String
     @Binding var isShowingToast: Bool
+    @Binding var isBackupModalVisible: Bool
     
     var body: some View {
         ZStack(alignment: .top){
@@ -58,7 +59,10 @@ struct MyPageView: View {
                     BackupAndImportButton(
                         imageName: "share",
                         title: "내보내기",
-                        action: { viewModel.backup() }
+                        action: {
+                            viewModel.backup()
+                            isBackupModalVisible = true
+                        }
                     )
                 }
                 .padding(.bottom, 65)
@@ -262,13 +266,24 @@ struct MyPageView: View {
                 }
             }
         }
-        // MARK: 백업 완료 시 즉시 공유 시트 띄우기
-        .onChange(of: viewModel.backupArchiveURL) { url in
-            guard let url = url else { return }
-            shareURL = url
-            isSharePresented = true
-            viewModel.backupArchiveURL = nil
-        }
+        
+        .onChange(of: viewModel.backupState) { newState in
+                    switch newState {
+                    case .backingUp, .restoring:
+                        isBackupModalVisible = true
+                    case .idle:
+                        isBackupModalVisible = false
+                    }
+                }
+                // 백업 파일 URL 생기면 공유 시트 띄우기
+                .onChange(of: viewModel.backupArchiveURL) { url in
+                    guard let url = url else { return }
+                    isBackupModalVisible = false
+                    shareURL = url
+                    isSharePresented = true
+                    viewModel.backupArchiveURL = nil
+                }
+        
         // ② SwiftUI sheet 로 ActivityView 띄우기
         .sheet(isPresented: $isSharePresented, onDismiss: {
             shareURL = nil
@@ -280,13 +295,17 @@ struct MyPageView: View {
         // MARK: 불러오기 파일 임포터
         .fileImporter(
             isPresented: $isImporterPresented,
-            allowedContentTypes: [UTType(filenameExtension: "aar")!],
+            allowedContentTypes: [UTType.archive],  // .aar 파일을 아카이브로 처리
             allowsMultipleSelection: false
         ) { result in
             switch result {
             case .success(let urls):
-                if let providerURL = urls.first {
-                    viewModel.importBackupFile(from: providerURL)
+                guard let url = urls.first else { return }
+                // 확장자 체크: “.aar” 만 처리
+                if url.pathExtension.lowercased() == "aar" {
+                    viewModel.importBackupFile(from: url)
+                } else {
+                    viewModel.restoreError = "올바른 백업 파일(.aar)을 선택해주세요."
                 }
             case .failure(let error):
                 viewModel.restoreError = error.localizedDescription

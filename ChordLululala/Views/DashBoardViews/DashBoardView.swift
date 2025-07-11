@@ -9,7 +9,9 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashBoardViewModel()
+    @StateObject private var mypageViewModel = MyPageViewModel()
     @State private var showToast = false
+    @State private var isBackupModalVisible = false
     @State private var toastMessage = ""
     
     var body: some View {
@@ -34,8 +36,10 @@ struct DashboardView: View {
                         if viewModel.dashboardContents == .myPage {
                             MyPageView(
                                 toastMessage: $toastMessage,
-                                isShowingToast: $showToast
+                                isShowingToast: $showToast,
+                                isBackupModalVisible: $isBackupModalVisible
                             )
+                            .environmentObject(mypageViewModel)
                         }
                         else if viewModel.dashboardContents == .createSetlist {
                             CreateSetlistView()
@@ -245,6 +249,18 @@ struct DashboardView: View {
                 },
                 alignment: .bottomLeading
             )
+            
+            if isBackupModalVisible {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+
+                BackupProgressModalView(
+                    onBackupCancel: {
+                        isBackupModalVisible = false
+                    }
+                )
+                .environmentObject(mypageViewModel)
+            }
             
             // MARK: 휴지통 이동 모달
             if viewModel.isTrashModalVisible {
