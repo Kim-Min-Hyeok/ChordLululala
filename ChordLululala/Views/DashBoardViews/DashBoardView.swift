@@ -32,7 +32,10 @@ struct DashboardView: View {
                     VStack {
                         // MARK: 마이페이지
                         if viewModel.dashboardContents == .myPage {
-                            MyPageView()
+                            MyPageView(
+                                toastMessage: $toastMessage,
+                                isShowingToast: $showToast
+                            )
                         }
                         else if viewModel.dashboardContents == .createSetlist {
                             CreateSetlistView()

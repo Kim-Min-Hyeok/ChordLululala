@@ -58,7 +58,11 @@ class MyPageViewModel: ObservableObject {
     }
     
     func selectLanguage(_ language: AvailableLanguages) {
-        selectedLanguage = language
+        // TODO: 언어 변경 연결
+//        selectedLanguage = language
+        DispatchQueue.main.async {
+            self.selectedLanguage = .korean
+        }
     }
     
     func logout(completion: @escaping () -> Void) {

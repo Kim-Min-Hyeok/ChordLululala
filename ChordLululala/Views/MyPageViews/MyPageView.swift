@@ -32,6 +32,10 @@ struct MyPageView: View {
     @State private var isShowingLogoutModal = false
     @State private var isShowingDeleteAcountModal = false
     
+    // MARK: 언어 변경 연결 전 토스트 기능 (한국어만 지원 시)
+    @Binding var toastMessage: String
+    @Binding var isShowingToast: Bool
+    
     var body: some View {
         ZStack(alignment: .top){
             VStack(spacing : 0) {
@@ -184,10 +188,19 @@ struct MyPageView: View {
                             LanguageDropdownView(
                                 selectedLanguage: $viewModel.selectedLanguage,
                                 selectLanguage: { language in
-                                    viewModel.selectLanguage(language)
                                     withAnimation {
                                         isLanguageSettingPressed = false
                                     }
+
+                                    if language != .korean {
+                                        toastMessage = "지금은 한국어만 사용 가능합니다."
+                                        isShowingToast = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            isShowingToast = false
+                                        }
+                                    }
+
+                                    viewModel.selectLanguage(language)
                                 }
                             )
                             .padding(.horizontal, 46)
