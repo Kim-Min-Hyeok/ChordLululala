@@ -255,7 +255,11 @@ final class DashBoardViewModel: ObservableObject {
         if isSearching {
             exitSearch()
         }
+        print("📁 Tapping folder: \(folder.name ?? "?"), Dashboard: \(dashboardContents)")
+        print("📁 Current parent before: \(currentParent?.name ?? "nil")")
         currentParent = folder
+        print("📁 Current parent after: \(currentParent?.name ?? "nil")")
+        loadContents()
         importFromDropboxAndLoadContents()
     }
     
@@ -274,13 +278,14 @@ final class DashBoardViewModel: ObservableObject {
             case .score:
                 currentParent = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Score")
             case .setlist:
-                currentParent = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List")
+                currentParent = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Setlist")
             case .trashCan:
                 currentParent = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Trash_Can")
             case .createSetlist, .myPage:
                 currentParent = nil
             }
         }
+        loadContents()
         importFromDropboxAndLoadContents()
     }
     
@@ -288,6 +293,7 @@ final class DashBoardViewModel: ObservableObject {
     func loadContents() {
         guard let parent = currentParent else { return }
         print("🔍 Loading contents - Parent: \(parent.name ?? "?"), Dashboard: \(dashboardContents)")
+        print("🔍 Parent ID: \(parent.objectID)")
         
         ContentManager.shared
             .loadContents(forParent: parent, dashboardContents: dashboardContents)
@@ -299,6 +305,9 @@ final class DashBoardViewModel: ObservableObject {
                 },
                 receiveValue: { [weak self] fetched in
                     print("✅ Loaded contents: \(fetched.count)")
+                    fetched.forEach { content in
+                        print("   - \(content.name ?? "?") (parent: \(content.parentContent?.name ?? "nil"))")
+                    }
                     self?.contents = fetched
                 }
             )
