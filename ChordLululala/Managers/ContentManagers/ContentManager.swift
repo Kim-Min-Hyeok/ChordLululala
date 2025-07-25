@@ -37,9 +37,10 @@ struct ContentManager {
         forParent parent: Content?,
         dashboardContents: DashboardContents
     ) -> AnyPublisher<[Content], Error> {
-        // 1) predicate 생성
         let predicate: NSPredicate
+
         if let parent = parent {
+            // ✅ 전달된 parent 기준으로 콘텐츠 조회 (대시보드와 무관)
             predicate = NSPredicate(format: "parentContent == %@", parent)
         } else {
             switch dashboardContents {
@@ -50,8 +51,8 @@ struct ContentManager {
                     predicate = NSPredicate(value: false)
                 }
             case .setlist:
-                if let listBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Song_List") {
-                    predicate = NSPredicate(format: "parentContent == %@", listBase)
+                if let setlistBase = ContentCoreDataManager.shared.fetchBaseDirectory(named: "Setlist") {
+                    predicate = NSPredicate(format: "parentContent == %@", setlistBase)
                 } else {
                     predicate = NSPredicate(value: false)
                 }
@@ -65,13 +66,13 @@ struct ContentManager {
                 predicate = NSPredicate(value: false)
             }
         }
-        
-        // 2) CoreDataManager의 새 퍼블리셔 호출
+
         return ContentCoreDataManager.shared
             .fetchContentsPublisher(predicate: predicate)
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
+
     
     // 파일 업로드 – 작업 완료 시 Void 발행
     func createScore(
