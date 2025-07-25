@@ -18,8 +18,8 @@ struct BoundsPreferenceKey: PreferenceKey {
 
 struct MyPageView: View {
     @EnvironmentObject var dashboardViewModel: DashBoardViewModel
+    @EnvironmentObject var viewModel: MyPageViewModel
     @EnvironmentObject var router: NavigationRouter
-    @StateObject private var viewModel = MyPageViewModel()
     
     @State private var shareURL: URL? = nil
     @State private var isSharePresented = false
@@ -31,6 +31,11 @@ struct MyPageView: View {
     @State private var isLoadPressed = false
     @State private var isShowingLogoutModal = false
     @State private var isShowingDeleteAcountModal = false
+    
+    // MARK: 언어 변경 연결 전 토스트 기능 (한국어만 지원 시)
+    @Binding var toastMessage: String
+    @Binding var isShowingToast: Bool
+    @Binding var isBackupModalVisible: Bool
     
     var body: some View {
         ZStack(alignment: .top){
@@ -47,15 +52,17 @@ struct MyPageView: View {
                 // MARK: 백업하기 / 불러오기 버튼
                 HStack(spacing: 10) {
                     BackupAndImportButton(
-                        imageName: "backup_button",
-                        title: "백업하기",
-                        action: { viewModel.backup() }
-                    )
-                    
-                    BackupAndImportButton(
                         imageName: "load_button",
                         title: "불러오기",
                         action: { isImporterPresented = true }
+                    )
+                    BackupAndImportButton(
+                        imageName: "share",
+                        title: "내보내기",
+                        action: {
+                            viewModel.backup()
+                            isBackupModalVisible = true
+                        }
                     )
                 }
                 .padding(.bottom, 65)
@@ -138,7 +145,7 @@ struct MyPageView: View {
                 
                 // MARK: 약관 링크
                 VStack(spacing: 4) {
-                    Link(destination: URL(string: "https://example.com/privacy")!) {
+                    Link(destination: URL(string: "https://inexpensive-witch-105.notion.site/Noteflow-22aee525885580d4aa8ace2a9bcf103a?source=copy_link")!) {
                         Text("개인정보 처리방침")
                             .textStyle(
                                 TextStyle(
@@ -151,7 +158,7 @@ struct MyPageView: View {
                             .foregroundColor(.primaryGray900)
                             .underline()
                     }
-                    Link(destination: URL(string: "https://example.com/terms")!) {
+                    Link(destination: URL(string: "https://inexpensive-witch-105.notion.site/Noteflow-22aee525885580b8b88dca79c0cffab8?source=copy_link")!) {
                         Text("서비스 이용약관")
                             .textStyle(
                                 TextStyle(
@@ -185,10 +192,19 @@ struct MyPageView: View {
                             LanguageDropdownView(
                                 selectedLanguage: $viewModel.selectedLanguage,
                                 selectLanguage: { language in
-                                    viewModel.selectLanguage(language)
                                     withAnimation {
                                         isLanguageSettingPressed = false
                                     }
+
+                                    if language != .korean {
+                                        toastMessage = "지금은 한국어만 사용 가능합니다."
+                                        isShowingToast = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            isShowingToast = false
+                                        }
+                                    }
+
+                                    viewModel.selectLanguage(language)
                                 }
                             )
                             .padding(.horizontal, 46)
@@ -250,13 +266,24 @@ struct MyPageView: View {
                 }
             }
         }
-        // MARK: 백업 완료 시 즉시 공유 시트 띄우기
-        .onChange(of: viewModel.backupArchiveURL) { url in
-            guard let url = url else { return }
-            shareURL = url
-            isSharePresented = true
-            viewModel.backupArchiveURL = nil
-        }
+        
+        .onChange(of: viewModel.backupState) { newState in
+                    switch newState {
+                    case .backingUp, .restoring:
+                        isBackupModalVisible = true
+                    case .idle:
+                        isBackupModalVisible = false
+                    }
+                }
+                // 백업 파일 URL 생기면 공유 시트 띄우기
+                .onChange(of: viewModel.backupArchiveURL) { url in
+                    guard let url = url else { return }
+                    isBackupModalVisible = false
+                    shareURL = url
+                    isSharePresented = true
+                    viewModel.backupArchiveURL = nil
+                }
+        
         // ② SwiftUI sheet 로 ActivityView 띄우기
         .sheet(isPresented: $isSharePresented, onDismiss: {
             shareURL = nil
@@ -268,13 +295,17 @@ struct MyPageView: View {
         // MARK: 불러오기 파일 임포터
         .fileImporter(
             isPresented: $isImporterPresented,
-            allowedContentTypes: [UTType(filenameExtension: "aar")!],
+            allowedContentTypes: [UTType.archive],  // .aar 파일을 아카이브로 처리
             allowsMultipleSelection: false
         ) { result in
             switch result {
             case .success(let urls):
-                if let providerURL = urls.first {
-                    viewModel.importBackupFile(from: providerURL)
+                guard let url = urls.first else { return }
+                // 확장자 체크: “.aar” 만 처리
+                if url.pathExtension.lowercased() == "aar" {
+                    viewModel.importBackupFile(from: url)
+                } else {
+                    viewModel.restoreError = "올바른 백업 파일(.aar)을 선택해주세요."
                 }
             case .failure(let error):
                 viewModel.restoreError = error.localizedDescription

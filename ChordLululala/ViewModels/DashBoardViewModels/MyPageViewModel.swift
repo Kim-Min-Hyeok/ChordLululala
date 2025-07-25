@@ -13,6 +13,10 @@ enum AvailableLanguages: String, CaseIterable {
     case english = "영어"
 }
 
+enum BackupState {
+    case idle, backingUp, restoring
+}
+
 class MyPageViewModel: ObservableObject {
     @Published var user: UserModel? = nil
     @Published var trashCount: Int = 0
@@ -21,7 +25,9 @@ class MyPageViewModel: ObservableObject {
     @Published var backupArchiveURL: URL?
     @Published var backupError: String?
     @Published var restoreError: String?
-    @Published var isBusy = false
+    
+    @Published var backupState: BackupState = .idle
+    @Published var progressValue: Double = 0.0
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -58,7 +64,11 @@ class MyPageViewModel: ObservableObject {
     }
     
     func selectLanguage(_ language: AvailableLanguages) {
-        selectedLanguage = language
+        // TODO: 언어 변경 연결
+        //        selectedLanguage = language
+        DispatchQueue.main.async {
+            self.selectedLanguage = .korean
+        }
     }
     
     func logout(completion: @escaping () -> Void) {
@@ -70,80 +80,105 @@ class MyPageViewModel: ObservableObject {
         CoreDataManager.shared.deleteAllCoreDataObjects()
         FileManagerManager.shared.deleteAllFilesInDocumentsFolder()
         UserManager.shared.logout()
-
+        
         DispatchQueue.main.async {
             completion()
         }
     }
     
-    /// 백업
+    /// 백업 생성
     func backup() {
-        isBusy = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                let url = try BackupManager.shared.createBackup()
-                DispatchQueue.main.async {
-                    self.backupArchiveURL = url
-                    self.backupError = nil
-                    self.isBusy = false
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.backupError = error.localizedDescription
-                    self.isBusy = false
+            DispatchQueue.main.async {
+                self.backupState   = .backingUp
+                self.progressValue = 0
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let url = try BackupManager.shared.createBackup { prog in
+                        // prog 값은 0.0, 0.33, 0.66, 0.90, 1.0 등으로 전달된다고 가정
+                        DispatchQueue.main.async {
+                            self.progressValue = prog
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        self.backupArchiveURL = url
+                        self.backupError      = nil
+                        self.backupState      = .idle
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.backupError      = error.localizedDescription
+                        self.progressValue    = 0
+                        self.backupState      = .idle
+                    }
                 }
             }
         }
-    }
-    
-    /// 복원
-    func restore(from archiveURL: URL) {
-        isBusy = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                try BackupManager.shared.restoreBackup(from: archiveURL)
-                DispatchQueue.main.async {
-                    self.restoreError = nil
-                    self.isBusy = false
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.restoreError = error.localizedDescription
-                    self.isBusy = false
+
+        /// 일반 복원 (단계별 진행 반영)
+        func restore(from archiveURL: URL) {
+            DispatchQueue.main.async {
+                self.backupState   = .restoring
+                self.progressValue = 0
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    try BackupManager.shared.restoreBackup(from: archiveURL) { prog in
+                        DispatchQueue.main.async {
+                            self.progressValue = prog
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        self.restoreError = nil
+                        self.backupState  = .idle
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.restoreError    = error.localizedDescription
+                        self.progressValue   = 0
+                        self.backupState     = .idle
+                    }
                 }
             }
         }
-    }
-    
-    func importBackupFile(from providerURL: URL) {
-        isBusy = true
-        DispatchQueue.global(qos: .userInitiated).async {
-            // 1) security scope 접근
-            let accessed = providerURL.startAccessingSecurityScopedResource()
-            defer { if accessed { providerURL.stopAccessingSecurityScopedResource() } }
-            
-            // 2) 임시 디렉토리로 복사
-            let tmpURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(providerURL.lastPathComponent)
-            do {
-                if FileManager.default.fileExists(atPath: tmpURL.path) {
-                    try FileManager.default.removeItem(at: tmpURL)
-                }
-                try FileManager.default.copyItem(at: providerURL, to: tmpURL)
-                
-                // 3) 실제 복원 로직 호출
-                try BackupManager.shared.restoreBackup(from: tmpURL)
-                
-                DispatchQueue.main.async {
-                    self.restoreError = nil
-                    self.isBusy = false
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    self.restoreError = error.localizedDescription
-                    self.isBusy = false
+
+        /// 파일 제공자 URL로부터 복원 (역시 단계별 진행 반영)
+        func importBackupFile(from providerURL: URL) {
+            DispatchQueue.main.async {
+                self.backupState   = .restoring
+                self.progressValue = 0
+            }
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                let accessed = providerURL.startAccessingSecurityScopedResource()
+                defer { if accessed { providerURL.stopAccessingSecurityScopedResource() } }
+
+                let tmp = FileManager.default.temporaryDirectory
+                    .appendingPathComponent(providerURL.lastPathComponent)
+                do {
+                    if FileManager.default.fileExists(atPath: tmp.path) {
+                        try FileManager.default.removeItem(at: tmp)
+                    }
+                    try FileManager.default.copyItem(at: providerURL, to: tmp)
+
+                    try BackupManager.shared.restoreBackup(from: tmp) { prog in
+                        DispatchQueue.main.async {
+                            self.progressValue = prog
+                        }
+                    }
+                    DispatchQueue.main.async {
+                        self.restoreError = nil
+                        self.backupState  = .idle
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.restoreError    = error.localizedDescription
+                        self.progressValue   = 0
+                        self.backupState     = .idle
+                    }
                 }
             }
         }
-    }
 }
