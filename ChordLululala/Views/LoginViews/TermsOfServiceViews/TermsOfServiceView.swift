@@ -68,7 +68,7 @@ struct TermsOfServiceView: View {
                 }
                 .padding(.top, 12)
             }
-            .padding(.leading, 205)
+            .padding(.horizontal, 205)
             .padding(.top, 37)
             
             Spacer()
@@ -82,9 +82,17 @@ struct TermsOfServiceView: View {
                     .background(viewModel.isAllAgreed ? Color.primaryBlue700 : Color.primaryGray200)
                     .foregroundColor(viewModel.isAllAgreed ? Color.primaryBaseWhite : Color.primaryGray500)
             }
+            .buttonStyle(NoPressedEffectButtonStyle())
             .disabled(!viewModel.isAllAgreed)
         }
         .navigationBarHidden(true)
         .edgesIgnoringSafeArea(.bottom)
+    }
+}
+
+/// 버튼 프레스드 효과 제거 
+struct NoPressedEffectButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label // pressed 여부에 따라 변화 없음
     }
 }
