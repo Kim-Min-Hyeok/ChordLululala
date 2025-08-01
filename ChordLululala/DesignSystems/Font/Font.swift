@@ -8,6 +8,9 @@
 import SwiftUI
 
 extension Font {
+    //MARK: - Login Logo
+    static var loginLogo: Font { .custom("Pretendard-Bold", size: 37.06) }
+    
     // MARK: - Display XL (24pt)
     static var displayXLBold: Font { .custom("Pretendard-Bold", size: 24) }
     static var displayXLSemiBold: Font { .custom("Pretendard-SemiBold", size: 24) }

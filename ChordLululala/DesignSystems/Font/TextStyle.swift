@@ -19,6 +19,9 @@ struct TextStyle {
 }
 
 extension TextStyle {
+    //MARK: - Login Logo
+    static let loginLogo = TextStyle(font: .loginLogo, size: 37.06, lineHeightMultiplier: 1.5, letterSpacing: 24 * -0.0035)
+    
     // MARK: - Display XL (24pt)
     static let displayXLBold = TextStyle(font: .displayXLBold, size: 24, lineHeightMultiplier: 1.4, letterSpacing: 24 * -0.0035)
     static let displayXLSemiBold = TextStyle(font: .displayXLSemiBold, size: 24, lineHeightMultiplier: 1.4, letterSpacing: 24 * -0.0035)
