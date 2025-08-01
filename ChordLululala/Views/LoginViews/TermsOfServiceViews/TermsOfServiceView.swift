@@ -16,15 +16,21 @@ struct TermsOfServiceView: View {
             Spacer()
             
             VStack(alignment: .leading) {
-                Text("Noteflow")
-                    .font(.system(size: 37.06))
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.primaryBlue600)
+                HStack {
+                    Image("noteflow_logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 47, height: 47)
+                        .padding(.trailing, 12)
+                    Text("Noteflow")
+                        .textStyle(.loginLogo)
+                        .foregroundStyle(Color.primaryBlue600)
+                }
                 Text("안녕하세요.")
                     .textStyle(.displayXLSemiBold)
                     .foregroundStyle(Color.primaryGray900)
                     .padding(.top, 13)
-                Text("노트플로우 가입 및 이용을 위해 서비스 이용약관에 동의해주세요")
+                Text("노트플로우 서비스 이용약관에 동의해주세요.")
                     .textStyle(.headingLgMedium)
                     .foregroundStyle(Color.primaryGray600)
                     .padding(.top, 10)
@@ -35,21 +41,16 @@ struct TermsOfServiceView: View {
                         viewModel.isAllAgreed = newValue
                     }
                 )) {
-                    Text("전체 동의")
+                    Text("네, 모두 동의합니다.")
                         .textStyle(.headingLgSemiBold)
                         .foregroundStyle(Color.primaryGray700)
                 }
                 .padding(.top, 62)
-                
-                Divider()
-                    .frame(width: 235)
-                    .padding(.top, 15)
-                    .foregroundStyle(Color.primaryGray200)
-                
+                                
                 // 개별 동의 버튼들
                 AgreeButton(isAgreed: $viewModel.isPrivacyAgreed) {
                     Link(destination: URL(string: "https://example.com/privacy")!) {
-                        Text("(필수) 개인정보 수집 및 이용동의")
+                        Text("(필수) 개인정보 수집 및 이용 동의")
                             .textStyle(.headingLgMedium)
                             .foregroundColor(Color.primaryGray700)
                             .underline()
@@ -68,22 +69,30 @@ struct TermsOfServiceView: View {
                 .padding(.top, 12)
             }
             .padding(.horizontal, 205)
-            .padding(.top, 203 - 166)
+            .padding(.top, 37)
             
             Spacer()
             
             Button(action: {
                 router.offAll("/")
             }) {
-                Text("시작하기")
+                Text("동의하고 진행하기")
                     .textStyle(.displayXLSemiBold)
-                    .frame(maxWidth: .infinity, maxHeight: 92)
-                    .background(viewModel.isAllAgreed ? Color.primaryGray800 : Color.primaryGray300)
+                    .frame(maxWidth: .infinity, maxHeight: 109.1)
+                    .background(viewModel.isAllAgreed ? Color.primaryBlue700 : Color.primaryGray200)
                     .foregroundColor(viewModel.isAllAgreed ? Color.primaryBaseWhite : Color.primaryGray500)
             }
+            .buttonStyle(NoPressedEffectButtonStyle())
             .disabled(!viewModel.isAllAgreed)
         }
         .navigationBarHidden(true)
         .edgesIgnoringSafeArea(.bottom)
+    }
+}
+
+/// 버튼 프레스드 효과 제거 
+struct NoPressedEffectButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label // pressed 여부에 따라 변화 없음
     }
 }
