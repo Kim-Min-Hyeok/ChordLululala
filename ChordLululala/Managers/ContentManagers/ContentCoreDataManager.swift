@@ -227,7 +227,6 @@ final class ContentCoreDataManager {
     // MARK: 즐겨찾기 토글
     func toggleContentStared(content: Content) {
         content.isStared.toggle()
-        content.modifiedAt = Date()
         saveContext()
         print("즐겨찾기 토글: \(content.name ?? "Unnamed") → \(content.isStared ? "★" : "☆")")
     }
