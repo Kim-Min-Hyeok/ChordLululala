@@ -24,8 +24,8 @@ enum ToggleFilter: String, CaseIterable, Identifiable {
 }
 
 enum SortOption: String, CaseIterable, Identifiable {
-    case date = "최근 수정순"
-    case name = "이름순"
+    case date = "날짜"
+    case name = "이름"
     
     var id: String { rawValue }
 }
@@ -60,7 +60,8 @@ final class DashBoardViewModel: ObservableObject {
         withAnimation(.easeInOut) {
             self.isSearching = true
         }
-        contents = []
+//        contents = []
+        updateSearch(query: "")
     }
     
     func exitSearch() {
@@ -78,13 +79,18 @@ final class DashBoardViewModel: ObservableObject {
         guard isSearching else { return }
         let allContents = ContentCoreDataManager.shared.fetchContentsSync()
         
-        contents = allContents.filter { content in
-            guard content.parentContent != nil else {
-                return false
+        if query.isEmpty {
+            contents = allContents.filter { content in
+                content.parentContent != nil &&
+                content.type != ContentType.scoresOfSetlist.rawValue
             }
-            guard content.type != ContentType.scoresOfSetlist.rawValue else { return false }
-            guard let name = content.name else { return false }
-            return name.localizedCaseInsensitiveContains(query)
+        } else {
+            contents = allContents.filter { content in
+                guard content.parentContent != nil else { return false }
+                guard content.type != ContentType.scoresOfSetlist.rawValue else { return false }
+                guard let name = content.name else { return false }
+                return name.localizedCaseInsensitiveContains(query)
+            }
         }
     }
     
@@ -122,7 +128,9 @@ final class DashBoardViewModel: ObservableObject {
         }
     }
     
-    // MARK: - 사이드바 관련
+    // MARK: - 정렬 관련
+    //    @Published var isSortModalVisible: Bool = false
+    //    @Published var isListGridModalVisible: Bool = false
     
     // MARK: - 리스트/그리드 관련
     @Published var isListView: Bool = false
@@ -255,11 +263,18 @@ final class DashBoardViewModel: ObservableObject {
         if isSearching {
             exitSearch()
         }
+        
         print("📁 Tapping folder: \(folder.name ?? "?"), Dashboard: \(dashboardContents)")
         print("📁 Current parent before: \(currentParent?.name ?? "nil")")
         currentParent = folder
         print("📁 Current parent after: \(currentParent?.name ?? "nil")")
         loadContents()
+        
+        self.dashboardContents = currentParent?.parentContent?.name == "Score" ? .score :
+                                 currentParent?.parentContent?.name == "Setlist" ? .setlist :
+                                 currentParent?.parentContent?.name == "Trash_Can" ? .trashCan :
+                                 .trashCan
+        
         importFromDropboxAndLoadContents()
     }
     

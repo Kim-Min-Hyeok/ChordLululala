@@ -19,17 +19,17 @@ struct SelectionOptionButton: View {
     
     private var displayTextColor: Color {
         guard isEnabled else { return Color.primaryGray300 }
-        return title == "휴지통" ? Color.supportingRed500 : Color.primaryGray900
+        return title == "휴지통" ? Color.supportingRed500 : Color.primaryGray700
     }
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 3) {
+            HStack(spacing: 1) {
                 Image(displayIconName)
                     .resizable()
-                    .frame(width: 39, height: 39)
+                    .frame(width: 24, height: 24)
                 Text(title)
-                    .textStyle(.headingSmMedium)
+                    .textStyle(.headingMdSemiBold)
                     .foregroundColor(displayTextColor)
             }
         }

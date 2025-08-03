@@ -22,7 +22,7 @@ struct DashboardView: View {
                 // MARK: 전체 / 사이드바
                 HStack(spacing: 0) {
                     // MARK: 사이드바
-                    if viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching && viewModel.dashboardContents != .createSetlist {
+                    if viewModel.isLandscape /*&& !viewModel.isSelectionViewVisible*/ /*&& !viewModel.isSearching*/ && viewModel.dashboardContents != .createSetlist {
                         SidebarView(
                             onSelect: { newContent in
                                 viewModel.dashboardContents = newContent
@@ -55,8 +55,7 @@ struct DashboardView: View {
                                             .padding(.top, 33)
                                     }
                                     else {
-                                        Rectangle()
-                                            .frame(height: 151)
+                                        SelectionView(onMove: handleMoveAction)
                                     }
                                     // MARK: 파일/폴더 리스트/그리드 뷰
                                     ScrollView {
@@ -65,7 +64,7 @@ struct DashboardView: View {
                                     .padding(.top, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 50 : 94) : (viewModel.isLandscape ? 29 : 72))
                                     Spacer()
                                 }
-                                .padding(.horizontal, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 167 : 45) : 44)
+                                .padding(.horizontal, 44)
                                 
                                 if viewModel.dashboardContents != .trashCan && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
                                     // MARK: 파일 생성 모달 뷰
@@ -95,12 +94,12 @@ struct DashboardView: View {
                                                             .resizable()
                                                             .frame(width: 18, height: 18)
                                                             .padding(18)
-                                                            .background(Color.primaryGray800)
+                                                            .background(Color.primaryBlue500)
                                                             .clipShape(Circle())
                                                     }
-                                                    .shadow(color: Color.black.opacity(0.40), radius: 30, x: 0, y: 0)
+                                                    .shadow(color: Color.black.opacity(0.35), radius: 10, x: 0, y: 4)
                                                     .padding(.trailing, 41)
-                                                    .padding(.bottom, viewModel.isLandscape ? 7 : 25)
+                                                    .padding(.bottom, viewModel.isLandscape ? 61 : 79)
                                                     
                                                     if viewModel.isFloatingMenuVisible {
                                                         VStack(spacing: 10) {
@@ -119,7 +118,7 @@ struct DashboardView: View {
                             }
                         }
                         
-                        if !viewModel.isLandscape && !viewModel.isSelectionViewVisible && !viewModel.isSearching {
+                        if !viewModel.isLandscape /*&& !viewModel.isSelectionViewVisible && !viewModel.isSearching*/ {
                             TabBarView(
                                 onSelect: { newContent in
                                     viewModel.dashboardContents = newContent
@@ -229,14 +228,14 @@ struct DashboardView: View {
                 }
             }
             // MARK: 선택 모드 뷰
-            .overlay(
-                Group {
-                    if viewModel.isSelectionViewVisible {
-                        SelectionView(onMove: handleMoveAction)
-                    }
-                },
-                alignment: .top
-            )
+//            .overlay(
+//                Group {
+//                    if viewModel.isSelectionViewVisible {
+//                        SelectionView(onMove: handleMoveAction)
+//                    }
+//                },
+//                alignment: .top
+//            )
             
             .overlay(
                 Group {
