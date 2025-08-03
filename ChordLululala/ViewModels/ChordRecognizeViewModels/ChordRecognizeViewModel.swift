@@ -118,6 +118,7 @@ final class ChordRecognizeViewModel: ObservableObject {
 
             ChordRecognizeManager.shared
                 .recognize(image: image)
+                .timeout(.seconds(3), scheduler: DispatchQueue.main)
                 .receive(on: DispatchQueue.main)
                 .sink(
                     receiveCompletion: { _ in },
