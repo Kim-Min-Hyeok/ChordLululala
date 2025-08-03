@@ -40,6 +40,11 @@ final class ChordAddingModalViewModel: ObservableObject {
     func isValidChord(_ text: String) -> Bool {
         if text.isEmpty { return true }
         
+        if text.hasPrefix("/") {
+               let bassOnlyPattern = #"^/[A-G](?:#|b)?$"#
+               return text.range(of: bassOnlyPattern, options: .regularExpression) != nil
+           }
+        
         let baseChordParsingRegex = #"^([A-G](?:#|b)?)(maj|m|sus2|sus4|5|aug|dim|7)?"#
         let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
         let regex: NSRegularExpression
