@@ -149,7 +149,7 @@ struct ScoreHeaderView: View {
                 
             }
             .padding(.horizontal, 22)
-            .frame(height:91,
+            .frame(height:55,
                    alignment: .bottom)
             
             /// 제목
