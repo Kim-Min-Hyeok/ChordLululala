@@ -26,6 +26,7 @@ struct DashboardView: View {
                         SidebarView(
                             onSelect: { newContent in
                                 viewModel.dashboardContents = newContent
+                                viewModel.isSearching = false
                             },
                             selected: $viewModel.dashboardContents
                         )
@@ -61,7 +62,7 @@ struct DashboardView: View {
                                     ScrollView {
                                         ContentListView(isListView: viewModel.isListView)
                                     }
-                                    .padding(.top, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 50 : 94) : (viewModel.isLandscape ? 29 : 72))
+                                    .padding(.top, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 50 : 94) : (viewModel.isLandscape ? 75 : 72))
                                     Spacer()
                                 }
                                 .padding(.horizontal, 44)
@@ -122,6 +123,7 @@ struct DashboardView: View {
                             TabBarView(
                                 onSelect: { newContent in
                                     viewModel.dashboardContents = newContent
+                                    viewModel.isSearching = false
                                 },
                                 selected: $viewModel.dashboardContents
                             )

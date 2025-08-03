@@ -93,31 +93,48 @@ struct DashBoardHeaderView: View {
 //                            }
 //                        }
                         
-                        HStack(spacing: 1) {
-                            Image(systemName: "magnifyingglass")
-                                .foregroundColor(Color.primaryGray500)
-                                .frame(width: 24, height: 24)
-                            
-                            TextField("", text: $viewModel.searchText, prompt: Text("검색").foregroundColor(Color.primaryGray500))
-                                .textStyle(.headingLgRegular)
-                                .disableAutocorrection(true)
-                                .textInputAutocapitalization(.never)
-                                .focused($isSearchFieldFocused)
-                                .onChange(of: isSearchFieldFocused) { focused in
-                                    if focused {
-                                        viewModel.enterSearch()
+                        ZStack(alignment: .trailing) {
+                            HStack(spacing: 1) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundColor(Color.primaryGray500)
+                                    .frame(width: 24, height: 24)
+                                
+                                TextField("", text: $viewModel.searchText, prompt: Text("검색").foregroundColor(Color.primaryGray500))
+                                    .textStyle(.headingLgRegular)
+                                    .disableAutocorrection(true)
+                                    .textInputAutocapitalization(.never)
+                                    .focused($isSearchFieldFocused)
+                                    .onChange(of: isSearchFieldFocused) { focused in
+                                        if focused {
+                                            viewModel.enterSearch()
+                                        }
                                     }
+                                    .padding(.trailing, 28) // 오른쪽 버튼 공간 확보
+                            }
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 8)
+                            .background(isSearchFieldFocused ? Color.primaryBaseWhite : Color.primaryGray200)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(isSearchFieldFocused ? Color.primaryGray200 : Color.clear, lineWidth: 1)
+                            )
+                            .frame(height: 42)
+                            
+                            if isSearchFieldFocused {
+                                Button(action: {
+                                    viewModel.searchText = ""
+                                    isSearchFieldFocused = true
+                                }) {
+                                    Image("reset_text")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 36)
                                 }
+                                .padding(.trailing, 10)
+                            }
+                            
                         }
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 8)
-                        .background(isSearchFieldFocused ? Color.primaryBaseWhite : Color.primaryGray200)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSearchFieldFocused ? Color.primaryGray200 : Color.clear, lineWidth: 1)
-                        )
-                        .frame(height: 42)
                     }
                     .padding(.horizontal, 171)
                     
@@ -140,7 +157,6 @@ struct DashBoardHeaderView: View {
                                             .resizable()
                                             .frame(width: 36, height: 36)
                                     }
-                                    .padding(.leading, 171)
                                     
                                     // MARK: 리스트/그리드 토글 버튼
                                     Button(action: {
@@ -152,10 +168,9 @@ struct DashBoardHeaderView: View {
                                     }
                                 }
                             }
-                        }
-                        else {
+                        } else {
                             Spacer()
-                                .frame(height: 64)
+                                .frame(height: 36)
                         }
                         // MARK: 전체/즐겨찾기
                         AllStarFilterToggleView(selectedFilter: $viewModel.currentFilter)

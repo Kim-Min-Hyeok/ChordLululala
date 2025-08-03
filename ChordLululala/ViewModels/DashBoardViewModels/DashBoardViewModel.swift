@@ -60,7 +60,7 @@ final class DashBoardViewModel: ObservableObject {
         withAnimation(.easeInOut) {
             self.isSearching = true
         }
-//        contents = []
+        //        contents = []
         updateSearch(query: "")
     }
     
@@ -264,16 +264,16 @@ final class DashBoardViewModel: ObservableObject {
             exitSearch()
         }
         
+        self.dashboardContents = folder.parentContent?.name == "Score" ? .score :
+        folder.parentContent?.name == "Setlist" ? .setlist :
+        folder.parentContent?.name == "Trash_Can" ? .trashCan :
+            .trashCan
+        
         print("📁 Tapping folder: \(folder.name ?? "?"), Dashboard: \(dashboardContents)")
         print("📁 Current parent before: \(currentParent?.name ?? "nil")")
         currentParent = folder
         print("📁 Current parent after: \(currentParent?.name ?? "nil")")
         loadContents()
-        
-        self.dashboardContents = currentParent?.parentContent?.name == "Score" ? .score :
-                                 currentParent?.parentContent?.name == "Setlist" ? .setlist :
-                                 currentParent?.parentContent?.name == "Trash_Can" ? .trashCan :
-                                 .trashCan
         
         importFromDropboxAndLoadContents()
     }
