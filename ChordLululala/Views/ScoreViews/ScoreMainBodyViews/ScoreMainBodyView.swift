@@ -93,7 +93,6 @@ struct ScoreMainBodyView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: displaySize.width, height: displaySize.height)
-                                                .shadow(radius: 4)
                                                
                                             
                                             if chordBoxViewModel.chordsForPages.indices.contains(realIndex) {
