@@ -126,6 +126,6 @@ struct ScoreSetlistOverView: View {
         .frame(width: 478, height: 620)
         .background(Color.primaryBaseWhite)
         .cornerRadius(18)
-        .shadow(color: Color.primaryBaseBlack.opacity(25) , radius: 30)
+        .shadow(color: Color.primaryBaseBlack.opacity(0.25) , radius: 30)
     }
 }
