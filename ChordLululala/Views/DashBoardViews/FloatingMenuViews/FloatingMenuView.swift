@@ -30,7 +30,7 @@ struct FloatingMenuView: View {
                     Divider()
                         .frame(height: 0.32)
                         .foregroundStyle(Color.primaryGray300)
-                    FloatingMenuButton(icon: "folder2", title: "폴더 만들기", action: {
+                    FloatingMenuButton(icon: "folder2", title: "폴더 생성", action: {
                         withAnimation {
                             viewModel.isFloatingMenuVisible.toggle()
                             viewModel.isCreateFolderModalVisible = true
@@ -59,8 +59,9 @@ struct FloatingMenuView: View {
             }
         }
         .background(Color.primaryBaseWhite)
-        .cornerRadius(13)
+        .cornerRadius(9)
         .frame(width: 210)
+        .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 8)
     }
 }
 
