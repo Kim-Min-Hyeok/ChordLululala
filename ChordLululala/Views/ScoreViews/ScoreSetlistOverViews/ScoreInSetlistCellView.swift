@@ -18,19 +18,22 @@ struct ScoreInSelistCellView: View {
     let gotoScoreDetail: () -> Void
     
     var body: some View {
-        HStack {
+        HStack(spacing: 0){
+            
             Button(action: {
+                print(#fileID,#function,#line, "✅")
                 deleteScore()
             }) {
-                VStack(alignment: .center) {
-                    Image(systemName: "xmark")
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(Color.primaryGray400)
-                        .frame(width: 12, height: 12)
-                }
-                .frame(width: 34, height: 34)
+                Image("Setlist_x_button")
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundStyle(Color.primaryGray400)
+                    .frame(width: 34 , height: 34)
+                
             }
+            .frame(width: 34 , height: 34)
+            .contentShape(Rectangle())
+//            .background(Color.red.opacity(0.3)) // 터치 영역
             
             HStack {
                 Group {
@@ -67,7 +70,7 @@ struct ScoreInSelistCellView: View {
                 }
             }
             .onTapGesture {
-                gotoScoreDetail()
+                print(#fileID,#function,#line, "터치 차단")
             }
             
             Spacer()
@@ -82,21 +85,22 @@ struct ScoreInSelistCellView: View {
                 .padding(.vertical, 4)
                 .contentShape(Rectangle()) // 정확한 탭 영역 설정
                 .onTapGesture {
+                    print("키변환 터치됨 ") //TODO: 나중에 지우기
                     keyTransformation()
                 }
-            
-//            Button(action: {
-//                deleteScore()
-//            }) {
-//                VStack(alignment: .center) {
-//                    Image(systemName: "xmark")
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(width: 12, height: 12)
-//                }
-//                .frame(width: 34, height: 34)
-//            }
-//            .padding(.leading, 22)
+//                .background(Color.green.opacity(0.3))   // 터치 영역
+            //            Button(action: {
+            //                deleteScore()
+            //            }) {
+            //                VStack(alignment: .center) {
+            //                    Image(systemName: "xmark")
+            //                        .resizable()
+            //                        .scaledToFit()
+            //                        .frame(width: 12, height: 12)
+            //                }
+            //                .frame(width: 34, height: 34)
+            //            }
+            //            .padding(.leading, 22)
         }
         .clipped()
         .onAppear {
