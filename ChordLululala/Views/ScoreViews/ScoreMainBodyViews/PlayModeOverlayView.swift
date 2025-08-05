@@ -49,7 +49,7 @@ struct PlayModeOverlayView: View {
                             .gesture(
                                 DragGesture()
                                     .onEnded({ _ in
-                                        goToPreviousPage()
+                                            goToPreviousPage()
                                     })
                             )
                             .simultaneousGesture(
@@ -77,11 +77,9 @@ struct PlayModeOverlayView: View {
                                         goToNextPage()
                                     })
                             )
-                            .onTapGesture { goToNextPage() }
                     }
                     Spacer()
                 }
-                
             }
             .ignoresSafeArea()  // 안전영역까지 풀스크린
         }
