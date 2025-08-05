@@ -46,7 +46,18 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * bottomRatio )
                             .contentShape(Rectangle())
-                            .onTapGesture { goToPreviousPage() }
+                            .gesture(
+                                DragGesture()
+                                    .onEnded({ _ in
+                                        goToPreviousPage()
+                                    })
+                            )
+                            .simultaneousGesture(
+                                TapGesture()
+                                    .onEnded({ _ in
+                                        goToPreviousPage()
+                                    })
+                            )
                         
                         Spacer()
                         
@@ -54,6 +65,18 @@ struct PlayModeOverlayView: View {
                         Color.clear
                             .frame(width: marginWidth, height: h * bottomRatio)
                             .contentShape(Rectangle())
+                            .gesture(
+                                DragGesture()
+                                    .onEnded({ _ in
+                                        goToNextPage()
+                                    })
+                            )
+                            .simultaneousGesture(
+                                TapGesture()
+                                    .onEnded({ _ in
+                                        goToNextPage()
+                                    })
+                            )
                             .onTapGesture { goToNextPage() }
                     }
                     Spacer()
