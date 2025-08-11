@@ -20,20 +20,19 @@ struct ScoreInSelistCellView: View {
     var body: some View {
         HStack(spacing: 0){
             
-            Button(action: {
-                print(#fileID,#function,#line, "✅")
-                deleteScore()
-            }) {
-                Image("Setlist_x_button")
-                    .resizable()
-                    .scaledToFit()
-                    .foregroundStyle(Color.primaryGray400)
-                    .frame(width: 34 , height: 34)
-                
-            }
-            .frame(width: 34 , height: 34)
-            .contentShape(Rectangle())
-//            .background(Color.red.opacity(0.3)) // 터치 영역
+            Image("Setlist_x_button")
+                .resizable()
+                .scaledToFit()
+                .foregroundStyle(Color.primaryGray400)
+                .contentShape(Rectangle())
+                .frame(width: 38, height: 38)
+                .onTapGesture {
+                    print(#fileID,#function,#line, "✅")
+                    deleteScore()
+                }
+//                .background(Color.red.opacity(0.5)) // 터치 영역
+                .padding(.trailing, 9)
+        
             
             HStack {
                 Group {
@@ -88,7 +87,7 @@ struct ScoreInSelistCellView: View {
                     print("키변환 터치됨 ") //TODO: 나중에 지우기
                     keyTransformation()
                 }
-//                .background(Color.green.opacity(0.3))   // 터치 영역
+            //                .background(Color.green.opacity(0.3))   // 터치 영역
             //            Button(action: {
             //                deleteScore()
             //            }) {
