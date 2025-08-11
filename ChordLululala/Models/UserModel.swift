@@ -13,4 +13,5 @@ struct UserModel: Identifiable, Equatable {
     var name: String?
     var email: String?
     var profileImageURL: String?
+    var isSinglePageView: Bool
 }
