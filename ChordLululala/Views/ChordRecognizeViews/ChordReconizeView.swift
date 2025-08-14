@@ -99,9 +99,9 @@ struct ChordReconizeView: View {
                                 showFixingKeyModal = false
                             }
                         },
-                        title: "조(key) 인식 결과",
-                        description: "인식 결과 확인후, 수정해주세요.\n수정할 사항이 없다면 설정 완료를 눌러주세요.",
-                        subtitle: "인식 결과",
+                        title: "악보 인식 결과",
+                        description: "조성이 올바르다면 다음을 눌러주세요",
+                        subtitle: "",
                         initialKey: vm.key,
                         initialIsSharp: vm.isSharp,
                         initialTransposeAmount: vm.transposeAmount

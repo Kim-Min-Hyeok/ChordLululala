@@ -56,7 +56,15 @@ struct ScoreMainBodyView: View {
     
     var body: some View {
         ZStack {
-            Color.primaryGray50.ignoresSafeArea()
+            
+            (viewModel.isPlayMode
+             ? Color.primaryBaseWhite
+             : Color.primaryGray50
+            )
+            .ignoresSafeArea()
+
+            
+            
             
             TabView(selection: groupSelection) {
                 ForEach(Array(groupedPages.enumerated()), id: \.offset) { groupIdx, imgsInGroup in
@@ -93,7 +101,6 @@ struct ScoreMainBodyView: View {
                                                 .resizable()
                                                 .scaledToFit()
                                                 .frame(width: displaySize.width, height: displaySize.height)
-                                                .shadow(radius: 4)
                                                
                                             
                                             if chordBoxViewModel.chordsForPages.indices.contains(realIndex) {
