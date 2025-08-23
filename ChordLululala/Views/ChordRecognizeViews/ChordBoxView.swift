@@ -33,7 +33,7 @@ struct ChordBoxView: View {
                 .frame(height: 23)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(hex: "EFEFF0").opacity(0.75))
+                        .fill(Color(hex: "EFEFF0").opacity(0.95))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)

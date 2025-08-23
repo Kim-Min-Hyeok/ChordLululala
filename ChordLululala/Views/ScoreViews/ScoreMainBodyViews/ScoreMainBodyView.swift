@@ -116,6 +116,7 @@ struct ScoreMainBodyView: View {
                                                         onDelete: nil,
                                                         onMove: nil
                                                     )
+                                                    .allowsHitTesting(false)
                                                 }
                                             }
                                             
