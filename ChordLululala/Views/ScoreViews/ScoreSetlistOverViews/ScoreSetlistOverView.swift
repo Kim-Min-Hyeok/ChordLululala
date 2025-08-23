@@ -84,6 +84,7 @@ struct ScoreSetlistOverView: View {
                         )
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                     }
+
                     .onMove(perform: moveScore)
                 }
                 .listRowSpacing(0)
@@ -126,6 +127,6 @@ struct ScoreSetlistOverView: View {
         .frame(width: 478, height: 620)
         .background(Color.primaryBaseWhite)
         .cornerRadius(18)
-        .shadow(color: Color.primaryBaseBlack.opacity(25) , radius: 30)
+        .shadow(color: Color.primaryBaseBlack.opacity(0.25) , radius: 30)
     }
 }

@@ -78,6 +78,14 @@ final class ScoreViewModel: ObservableObject{
             print("Single score mode with content:", content.name ?? "Unknown")
         }
         
+        let userManager  = UserManager.shared
+        self.isSinglePageMode = userManager.currentUser?.isSinglePageView ?? true
+        
+        userManager.$currentUser
+            .compactMap { $0?.isSinglePageView}
+            .assign(to: \.isSinglePageMode, on: self)
+            .store(in: &cancellables)
+        
         bindInputs()
         loadAllScoresData()
     }
@@ -472,6 +480,12 @@ final class ScoreViewModel: ObservableObject{
             }
         }
     }
+    
+    ///악보 보기 설정 (한페이지 /  여러페이지)
+    func updatePageViewSetting(isSingle: Bool){
+        UserManager.shared.updatePageViewSetting(isSinglePage: isSingle)
+    }
+    
 }
 
 

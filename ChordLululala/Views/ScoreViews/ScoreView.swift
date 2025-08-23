@@ -129,10 +129,12 @@ struct ScoreView : View {
                         },
                         showSinglePage: {
                             viewModel.isSinglePageMode = true
+                            viewModel.updatePageViewSetting(isSingle: true )
                             viewModel.isSettingModalView = false
                         },
                         showMultiPages: {
                             viewModel.isSinglePageMode = false
+                            viewModel.updatePageViewSetting(isSingle: false)
                             viewModel.isSettingModalView = false
                         },
                         rotateWithClockwise: { viewModel.rotatePage(atFlatIndex: viewModel.selectedPageIndex, clockwise: true)  ; viewModel.isSettingModalView = false

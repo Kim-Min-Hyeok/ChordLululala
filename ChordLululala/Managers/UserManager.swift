@@ -20,7 +20,8 @@ final class UserManager: ObservableObject {
         providerId: String?,
         name: String?,
         email: String?,
-        profileImageURL: String?
+        profileImageURL: String?,
+        singPageView: Bool? = true
     ) {
         // 이전 값
         let prevId = UserDefaults.standard.string(forKey: "lastLoggedInUserUUID")
@@ -28,7 +29,8 @@ final class UserManager: ObservableObject {
         let prevName = UserDefaults.standard.string(forKey: "lastLoggedInUserName")
         let prevEmail = UserDefaults.standard.string(forKey: "lastLoggedInUserEmail")
         let prevProfile = UserDefaults.standard.string(forKey: "lastLoggedInUserProfileImageURL")
-
+        let prevSingPageView = UserDefaults.standard.bool(forKey: "lastLoggedInSinglePageView")
+        
         // id: 값 있으면 덮어쓰기, 없으면 기존 유지, 둘 다 없으면 생성
         var finalId = id ?? prevId
         if finalId == nil {
@@ -41,20 +43,22 @@ final class UserManager: ObservableObject {
         else { finalName = prevName }
         let finalEmail = email ?? prevEmail
         let finalProfile = profileImageURL ?? prevProfile
-
+        let finalSinglePageView = singPageView ?? prevSingPageView
+        
         // 저장
         UserDefaults.standard.set(finalId, forKey: "lastLoggedInUserUUID")
         UserDefaults.standard.set(finalProviderId, forKey: "lastLoggedInUserID")
         UserDefaults.standard.set(finalName, forKey: "lastLoggedInUserName")
         UserDefaults.standard.set(finalEmail, forKey: "lastLoggedInUserEmail")
         UserDefaults.standard.set(finalProfile, forKey: "lastLoggedInUserProfileImageURL")
-
+        UserDefaults.standard.set(finalSinglePageView, forKey: "lastLoggedInSinglePageView")
         currentUser = UserModel(
             id: finalId!,
             providerId: finalProviderId,
             name: finalName,
             email: finalEmail,
-            profileImageURL: finalProfile
+            profileImageURL: finalProfile,
+            isSinglePageView: finalSinglePageView
         )
     }
 
@@ -65,11 +69,12 @@ final class UserManager: ObservableObject {
             return
         }
         
-        let providerId = UserDefaults.standard.string(forKey: "lastLoggedInUserID")
+            let providerId = UserDefaults.standard.string(forKey: "lastLoggedInUserID")
             let name = UserDefaults.standard.string(forKey: "lastLoggedInUserName")
             let email = UserDefaults.standard.string(forKey: "lastLoggedInUserEmail")
             let profile = UserDefaults.standard.string(forKey: "lastLoggedInUserProfileImageURL")
-
+            let isSinglePageView = UserDefaults.standard.bool(forKey: "lastLoggedInSinglePageView")
+        
             print("""
             ✅ UserManager.loadUser()
             id: \(id)
@@ -84,7 +89,8 @@ final class UserManager: ObservableObject {
                 providerId: providerId,
                 name: name,
                 email: email,
-                profileImageURL: profile
+                profileImageURL: profile,
+                isSinglePageView: isSinglePageView
             )
     }
 
@@ -111,4 +117,16 @@ final class UserManager: ObservableObject {
         ===============================
         """)
     }
+    
+    //MARK: - 악보 보기 설정 변경 
+    func updatePageViewSetting(isSinglePage: Bool){
+        guard currentUser != nil else {
+            print(#fileID,#function,#line, "설정 변경 실패 : 로그인된 유저가 없습니다.")
+            return
+        }
+        currentUser?.isSinglePageView = isSinglePage
+        UserDefaults.standard.set(isSinglePage, forKey: "lastLoggedInSinglePageView" )
+    }
+    
+    
 }
