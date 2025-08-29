@@ -11,7 +11,7 @@ struct ChordRecognizeHeaderView: View {
     let state: RecognitionState
     let onBack: () -> Void
     let onFixingKey: () -> Void
-    let onCreateBox: () -> Void
+    // let onCreateBox: () -> Void
     let onFinalize: () -> Void
 
     var body: some View {
@@ -46,27 +46,33 @@ struct ChordRecognizeHeaderView: View {
             }
             if [.chordFixing, .keyTranspostion].contains(state) {
                 HStack(spacing: 15) {
-                    Button(action: onCreateBox) {
-                        Text("+ 코드 박스 생성")
-                            .textStyle(.headingSmSemiBold)
-                            .frame(width: 118, height: 42)
-                            .foregroundStyle(Color.primaryBlue600)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.primaryGray50)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.primaryGray100, lineWidth: 1)
-                            )
-                    }
+                    // Button(action: onCreateBox) {
+                    //     Text("+ 코드 박스 생성")
+                    //         .textStyle(.headingSmSemiBold)
+                    //         .frame(width: 118, height: 42)
+                    //         .foregroundStyle(Color.primaryBlue600)
+                    //         .background(
+                    //             RoundedRectangle(cornerRadius: 8)
+                    //                 .fill(Color.primaryGray50)
+                    //         )
+                    //         .overlay(
+                    //             RoundedRectangle(cornerRadius: 8)
+                    //                 .stroke(Color.primaryGray100, lineWidth: 1)
+                    //         )
+                    // }
 
                     Button(action: onFinalize) {
-                        Text("코드 변환")
-                            .textStyle(.headingLgSemiBold)
-                            .frame(width: 83, height: 42)
-                            .foregroundStyle(Color.primaryBaseWhite)
-                            .background(
+                        HStack(spacing: 6) {
+                            Text("코드 변환")
+                                .textStyle(.headingLgSemiBold)
+                                    .foregroundStyle(Color.primaryBaseWhite)
+                            Image("export")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 17)
+                        }
+                        .frame(width: 106, height: 42)
+                        .background(
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(Color.primaryBlue600)
                             )

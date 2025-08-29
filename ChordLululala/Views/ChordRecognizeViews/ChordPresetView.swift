@@ -6,37 +6,52 @@ struct ChordPresetView: View {
     let onSelect: (String) -> Void
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 11) {
             Button(action: onPlus) {
                 Text("코드 생성 +")
-                    .textStyle(.headingMdSemiBold)
-                    .foregroundStyle(Color.primaryBaseWhite)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                    .background(Color.primaryGray700)
-                    .cornerRadius(16)
+                    .textStyle(.headingMdMedium)
+                    .foregroundStyle(Color.primaryGray800)
+                    .frame(width: 92, height: 37)
+                    .background(Color.primaryGray100)
+                    .clipShape(RoundedRectangle(cornerRadius: 200))
             }
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+                HStack(spacing: 9) {
                     ForEach(chords, id: \.self) { chord in
                         Button(action: { onSelect(chord) }) {
                             Text(chord)
                                 .textStyle(.headingMdMedium)
                                 .foregroundStyle(Color.primaryBaseWhite)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(Color.primaryGray800)
-                                .cornerRadius(14)
+                                .frame(width: 37, height: 37)
+                                .background(
+                                    Circle()
+                                        .fill(.ultraThinMaterial)
+                                )
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.primaryBaseWhite.opacity(0.2), lineWidth: 1)
+                                )
+                                .clipShape(Circle())
+                        }
+                    }
+                    if chords.count < 6 {
+                        Button(action: onPlus) {
+                            Circle()
+                                .fill(Color.primaryBaseWhite.opacity(0.04))
+                                .frame(width: 37, height: 37)
+                                .overlay(
+                                    Circle()
+                                        .stroke(style: StrokeStyle(lineWidth: 1, dash: [2, 2]))
+                                        .foregroundStyle(Color.primaryBaseWhite.opacity(0.2))
+                                )
                         }
                     }
                 }
-                .padding(.trailing, 6)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 10)
         .padding(.vertical, 10)
-        .background(Color.primaryBaseBlack.opacity(0.85))
-        .cornerRadius(22)
-        .shadow(color: Color.primaryBaseBlack.opacity(0.2), radius: 12, x: 0, y: 4)
+        .background(Color.primaryGray700)
+        .cornerRadius(200)
     }
 } 

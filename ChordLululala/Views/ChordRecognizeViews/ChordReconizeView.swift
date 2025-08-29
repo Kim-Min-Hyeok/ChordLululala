@@ -38,10 +38,10 @@ struct ChordReconizeView: View {
 //                        }
                         // MARK: Plan A End
                     },
-                    onCreateBox: {
-                        vm.editingChord = nil
-                        showAddingModal = true
-                    },
+                    // onCreateBox: {
+                    //     vm.editingChord = nil
+                    //     showAddingModal = true
+                    // },
                     onFinalize: {
                         vm.state = .keyTranspostion
                         vm.showKeyTranspositionModal = true
@@ -92,7 +92,9 @@ struct ChordReconizeView: View {
                                         presetVM.push(chord)
                                     }
                                 )
-                                .padding(.bottom, 24)
+                                .frame(maxWidth: 391)
+                                .padding(.horizontal, 220)
+                                .padding(.bottom, 17)
                             }
                         }
                     }
