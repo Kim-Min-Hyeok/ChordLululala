@@ -88,7 +88,7 @@ struct ChordReconizeView: View {
                                         showAddingModal = true
                                     },
                                     onSelect: { chord in
-                                        vm.addNewChord(text: chord, to: vm.selectedPage, position: CGPoint(x: 100, y: 100))
+                                        vm.addNewChordAtCenter(text: chord, to: vm.selectedPage)
                                         presetVM.push(chord)
                                     }
                                 )
@@ -166,7 +166,7 @@ struct ChordReconizeView: View {
                             if let editing = vm.editingChord {
                                     vm.updateChord(editing: editing, newText: text)
                                 } else {
-                                    vm.addNewChord(text: text, to: vm.selectedPage, position: CGPoint(x: 100, y:100))
+                                    vm.addNewChordAtCenter(text: text, to: vm.selectedPage)
                                 }
                             
                             // 프리셋 업데이트 및 표시 유지

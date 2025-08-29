@@ -120,7 +120,8 @@ struct ChordRecognizeResultView: View {
                                                                 },
                                                                 onMove: { newPos in
                                                                     viewModel.updateChordPosition(chord, pageIndex: idx, newPos: newPos, imageSize: img.size, displaySize: geo.size)
-                                                                }
+                                                                },
+                                                                isHighlighted: viewModel.highlightedChordIDs.contains(chord.objectID)
                                                             )
                                                             .onTapGesture {
                                                                 viewModel.editingChord = chord
