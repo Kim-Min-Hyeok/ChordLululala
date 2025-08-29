@@ -14,6 +14,7 @@ struct ChordBoxView: View {
     let transposedText: String
     var onDelete: (() -> Void)? = nil
     var onMove: ((CGPoint) -> Void)? = nil
+    var isHighlighted: Bool = false
     
     @State private var dragOffset: CGSize = .zero
     
@@ -28,16 +29,16 @@ struct ChordBoxView: View {
         ZStack(alignment: .topLeading) {
             Text(transposedText)
                 .textStyle(.bodyTextXLRegular)
-                .foregroundColor(Color.primaryBaseBlack)
+                .foregroundColor(isHighlighted ? Color.supportingRed600 : Color.primaryBaseBlack)
                 .padding(.horizontal, 9)
                 .frame(height: 23)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(hex: "EFEFF0").opacity(0.95))
+                        .fill(isHighlighted ? Color.supportingRed100 : Color(hex: "EFEFF0").opacity(0.95))
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color(hex: "DCDCDC"), lineWidth: 1)
+                        .stroke(isHighlighted ? Color.supportingRed600 : Color(hex: "DCDCDC"), lineWidth: 1)
                 )
             
             if let onDelete = onDelete {

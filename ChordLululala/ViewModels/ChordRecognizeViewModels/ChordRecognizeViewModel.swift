@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import CoreData
 
 enum RecognitionState {
     case recognition
@@ -32,7 +33,8 @@ final class ChordRecognizeViewModel: ObservableObject {
     
     @Published var selectedPage = 0
     @Published var editingChord: ScoreChord? = nil
-    
+    @Published var highlightedChordIDs: Set<NSManagedObjectID> = []
+
     // 키 인식되면, 바로 모달띄워야 하므로 viewModel로 관리
     @Published var showKeyTranspositionModal: Bool = false
     
@@ -250,8 +252,27 @@ final class ChordRecognizeViewModel: ObservableObject {
         chordEnt.scorePage = scorePage
         
         scoreChords[pageIndex].append(chordEnt)
+        markHighlight(for: chordEnt)
     }
     
+    func addNewChordAtCenter(text: String, to pageIndex: Int) {
+        guard pagesImages.indices.contains(pageIndex) else {
+            addNewChord(text: text, to: pageIndex, position: CGPoint(x: 100, y: 100))
+            return
+        }
+        let imgSize = pagesImages[pageIndex].size
+        let centered = CGPoint(x: imgSize.width / 2 - 30, y: imgSize.height / 2 - 12)
+        addNewChord(text: text, to: pageIndex, position: centered)
+    }
+
+    private func markHighlight(for chord: ScoreChord) {
+        let id = chord.objectID
+        highlightedChordIDs.insert(id)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            self?.highlightedChordIDs.remove(id)
+        }
+    }
+
     func finalizeChordRecognition(completion: @escaping () -> Void) {
         for (idx, chords) in scoreChords.enumerated() {
             let scorePage = scorePages[idx]
