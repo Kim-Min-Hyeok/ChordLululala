@@ -10,6 +10,7 @@ import SwiftUI
 struct ChordReconizeView: View {
     @EnvironmentObject var router: NavigationRouter
     @StateObject private var vm = ChordRecognizeViewModel()
+    @StateObject private var presetVM = ChordPresetViewModel()
     let file: Content
     
     @State private var showAddingModal = false
@@ -67,9 +68,34 @@ struct ChordReconizeView: View {
                             }
                         }
                 case .keyFixing, .chordFixing, .keyTranspostion: /*.keyFixingAndTransposition:*/
-                    ChordRecognizeResultView()
+                    ZStack {
+                        ChordRecognizeResultView(
+                            onBackgroundTap: {
+                                if vm.state == .chordFixing {
+                                    presetVM.isVisible.toggle()
+                                }
+                            }
+                        )
                         .environmentObject(vm)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        if vm.state == .chordFixing && presetVM.isVisible {
+                            VStack {
+                                Spacer()
+                                ChordPresetView(
+                                    chords: presetVM.recentChords,
+                                    onPlus: {
+                                        vm.editingChord = nil
+                                        showAddingModal = true
+                                    },
+                                    onSelect: { chord in
+                                        vm.addNewChord(text: chord, to: vm.selectedPage, position: CGPoint(x: 100, y: 100))
+                                        presetVM.push(chord)
+                                    }
+                                )
+                                .padding(.bottom, 24)
+                            }
+                        }
+                    }
                 }
             }
             
@@ -78,9 +104,10 @@ struct ChordReconizeView: View {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            withAnimation {
-                                showFixingKeyModal = false
-                            }
+                            showFixingKeyModal = false
+                            // 프리셋 초기화 및 자동 표시
+                            presetVM.initializeWithFrequencies(from: vm.scoreChords, transposer: { vm.transposedChord(for: $0) })
+                            presetVM.isVisible = true
                         }
                     
                     FixingKeyModalView(
@@ -89,10 +116,11 @@ struct ChordReconizeView: View {
                             vm.t_key = keyText
                             vm.transposeAmount = transposeAmount
                             vm.fixingKey(for: file)
-                            withAnimation {
-                                showFixingKeyModal = false
-                                vm.state = .chordFixing
-                            }
+                            showFixingKeyModal = false
+                            vm.state = .chordFixing
+                            // 프리셋 초기화 및 자동 표시
+                            presetVM.initializeWithFrequencies(from: vm.scoreChords, transposer: { vm.transposedChord(for: $0) })
+                            presetVM.isVisible = true
                         },
                         onCancel: {
                             withAnimation {
@@ -141,6 +169,9 @@ struct ChordReconizeView: View {
                                     vm.addNewChord(text: text, to: vm.selectedPage, position: CGPoint(x: 100, y:100))
                                 }
                             
+                            // 프리셋 업데이트 및 표시 유지
+                            presetVM.push(text)
+                            
                             withAnimation {
                                 showAddingModal = false
                                 vm.editingChord = nil
@@ -157,46 +188,25 @@ struct ChordReconizeView: View {
                     Color.black.opacity(0.4)
                         .ignoresSafeArea()
                         .onTapGesture {
-                            withAnimation {
-                                vm.showKeyTranspositionModal = false
-                            }
+                            vm.showKeyTranspositionModal = false
+                            vm.state = .chordFixing
+                            presetVM.isVisible = true
                         }
                     
-//                    KeyTranspositionModalView(
-//                        currentKey: vm.t_key,
-//                        onConfirm: { newKey in
-//                            vm.applyTransposedKey(newKey, for: file)
-//                            withAnimation {
-//                                showKeyTranspositionModal = false
-//                                vm.finalizeChordRecognition {
-//                                    router.offNamed("/chordConfirm", arguments: [file])
-//                                }
-//                            }
-//                        },
-//                        onCancel: {
-//                            withAnimation {
-//                                showKeyTranspositionModal = false
-//                                vm.state = .chordFixing
-//                            }
-//                        }
-//                    )
                     FixingKeyModalView(
                         onConfirm: { keyText, transposeAmount in
                             vm.t_key = keyText
                             vm.transposeAmount = transposeAmount
                             vm.applyTransposedKey(for: file)
-                            withAnimation {
-                                vm.showKeyTranspositionModal = false
-                                vm.finalizeChordRecognition {
-                                    router.offNamed("/chordConfirm", arguments: [file])
-                                }
+                            vm.showKeyTranspositionModal = false
+                            vm.finalizeChordRecognition {
+                                router.offNamed("/chordConfirm", arguments: [file])
                             }
                         },
                         onCancel: {
-                            withAnimation {
-                                vm.showKeyTranspositionModal = false
-                                vm.state = .chordFixing
-                            }
+                            vm.showKeyTranspositionModal = false
+                            vm.state = .chordFixing
+                            presetVM.isVisible = true
                         },
                         title: "변환할 조 선택",
                         description: "어떤 조(key)로 변경하시겠습니까?",
@@ -210,43 +220,6 @@ struct ChordReconizeView: View {
                 }
                 .zIndex(2)
             }
-//            if vm.state == .keyFixingAndTransposition && showKeyFixingAndTransposeModal {
-//                ZStack {
-//                    Color.black.opacity(0.001)
-//                        .ignoresSafeArea()
-//                        .onTapGesture {
-//                            withAnimation {
-//                                showKeyFixingAndTransposeModal = false
-//                            }
-//                        }
-//                    
-//                    // 모달 뷰 자체
-//                    KeyFixingAndTranspositionModalView(
-//                        onConfirm: { originalKey, transposeKey in
-//                            vm.key = originalKey
-//                            vm.t_key = transposeKey
-//                            vm.fixingKey(for: file)
-//                            withAnimation {
-//                                vm.state = .chordFixing
-//                                showKeyTranspositionModal = false
-//                                
-//                            }
-//                        },
-//                        onCancel: {
-//                            withAnimation {
-//                                showKeyFixingAndTransposeModal = false
-//                            }
-//                        },
-//                        initialKey: vm.key,
-//                        initialIsSharp: vm.isSharp,
-//                        initialTransposeAmount: vm.transposeAmount
-//                        
-//                    )
-//                    .transition(.move(edge: .bottom))
-//                    .zIndex(2)
-//                }
-//                .zIndex(2)
-//            }
         }
         .navigationBarHidden(true)
     }

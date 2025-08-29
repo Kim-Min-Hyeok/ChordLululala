@@ -24,6 +24,12 @@ struct ChordRecognizeResultView: View {
     @State private var isProgrammaticScroll = false
     @State private var isLandscape = UIDevice.current.orientation.isLandscape
     
+    let onBackgroundTap: (() -> Void)?
+    
+    init(onBackgroundTap: (() -> Void)? = nil) {
+        self.onBackgroundTap = onBackgroundTap
+    }
+    
     var body: some View {
         ZStack(alignment: .top) {
             GeometryReader { outerGeo in
@@ -47,9 +53,11 @@ struct ChordRecognizeResultView: View {
                                                 )
                                         )
                                         .clipShape(RoundedRectangle(cornerRadius: 2)) // 이미지 자체는 직각
-                                        .onTapGesture {
-                                            viewModel.selectedPage = idx
-                                        }
+                                        .highPriorityGesture(
+                                            TapGesture().onEnded {
+                                                viewModel.selectedPage = idx
+                                            }
+                                        )
                                     
                                     Text("\(idx + 1)")
                                         .textStyle(.bodyTextLgMedium)
@@ -70,6 +78,12 @@ struct ChordRecognizeResultView: View {
                     }
                     .frame(width: 163)
                     .background(Color.primaryGray100)
+                    .contentShape(Rectangle())
+                    .simultaneousGesture(
+                        TapGesture().onEnded {
+                            onBackgroundTap?()
+                        }
+                    )
                     
                     Divider()
                     
@@ -89,6 +103,9 @@ struct ChordRecognizeResultView: View {
                                                     .scaledToFit()
                                                     .frame(width: geo.size.width, height: geo.size.height)
                                                     .shadow(color: Color.primaryBaseBlack.opacity(0.1), radius: 20, x: 0, y: 0)
+                                                    .onTapGesture {
+                                                        onBackgroundTap?()
+                                                    }
                                                 if [.chordFixing, .keyTranspostion].contains(viewModel.state) {
                                                     // 코드 박스
                                                     Group {
