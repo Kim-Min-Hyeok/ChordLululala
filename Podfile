@@ -8,6 +8,7 @@ target 'ChordLululala' do
 
   # Pods for ChordLululala
   pod 'OpenCV', '~> 4.3'  
+  pod 'GoogleMLKit/TextRecognition', '2.2.0'
 
   target 'ChordLululalaTests' do
     inherit! :search_paths

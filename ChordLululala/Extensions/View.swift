@@ -7,7 +7,7 @@
 
 #if canImport(UIKit)
 import UIKit
-import SwiftUICore
+import SwiftUI
 #endif
 
 struct RoundedBorderShape: Shape {
