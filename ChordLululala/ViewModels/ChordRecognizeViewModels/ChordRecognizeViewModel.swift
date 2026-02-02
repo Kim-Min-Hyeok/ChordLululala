@@ -34,9 +34,11 @@ final class ChordRecognizeViewModel: ObservableObject {
     @Published var selectedPage = 0
     @Published var editingChord: ScoreChord? = nil
     @Published var highlightedChordIDs: Set<NSManagedObjectID> = []
-
+    
     // 키 인식되면, 바로 모달띄워야 하므로 viewModel로 관리
     @Published var showKeyTranspositionModal: Bool = false
+    
+    private let useMLKit: Bool = true //TODO: 나중에 지우기
     
     let sharpKeys: [String: Int] = [
         "C": 0, "G": 1, "D": 2, "A": 3, "E": 4, "B": 5, "F#": 6, "C#": 7
@@ -96,15 +98,15 @@ final class ChordRecognizeViewModel: ObservableObject {
         let allPages = ScorePageManager.shared.fetchPages(for: detail)
         let pdfPages = allPages.filter { $0.pageType == "pdf" }
         let images = PDFProcessor.extractPages(from: pdfURL)  // index: 0 ~ n-1
-
+        
         // 1. originalPageIndex 기준 정렬 (PDF 순서 기준)
         let sortedPages = pdfPages.sorted { ($0.originalPageIndex) < ($1.originalPageIndex) }
-
+        
         // 2. 매핑 가능한 범위만큼만 사용
         let minCount = min(images.count, sortedPages.count)
         let pagesToUse = Array(sortedPages.prefix(minCount))
         let imagesToUse = Array(images.prefix(minCount))
-
+        
         DispatchQueue.main.async {
             self.scorePages = pagesToUse
             self.pagesImages = imagesToUse
@@ -112,21 +114,28 @@ final class ChordRecognizeViewModel: ObservableObject {
             self.totalCount = minCount
             self.doneCount = 0
         }
-
+        
         // 3. OCR 수행 시도
         for idx in 0..<minCount {
             let pageEntity = pagesToUse[idx]
             let image = imagesToUse[idx]
-
-            ChordRecognizeManager.shared
-                .recognize(image: image)
+            
+            let recognizer: AnyPublisher<(UIImage, [RecognizedChord]), Never>
+            if useMLKit {
+                recognizer = MLKitChordRecognizeManager.shared.recognize(image: image)
+            } else {
+                recognizer = ChordRecognizeManager.shared.recognize(image: image)
+            }
+            
+//            ChordRecognizeManager.shared
+            recognizer
                 .timeout(.seconds(3), scheduler: DispatchQueue.main)
                 .receive(on: DispatchQueue.main)
                 .sink(
                     receiveCompletion: { _ in },
                     receiveValue: { [weak self] processedImage, recognizedChords in
                         guard let self = self else { return }
-
+                        
                         let chordEntities = recognizedChords.map { rc -> ScoreChord in
                             let ent = ScoreChord(context: CoreDataManager.shared.context)
                             ent.chord     = rc.text
@@ -137,7 +146,7 @@ final class ChordRecognizeViewModel: ObservableObject {
                             ent.scorePage = pageEntity
                             return ent
                         }
-
+                        
                         ScoreChordManager.shared.save(chords: chordEntities, for: pageEntity)
                         self.scoreChords[idx] = chordEntities
                         self.doneCount += 1
@@ -242,7 +251,7 @@ final class ChordRecognizeViewModel: ObservableObject {
             print("⚠️ scorePage에 context 없음")
             return
         }
-
+        
         let chordEnt = ScoreChord(context: context)
         chordEnt.chord = original
         chordEnt.x = Double(position.x)
@@ -264,7 +273,7 @@ final class ChordRecognizeViewModel: ObservableObject {
         let centered = CGPoint(x: imgSize.width / 2 - 30, y: imgSize.height / 2 - 12)
         addNewChord(text: text, to: pageIndex, position: centered)
     }
-
+    
     private func markHighlight(for chord: ScoreChord) {
         let id = chord.objectID
         highlightedChordIDs.insert(id)
@@ -272,7 +281,7 @@ final class ChordRecognizeViewModel: ObservableObject {
             self?.highlightedChordIDs.remove(id)
         }
     }
-
+    
     func finalizeChordRecognition(completion: @escaping () -> Void) {
         for (idx, chords) in scoreChords.enumerated() {
             let scorePage = scorePages[idx]
