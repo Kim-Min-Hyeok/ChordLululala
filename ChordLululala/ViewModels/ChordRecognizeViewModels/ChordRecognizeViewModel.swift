@@ -38,7 +38,8 @@ final class ChordRecognizeViewModel: ObservableObject {
     // 키 인식되면, 바로 모달띄워야 하므로 viewModel로 관리
     @Published var showKeyTranspositionModal: Bool = false
     
-    private let useMLKit: Bool = true //TODO: 나중에 지우기
+    private let useMLKit: Bool = false  //TODO: 나중에 지우기, 키변환 인식 성능 개선 테스트 용
+//    private let useMLKit: Bool = true
     
     let sharpKeys: [String: Int] = [
         "C": 0, "G": 1, "D": 2, "A": 3, "E": 4, "B": 5, "F#": 6, "C#": 7

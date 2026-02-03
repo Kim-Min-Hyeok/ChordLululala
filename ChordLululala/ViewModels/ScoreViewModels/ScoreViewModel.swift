@@ -454,31 +454,29 @@ final class ScoreViewModel: ObservableObject{
       }
     
     func resetChords(completion: (() -> Void)? = nil) {
-        // 현재 flat index 기준으로 해당 스코어만 reset
-        DispatchQueue.global(qos: .userInitiated).async {
-            guard let (si, _) = self.splitFlatIndex(self.selectedPageIndex) else {
-                DispatchQueue.main.async { completion?() }
-                return
-            }
-            let score = self.scores[si]
-            guard let detail = ScoreDetailManager.shared.fetchDetail(for: score) else {
-                DispatchQueue.main.async { completion?() }
-                return
-            }
-            let pages = ScorePageManager.shared.fetchPages(for: detail)
-            for page in pages {
-                let chords = ScoreChordManager.shared.fetchChords(for: page)
-                ScoreChordManager.shared.deleteChords(chords)
-            }
-            detail.key = nil
-            detail.t_key = nil
-            
-            DispatchQueue.main.async {
-                // 해당 스코어만 부분 로드
-                self.loadScoreData(at: si)
-                completion?()
-            }
+        // 메인 스레드에서 Core Data 작업 수행
+        guard let (si, _) = self.splitFlatIndex(self.selectedPageIndex) else {
+            completion?()
+            return
         }
+        let score = self.scores[si]
+        guard let detail = ScoreDetailManager.shared.fetchDetail(for: score) else {
+            completion?()
+            return
+        }
+        
+        // Core Data 삭제는 메인 스레드에서
+        let pages = ScorePageManager.shared.fetchPages(for: detail)
+        for page in pages {
+            let chords = ScoreChordManager.shared.fetchChords(for: page)
+            ScoreChordManager.shared.deleteChords(chords)
+        }
+        detail.key = nil
+        detail.t_key = nil
+        
+        // 리로드 후 completion 호출
+        loadScoreData(at: si)
+        completion?()
     }
     
     ///악보 보기 설정 (한페이지 /  여러페이지)

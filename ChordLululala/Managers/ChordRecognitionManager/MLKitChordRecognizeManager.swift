@@ -12,8 +12,11 @@ import Combine
 
 final class MLKitChordRecognizeManager {
     static let shared = MLKitChordRecognizeManager()
-    private let textRecognizer = TextRecognizer.textRecognizer()
-    private init (){}
+    private let textRecognizer: TextRecognizer
+    private init (){
+        let options = TextRecognizerOptions()
+        self.textRecognizer = TextRecognizer.textRecognizer(options: options)
+    }
     
     func recognize(image: UIImage) -> AnyPublisher<(UIImage,[RecognizedChord] ), Never> {
         Future { [weak self] promise in
@@ -22,6 +25,9 @@ final class MLKitChordRecognizeManager {
                 return
             }
             
+            // OpenCV 전처리 
+//            let processed = CVWrapper.processScore(image)
+
             // MLKit VisionImage 생성
             let visionImage = VisionImage(image: image)
             visionImage.orientation = image.imageOrientation
