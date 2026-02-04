@@ -22,7 +22,7 @@ struct FixingKeyModalView: View {
     @State private var transposeAmount: Int = 0
     
     let sharpKeyNames = ["C", "G", "D", "A", "E", "B", "F#", "C#"]
-    let flatKeyNames  = ["C", "F", "Bb", "Eb", "Ab", "Db", "Gb", "Cb"]
+    let flatKeyNames  = ["C", "F", "Bb", "Eb", "Ab", "Db", "Gb", "B"]
     
     var body: some View {
         VStack(spacing: 0) {
