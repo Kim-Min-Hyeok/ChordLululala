@@ -13,8 +13,6 @@ struct ScoreHeaderView: View {
     @EnvironmentObject var viewModel: ScoreViewModel
     @StateObject var orient  = OrientationViewModel()
     
-    @State var isAnnotationMode: Bool = false
-    
     // Pararameter
     @Binding var isRecognized: Bool
     let file : Content
@@ -58,10 +56,9 @@ struct ScoreHeaderView: View {
                 HStack(spacing: 7){
                     /// 펜슬
                     Button(action:{
-                        isAnnotationMode.toggle()
                         toggleAnnotationMode()
                     }){
-                        Image(isAnnotationMode ? "scoreheader_pencil_fill" : "scoreheader_pencil")
+                        Image(viewModel.isToolPickerVisible ? "scoreheader_pencil_fill" : "scoreheader_pencil")
                             .resizable()
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 36, height: 36)
