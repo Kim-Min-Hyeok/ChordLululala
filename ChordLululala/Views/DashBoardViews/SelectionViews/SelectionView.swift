@@ -49,6 +49,7 @@ struct SelectionView: View {
                 Spacer()
                 
                 Button(action: {
+                    viewModel.selectedContents.removeAll()
                     viewModel.isSelectionViewVisible = false
                 }) {
                     Text("완료")
