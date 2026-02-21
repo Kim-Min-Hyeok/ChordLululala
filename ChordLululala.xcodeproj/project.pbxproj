@@ -75,7 +75,7 @@
 			);
 			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
 		};
-		DB7CE60E2F49A0080061C6C5 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */ = {
+		DB7CE6012F49A0080061C6C6 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -106,7 +106,7 @@
 		DB7CE6012F49A0080061C6C5 /* ChordLululalaShareExtension */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				DB7CE60E2F49A0080061C6C5 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */,
+				DB7CE6012F49A0080061C6C6 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */,
 			);
 			path = ChordLululalaShareExtension;
 			sourceTree = "<group>";

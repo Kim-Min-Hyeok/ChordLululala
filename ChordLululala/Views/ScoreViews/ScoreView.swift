@@ -23,7 +23,7 @@ struct ScoreView : View {
                             viewModel.isSetlistOverViewModalView = true
                         },
                         toggleAnnotationMode: {
-                            viewModel.isAnnotationMode.toggle()
+                            viewModel.isToolPickerVisible.toggle()
                         },
                         presentAddPageModal: {
                             viewModel.isAdditionModalView = true
@@ -191,8 +191,11 @@ struct ScoreView : View {
                 }
             }
         }
-        .onChange(of: viewModel.isAnnotationMode) {
-            if !viewModel.isAnnotationMode {
+        .onChange(of: viewModel.selectedPageIndex) { oldIndex, _ in
+            viewModel.saveAnnotations(forFlatIndex: oldIndex)
+        }
+        .onChange(of: viewModel.isToolPickerVisible) {
+            if !viewModel.isToolPickerVisible {
                 NotificationCenter.default.post(name: .endAnnotation, object: nil)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     viewModel.saveAnnotations()

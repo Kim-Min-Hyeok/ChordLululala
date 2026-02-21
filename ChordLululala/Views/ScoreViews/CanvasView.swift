@@ -10,7 +10,7 @@ import PencilKit
 
 struct CanvasView: UIViewRepresentable {
     @Binding var drawing: PKDrawing
-    var isAnnotationMode: Bool
+    var isToolPickerVisible: Bool
     var sharedToolPicker: PKToolPicker
     var originalSize: CGSize
     var displaySize: CGSize
@@ -28,7 +28,7 @@ struct CanvasView: UIViewRepresentable {
         context.coordinator.canvasView = canvasView
         
         DispatchQueue.main.async {
-            if isAnnotationMode {
+            if isToolPickerVisible {
                 canvasView.becomeFirstResponder()
                 sharedToolPicker.setVisible(true, forFirstResponder: canvasView)
                 sharedToolPicker.selectedTool = canvasView.tool
@@ -42,7 +42,7 @@ struct CanvasView: UIViewRepresentable {
             canvasView.drawing = drawing
         }
         
-        if isAnnotationMode {
+        if isToolPickerVisible {
             sharedToolPicker.setVisible(true, forFirstResponder: canvasView)
             canvasView.becomeFirstResponder()
         } else {

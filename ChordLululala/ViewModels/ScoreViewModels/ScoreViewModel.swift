@@ -57,7 +57,7 @@ final class ScoreViewModel: ObservableObject{
     @Published var isChordResetModalView: Bool = false
     
     // MARK: 각종 모드
-    @Published var isAnnotationMode: Bool = false
+    @Published var isToolPickerVisible: Bool = false
     @Published var isPlayMode: Bool = false
     @Published var isSinglePageMode = true
     
@@ -436,22 +436,22 @@ final class ScoreViewModel: ObservableObject{
     }
     
     func saveAnnotations() {
-        guard selectedPageIndex < flatPages.count else { return }
-        // flat 인덱스 → (scoreIndex, pageIndex) 로 변환
-        guard let (scoreIdx, pageIdx) = splitFlatIndex(selectedPageIndex) else { return }
+        saveAnnotations(forFlatIndex: selectedPageIndex)
+    }
+
+    func saveAnnotations(forFlatIndex flatIndex: Int) {
+        guard flatIndex < flatPages.count else { return }
+        guard let (scoreIdx, pageIdx) = splitFlatIndex(flatIndex) else { return }
         let scoreContent = scores[scoreIdx]
 
-        // Core Data의 ScorePage 엔티티와 매핑된 로컬 인덱스 페이지
         guard let detail = ScoreDetailManager.shared.fetchDetail(for: scoreContent) else { return }
         let pages = ScorePageManager.shared.fetchPages(for: detail)
         guard pages.indices.contains(pageIdx) else { return }
 
-        // 현재 탭에 표시된 drawing (flat 인덱스로 관리)
-        let drawing = scoreAnnotationViewModel.pageDrawings[selectedPageIndex]
+        let drawing = scoreAnnotationViewModel.pageDrawings[flatIndex]
 
-        // 해당 페이지 하나만 저장
         _ = ScoreAnnotationManager.shared.saveAnnotation(drawing: drawing, for: pages[pageIdx])
-      }
+    }
     
     func resetChords(completion: (() -> Void)? = nil) {
         // 메인 스레드에서 Core Data 작업 수행

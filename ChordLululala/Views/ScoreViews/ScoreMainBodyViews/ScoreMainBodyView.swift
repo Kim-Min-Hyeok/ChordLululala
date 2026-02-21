@@ -131,13 +131,13 @@ struct ScoreMainBodyView: View {
                                                         annotationViewModel.updateDrawing(newDrawing, forPage: realIndex)
                                                     }
                                                 ),
-                                                isAnnotationMode: viewModel.isAnnotationMode,
+                                                isToolPickerVisible: viewModel.isToolPickerVisible,
                                                 sharedToolPicker: toolPicker,
                                                 originalSize: uiImage.size,
                                                 displaySize: displaySize
                                             )
                                             .frame(width: displaySize.width, height: displaySize.height)
-                                            .allowsHitTesting(viewModel.isAnnotationMode)
+                                            .allowsHitTesting(!viewModel.isPlayMode)
                                         }
                                         .frame(width: displaySize.width, height: displaySize.height)
                                         
@@ -198,6 +198,9 @@ struct ScoreMainBodyView: View {
                 Button {
                     withAnimation {
                         zoomViewModel.reset()
+                        if !viewModel.isPlayMode {
+                            viewModel.isToolPickerVisible = false
+                        }
                         viewModel.isPlayMode.toggle()
                     }
                 } label: {
