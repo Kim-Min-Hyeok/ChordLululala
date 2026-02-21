@@ -191,8 +191,9 @@ final class DashBoardViewModel: ObservableObject {
         }
         
         importFromDropboxAndLoadContents()
+        importFromSharedInbox()
     }
-    
+
     func goToSetlistPreservingFolder() {
         preserveCurrentParent = true
         dashboardContents = .setlist
@@ -730,13 +731,25 @@ final class DashBoardViewModel: ObservableObject {
         guard let parent = currentParent else {
             return
         }
-        
+
         return DropboxImportManager.shared
             .syncCurrentFolderWithFileSystem(parent: parent)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.loadContents()
                 self?.loadMoveDestinations()
+            }
+            .store(in: &cancellables)
+    }
+
+    func importFromSharedInbox() {
+        SharedInboxManager.shared.importSharedInboxFiles()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] didImport in
+                if didImport {
+                    self?.loadContents()
+                    self?.loadMoveDestinations()
+                }
             }
             .store(in: &cancellables)
     }

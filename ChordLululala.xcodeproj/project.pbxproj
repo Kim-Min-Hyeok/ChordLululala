@@ -10,6 +10,7 @@
 		160EB9BCC50A4BF5DAD1C014 /* Pods_ChordLululala.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 71E971CD1EB430225634557C /* Pods_ChordLululala.framework */; };
 		A39870159B1F0EF8AE77F741 /* Pods_ChordLululalaTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2D6BF49E98047D5DE0C900D5 /* Pods_ChordLululalaTests.framework */; };
 		ABE60BF34287B4F30DBBB1C2 /* Pods_ChordLululala_ChordLululalaUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ED50743422B50CEFB7851F40 /* Pods_ChordLululala_ChordLululalaUITests.framework */; };
+		DB7CE60A2F49A0080061C6C5 /* ChordLululalaShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DB7CE6002F49A0080061C6C5 /* ChordLululalaShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,7 +28,28 @@
 			remoteGlobalIDString = DB32EEBB2D4CC838008C113B;
 			remoteInfo = ChordLululala;
 		};
+		DB7CE6082F49A0080061C6C5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB32EEB42D4CC838008C113B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB7CE5FF2F49A0080061C6C5;
+			remoteInfo = ChordLululalaShareExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DB7CE60F2F49A0080061C6C5 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				DB7CE60A2F49A0080061C6C5 /* ChordLululalaShareExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		050B8E0C49B66B4A8716246D /* Pods-ChordLululalaTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ChordLululalaTests.release.xcconfig"; path = "Target Support Files/Pods-ChordLululalaTests/Pods-ChordLululalaTests.release.xcconfig"; sourceTree = "<group>"; };
@@ -41,6 +63,7 @@
 		DB32EEBC2D4CC838008C113B /* ChordLululala.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ChordLululala.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChordLululalaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB7CE6002F49A0080061C6C5 /* ChordLululalaShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ChordLululalaShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED50743422B50CEFB7851F40 /* Pods_ChordLululala_ChordLululalaUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ChordLululala_ChordLululalaUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -51,6 +74,13 @@
 				Info.plist,
 			);
 			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
+		};
+		DB7CE60E2F49A0080061C6C5 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DB7CE5FF2F49A0080061C6C5 /* ChordLululalaShareExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -65,16 +95,20 @@
 		};
 		DB32EED62D4CC83C008C113B /* ChordLululalaTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ChordLululalaTests;
 			sourceTree = "<group>";
 		};
 		DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ChordLululalaUITests;
+			sourceTree = "<group>";
+		};
+		DB7CE6012F49A0080061C6C5 /* ChordLululalaShareExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DB7CE60E2F49A0080061C6C5 /* Exceptions for "ChordLululalaShareExtension" folder in "ChordLululalaShareExtension" target */,
+			);
+			path = ChordLululalaShareExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -101,6 +135,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				ABE60BF34287B4F30DBBB1C2 /* Pods_ChordLululala_ChordLululalaUITests.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB7CE5FD2F49A0080061C6C5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +177,7 @@
 				DB32EEBE2D4CC838008C113B /* ChordLululala */,
 				DB32EED62D4CC83C008C113B /* ChordLululalaTests */,
 				DB32EEE02D4CC83C008C113B /* ChordLululalaUITests */,
+				DB7CE6012F49A0080061C6C5 /* ChordLululalaShareExtension */,
 				DB32EEBD2D4CC838008C113B /* Products */,
 				D8CC04D83FCE88E1AA9C7BFF /* Pods */,
 				C99EA8D5E3D7958B3F0CB69E /* Frameworks */,
@@ -148,6 +190,7 @@
 				DB32EEBC2D4CC838008C113B /* ChordLululala.app */,
 				DB32EED32D4CC83B008C113B /* ChordLululalaTests.xctest */,
 				DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */,
+				DB7CE6002F49A0080061C6C5 /* ChordLululalaShareExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -165,10 +208,12 @@
 				DB32EEBA2D4CC838008C113B /* Resources */,
 				459C108A283D30D123490EA3 /* [CP] Embed Pods Frameworks */,
 				77E39C312BFAFA703EE25F3A /* [CP] Copy Pods Resources */,
+				DB7CE60F2F49A0080061C6C5 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DB7CE6092F49A0080061C6C5 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DB32EEBE2D4CC838008C113B /* ChordLululala */,
@@ -224,6 +269,28 @@
 			productReference = DB32EEDD2D4CC83C008C113B /* ChordLululalaUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		DB7CE5FF2F49A0080061C6C5 /* ChordLululalaShareExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DB7CE60B2F49A0080061C6C5 /* Build configuration list for PBXNativeTarget "ChordLululalaShareExtension" */;
+			buildPhases = (
+				DB7CE5FC2F49A0080061C6C5 /* Sources */,
+				DB7CE5FD2F49A0080061C6C5 /* Frameworks */,
+				DB7CE5FE2F49A0080061C6C5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DB7CE6012F49A0080061C6C5 /* ChordLululalaShareExtension */,
+			);
+			name = ChordLululalaShareExtension;
+			packageProductDependencies = (
+			);
+			productName = ChordLululalaShareExtension;
+			productReference = DB7CE6002F49A0080061C6C5 /* ChordLululalaShareExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -231,7 +298,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1610;
+				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					DB32EEBB2D4CC838008C113B = {
@@ -245,6 +312,9 @@
 					DB32EEDC2D4CC83C008C113B = {
 						CreatedOnToolsVersion = 16.1;
 						TestTargetID = DB32EEBB2D4CC838008C113B;
+					};
+					DB7CE5FF2F49A0080061C6C5 = {
+						CreatedOnToolsVersion = 16.2;
 					};
 				};
 			};
@@ -265,6 +335,7 @@
 				DB32EEBB2D4CC838008C113B /* ChordLululala */,
 				DB32EED22D4CC83B008C113B /* ChordLululalaTests */,
 				DB32EEDC2D4CC83C008C113B /* ChordLululalaUITests */,
+				DB7CE5FF2F49A0080061C6C5 /* ChordLululalaShareExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -285,6 +356,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		DB32EEDB2D4CC83C008C113B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DB7CE5FE2F49A0080061C6C5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -452,6 +530,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DB7CE5FC2F49A0080061C6C5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -464,6 +549,11 @@
 			isa = PBXTargetDependency;
 			target = DB32EEBB2D4CC838008C113B /* ChordLululala */;
 			targetProxy = DB32EEDE2D4CC83C008C113B /* PBXContainerItemProxy */;
+		};
+		DB7CE6092F49A0080061C6C5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB7CE5FF2F49A0080061C6C5 /* ChordLululalaShareExtension */;
+			targetProxy = DB7CE6082F49A0080061C6C5 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -746,6 +836,64 @@
 			};
 			name = Release;
 		};
+		DB7CE60C2F49A0080061C6C5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ChordLululalaShareExtension/ChordLululalaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 55JW9PZ4J9;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChordLululalaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ChordLululalaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.minzzzun.NoteFlow.ChordLululalaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DB7CE60D2F49A0080061C6C5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ChordLululalaShareExtension/ChordLululalaShareExtension.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 55JW9PZ4J9;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ChordLululalaShareExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = ChordLululalaShareExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.minzzzun.NoteFlow.ChordLululalaShareExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -781,6 +929,15 @@
 			buildConfigurations = (
 				DB32EEEF2D4CC83C008C113B /* Debug */,
 				DB32EEF02D4CC83C008C113B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DB7CE60B2F49A0080061C6C5 /* Build configuration list for PBXNativeTarget "ChordLululalaShareExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB7CE60C2F49A0080061C6C5 /* Debug */,
+				DB7CE60D2F49A0080061C6C5 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
