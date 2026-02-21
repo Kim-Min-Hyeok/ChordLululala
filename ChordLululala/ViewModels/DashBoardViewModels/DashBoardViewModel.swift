@@ -144,6 +144,15 @@ final class DashBoardViewModel: ObservableObject {
     @Published var nameOfSetlistCreating: String = ""
     private var preserveCurrentParent: Bool = false
     
+    // MARK: - 업로드 진행률 관련
+    @Published var isUploadingFiles: Bool = false
+    @Published var uploadTotalCount: Int = 0
+    @Published var uploadCompletedCount: Int = 0
+    private var isUploadCancelled: Bool = false
+    private var uploadQueue: [URL] = []
+    private var isProcessingUploadQueue: Bool = false
+    private var isPickerDoneQueuing: Bool = false
+
     // MARK: - 편집&삭제 모달 관련
     @Published var isRenameModalVisible: Bool = false
     @Published var selectedContent: Content? = nil
@@ -331,7 +340,7 @@ final class DashBoardViewModel: ObservableObject {
     
     func uploadFile(with url: URL) {
         guard let parent = currentParent else { return }
-        
+
         ContentManager.shared
             .createScore(with: url, currentParent: parent, dashboardContents: dashboardContents)
             .compactMap { $0 }
@@ -349,6 +358,141 @@ final class DashBoardViewModel: ObservableObject {
                 self?.loadContents()
             }
             .store(in: &cancellables)
+    }
+
+    func prepareUpload(totalCount: Int) {
+        isUploadCancelled = false
+        uploadTotalCount = totalCount
+        uploadCompletedCount = 0
+        isUploadingFiles = true
+        uploadQueue.removeAll()
+        isProcessingUploadQueue = false
+        isPickerDoneQueuing = false
+    }
+
+    func enqueueUploadFile(_ url: URL) {
+        uploadQueue.append(url)
+        if !isProcessingUploadQueue {
+            processNextInQueue()
+        }
+    }
+
+    func markPickerComplete() {
+        isPickerDoneQueuing = true
+        checkUploadCompletion()
+    }
+
+    func cancelUpload() {
+        isUploadCancelled = true
+        isUploadingFiles = false
+        uploadQueue.removeAll()
+        isProcessingUploadQueue = false
+    }
+
+    private func processNextInQueue() {
+        guard !isUploadCancelled else {
+            isUploadingFiles = false
+            loadContents()
+            return
+        }
+
+        guard !uploadQueue.isEmpty else {
+            isProcessingUploadQueue = false
+            checkUploadCompletion()
+            return
+        }
+
+        isProcessingUploadQueue = true
+        let url = uploadQueue.removeFirst()
+
+        let ext = url.pathExtension.lowercased()
+        if ext == "png" || ext == "jpg" || ext == "jpeg" {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                let pdfURL = self?.convertImageToPDF(imageURL: url)
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if let pdfURL = pdfURL {
+                        self.performUpload(url: pdfURL)
+                    } else {
+                        self.uploadCompletedCount += 1
+                        self.isProcessingUploadQueue = false
+                        self.processNextInQueue()
+                    }
+                }
+            }
+            return
+        }
+
+        performUpload(url: url)
+    }
+
+    private func performUpload(url: URL) {
+        guard let parent = currentParent else {
+            isProcessingUploadQueue = false
+            isUploadingFiles = false
+            return
+        }
+
+        ContentManager.shared
+            .createScore(with: url, currentParent: parent, dashboardContents: dashboardContents)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newContent in
+                guard let self = self, let newContent = newContent else {
+                    self?.uploadCompletedCount += 1
+                    self?.isProcessingUploadQueue = false
+                    self?.processNextInQueue()
+                    return
+                }
+
+                ScoreDetailManager.shared.createScoreDetail(for: newContent)
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] detail in
+                        guard let self = self else { return }
+
+                        guard let pdfURL = ScoreDetailManager.shared.getContentURL(for: detail) else {
+                            self.uploadCompletedCount += 1
+                            self.isProcessingUploadQueue = false
+                            self.processNextInQueue()
+                            return
+                        }
+
+                        ScorePageManager.shared.createPages(for: detail, fileURL: pdfURL)
+                            .receive(on: DispatchQueue.main)
+                            .sink { [weak self] in
+                                self?.uploadCompletedCount += 1
+                                self?.isProcessingUploadQueue = false
+                                self?.processNextInQueue()
+                            }
+                            .store(in: &self.cancellables)
+                    }
+                    .store(in: &self.cancellables)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func checkUploadCompletion() {
+        if isPickerDoneQueuing && uploadQueue.isEmpty && !isProcessingUploadQueue {
+            isUploadingFiles = false
+            loadContents()
+        }
+    }
+
+    private func convertImageToPDF(imageURL: URL) -> URL? {
+        guard let image = UIImage(contentsOfFile: imageURL.path) else { return nil }
+        let pdfRenderer = UIGraphicsPDFRenderer(bounds: CGRect(origin: .zero, size: image.size))
+        let pdfData = pdfRenderer.pdfData { context in
+            context.beginPage()
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+        let tempDir = FileManager.default.temporaryDirectory
+        let pdfURL = tempDir.appendingPathComponent(UUID().uuidString).appendingPathExtension("pdf")
+        do {
+            try pdfData.write(to: pdfURL)
+            return pdfURL
+        } catch {
+            print("PDF 변환 실패: \(error)")
+            return nil
+        }
     }
     
     func createFolder(folderName: String) {

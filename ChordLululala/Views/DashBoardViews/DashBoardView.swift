@@ -140,18 +140,34 @@ struct DashboardView: View {
                 
                 // MARK: 파일 생성 시트 (앨범 Picker)
                 .sheet(isPresented: $viewModel.isAlbumPickerVisible) {
-                    PhotoPicker { pickedURL in
-                        viewModel.uploadFile(with: pickedURL)
-                        viewModel.isAlbumPickerVisible = false
-                    }
+                    PhotoPicker(
+                        onStart: { count in
+                            viewModel.prepareUpload(totalCount: count)
+                            viewModel.isAlbumPickerVisible = false
+                        },
+                        onFileReady: { url in
+                            viewModel.enqueueUploadFile(url)
+                        },
+                        onComplete: {
+                            viewModel.markPickerComplete()
+                        }
+                    )
                 }
-                
+
                 // MARK: 파일 생성 시트 (파일 Picker)
                 .sheet(isPresented: $viewModel.isPDFPickerVisible) {
-                    FilePicker { selectedURL in
-                        viewModel.uploadFile(with: selectedURL)
-                        viewModel.isPDFPickerVisible = false
-                    }
+                    FilePicker(
+                        onStart: { count in
+                            viewModel.prepareUpload(totalCount: count)
+                            viewModel.isPDFPickerVisible = false
+                        },
+                        onFileReady: { url in
+                            viewModel.enqueueUploadFile(url)
+                        },
+                        onComplete: {
+                            viewModel.markPickerComplete()
+                        }
+                    )
                 }
                 // MARK: 셋리스트 생성 모달
                 if viewModel.isCreateSetlistModalVisible {
@@ -261,6 +277,14 @@ struct DashboardView: View {
                     }
                 )
                 .environmentObject(mypageViewModel)
+            }
+
+            // MARK: 파일 업로드 진행률 모달
+            if viewModel.isUploadingFiles {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                UploadProgressModalView()
+                    .environmentObject(viewModel)
             }
             
             // MARK: 휴지통 이동 모달
