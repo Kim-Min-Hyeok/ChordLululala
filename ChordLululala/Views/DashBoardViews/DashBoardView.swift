@@ -327,6 +327,7 @@ struct DashboardView: View {
             .navigationBarHidden(true)
             .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                 viewModel.importFromDropboxAndLoadContents()
+                viewModel.importFromSharedInbox()
             }
     }
     
