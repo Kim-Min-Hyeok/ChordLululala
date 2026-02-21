@@ -15,6 +15,12 @@ struct FileContextMenuView: View {
     var body: some View {
         VStack(spacing: 0) {
             Button {
+                viewModel.selectedContents = [content]
+                viewModel.isSelectionViewVisible = true
+            } label: {
+                Label("선택", systemImage: "checkmark.circle")
+            }
+            Button {
                 viewModel.selectedContent = content
                 viewModel.isRenameModalVisible = true
             } label: {

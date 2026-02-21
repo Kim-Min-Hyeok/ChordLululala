@@ -59,9 +59,7 @@ struct DashboardView: View {
                                         SelectionView(onMove: handleMoveAction)
                                     }
                                     // MARK: 파일/폴더 리스트/그리드 뷰
-                                    ScrollView {
-                                        ContentListView(isListView: viewModel.isListView)
-                                    }
+                                    ContentListView(isListView: viewModel.isListView)
                                     .padding(.top, viewModel.isSelectionViewVisible ? (viewModel.isLandscape ? 50 : 94) : (viewModel.isLandscape ? 75 : 72))
                                     Spacer()
                                 }

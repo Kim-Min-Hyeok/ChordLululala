@@ -6,6 +6,7 @@
 //
 
 import Combine
+import CoreData
 import SwiftUI
 
 enum DashboardContents {
@@ -102,6 +103,8 @@ final class DashBoardViewModel: ObservableObject {
         didSet {
             currentFilter = .all
             selectedSort = .date
+            selectedContents.removeAll()
+            isSelectionViewVisible = false
             // 대시보드 종류에 따라 기본 폴더를 지정
             switch dashboardContents {
             case .score:
@@ -164,6 +167,12 @@ final class DashBoardViewModel: ObservableObject {
     @Published var selectedContents: [Content] = []
     @Published var moveDestinations: [Content] = []
     @Published var selectedDestination: Content? = nil
+
+    // MARK: - 드래그 다중 선택 관련
+    @Published var isDragSelecting: Bool = false
+    private var preDragSelectedIDs: Set<NSManagedObjectID> = []
+    private var dragStartIndex: Int?
+    private var dragIsAdding: Bool = true  // true=선택, false=해제
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -199,6 +208,48 @@ final class DashBoardViewModel: ObservableObject {
         dashboardContents = .setlist
     }
     
+    // MARK: - 드래그 다중 선택 메서드 (범위 기반, 사진 앱 방식)
+    func startDragSelection(at objectID: NSManagedObjectID) {
+        isDragSelecting = true
+        preDragSelectedIDs = Set(selectedContents.map { $0.objectID })
+        dragStartIndex = sortedContents.firstIndex(where: { $0.objectID == objectID })
+        // 시작 항목이 이미 선택 상태 → 해제 모드, 미선택 → 선택 모드
+        dragIsAdding = !preDragSelectedIDs.contains(objectID)
+    }
+
+    func updateDragSelection(with objectID: NSManagedObjectID) {
+        guard isDragSelecting, let startIdx = dragStartIndex else { return }
+        guard let currentIdx = sortedContents.firstIndex(where: { $0.objectID == objectID }) else { return }
+
+        let rangeStart = min(startIdx, currentIdx)
+        let rangeEnd = max(startIdx, currentIdx)
+        let rangeIndices = Set(rangeStart...rangeEnd)
+
+        var newSelection: [Content] = []
+        for (index, content) in sortedContents.enumerated() {
+            let inRange = rangeIndices.contains(index)
+            let wasSelected = preDragSelectedIDs.contains(content.objectID)
+
+            let shouldBeSelected: Bool
+            if inRange {
+                shouldBeSelected = dragIsAdding
+            } else {
+                shouldBeSelected = wasSelected
+            }
+
+            if shouldBeSelected {
+                newSelection.append(content)
+            }
+        }
+        selectedContents = newSelection
+    }
+
+    func endDragSelection() {
+        isDragSelecting = false
+        preDragSelectedIDs = []
+        dragStartIndex = nil
+    }
+
     func loadMoveDestinations() {
         var destinations: [Content] = []
         
@@ -292,6 +343,8 @@ final class DashBoardViewModel: ObservableObject {
         if isSearching {
             exitSearch()
         }
+        selectedContents.removeAll()
+        isSelectionViewVisible = false
         guard let current = currentParent else {
             print("현재 베이스 디렉토리입니다. 뒤로 갈 수 없습니다.")
             return
